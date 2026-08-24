@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+  body {
+    @apply bg-surface-subtle text-ink-900 font-sans text-base;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply text-brand-900 font-semibold tracking-tight;
+  }
+  ::selection {
+    @apply bg-brand-200;
+  }
+}
+
+@layer components {
+  /* Shared surface used by cards, panels and table containers across every module */
+  .surface-panel {
+    @apply bg-surface-base border border-surface-border rounded-md shadow-card;
+  }
+
+  .page-heading {
+    @apply text-2xl font-semibold text-brand-900;
+  }
+
+  .page-subheading {
+    @apply text-sm text-ink-500;
+  }
+}
