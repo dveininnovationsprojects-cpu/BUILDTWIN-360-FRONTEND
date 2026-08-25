@@ -6,3 +6,23 @@ export interface ProjectHealth {
   delayRisk: string;
   forecastCompletion: string;
 }
+
+export interface KPIDefinition {
+  id: string;
+  code: string;
+  name: string;
+  category: 'Progress' | 'Schedule' | 'Cost' | 'Labour' | 'Material' | 'Supplier' | 'Quality' | 'Risk' | 'Forecast' | 'Health';
+  businessPurpose: string;
+  formula: string;
+  sourceTables: string[];
+  refreshTrigger: string;
+  exclusions: string;
+  ownerRole: string;
+  validationExample: {
+    project: string;
+    scenario: string;
+    calculation: string;
+    result: string;
+  };
+}
+

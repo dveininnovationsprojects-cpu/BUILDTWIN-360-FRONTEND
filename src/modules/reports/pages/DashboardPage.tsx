@@ -1,4 +1,5 @@
 import { StatCard, Card, CardHeader, CardTitle, ProgressBar } from '@/design-system';
+import { BusinessCalculationLogicModule } from '@/modules/analytics/components/BusinessCalculationLogicModule';
 
 // FR-130..133: executive/project/site dashboard shell. Wire each StatCard's
 // value to GET /analytics/project-health and GET /projects/{id}/dashboard once available.
@@ -31,6 +32,10 @@ export function DashboardPage() {
           </div>
         </div>
       </Card>
+
+      {/* Business Calculation Logic Alignment with Domain Rules */}
+      <BusinessCalculationLogicModule />
     </div>
   );
 }
+
