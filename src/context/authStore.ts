@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import axios from 'axios';
-import type { Role } from '@/constants/roles';
+import { ROLES, type Role } from '@/constants/roles';
 
 export interface AuthUser {
   id: string;
@@ -45,7 +45,7 @@ export const useAuthStore = create<AuthState>()(
               id: 'demo-admin-1',
               name: 'Demo Admin',
               email: DEMO_LOGIN.email,
-              roles: [import('@/constants/roles').then((m) => m.ROLES.SYSTEM_ADMIN).catch(() => 'SYSTEM_ADMIN') as never],
+              roles: [ROLES.SYSTEM_ADMIN],
               projectIds: ['demo-project-1'],
             },
             accessToken: 'demo-access-token',

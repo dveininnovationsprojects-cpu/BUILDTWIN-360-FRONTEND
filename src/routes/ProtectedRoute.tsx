@@ -8,7 +8,8 @@ import type { Role } from '@/constants/roles';
  */
 export function ProtectedRoute({ roles }: { roles?: Role[] }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const allowed = roles ? useHasRole(...roles) : true;
+  const hasRole = useHasRole(...(roles ?? []));
+  const allowed = roles ? hasRole : true;
 
   if (!roles && !isAuthenticated) return <Outlet />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;

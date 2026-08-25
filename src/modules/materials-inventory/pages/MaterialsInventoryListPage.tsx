@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Table, StatusPill, Button, type Column } from '@/design-system';
+import { Table, Button, type Column } from '@/design-system';
 import { materialsInventoryApi } from '../api/materialsInventoryApi';
 import type { Material } from '../types';
 
