@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/design-system/utils/cn';
 import { NAV_ITEMS } from '@/constants/navigation';
-import { useAuthStore, useHasRole } from '@/context/authStore';
+import { useHasRole } from '@/context/authStore';
 
 export function Sidebar({
   isOpen,
@@ -13,8 +13,6 @@ export function Sidebar({
   onToggle: () => void;
   onNavigate: () => void;
 }) {
-  const user = useAuthStore((s) => s.user);
-
   return (
     <>
       <div
@@ -46,11 +44,6 @@ export function Sidebar({
           ))}
         </nav>
 
-        {user && isOpen && (
-          <div className="border-t border-white/10 px-4 py-4 text-xs text-brand-300">
-            Signed in as <span className="font-medium text-brand-100">{user.name}</span>
-          </div>
-        )}
       </aside>
     </>
   );
