@@ -1,0 +1,7 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { StatCard, Card, CardHeader, CardTitle, ProgressBar } from '@/design-system';
+// FR-130..133: executive/project/site dashboard shell. Wire each StatCard's
+// value to GET /analytics/project-health and GET /projects/{id}/dashboard once available.
+export function DashboardPage() {
+    return (_jsxs("div", { className: "flex flex-col gap-6", children: [_jsxs("div", { children: [_jsx("h1", { className: "page-heading", children: "Executive Dashboard" }), _jsx("p", { className: "page-subheading", children: "Portfolio health across all active projects." })] }), _jsxs("div", { className: "grid grid-cols-2 gap-4 md:grid-cols-4", children: [_jsx(StatCard, { label: "Active Projects", value: "\u2014" }), _jsx(StatCard, { label: "Physical Progress", value: "\u2014%" }), _jsx(StatCard, { label: "Open Quality Issues", value: "\u2014", deltaTone: "danger" }), _jsx(StatCard, { label: "Material Alerts", value: "\u2014", deltaTone: "warning" })] }), _jsxs(Card, { children: [_jsx(CardHeader, { children: _jsx(CardTitle, { children: "Project Health" }) }), _jsx("div", { className: "flex flex-col gap-3", children: _jsxs("div", { children: [_jsxs("div", { className: "mb-1 flex justify-between text-sm text-ink-500", children: [_jsx("span", { children: "Padur Independent Residence \u2014 PRJ-001" }), _jsx("span", { children: "\u2014%" })] }), _jsx(ProgressBar, { value: 0 })] }) })] })] }));
+}

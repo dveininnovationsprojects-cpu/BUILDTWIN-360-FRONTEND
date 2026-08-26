@@ -5,7 +5,7 @@ import type { Config } from 'tailwindcss';
 // authority/structure, a working blue for interactive elements, and a
 // status set used consistently across DPR, quality, material and cost modules.
 export default {
-  content: ['./index.html', './src/**/*.{ts,tsx}'],
+  content: ['./index.html', './src/**/*.{ts,js,jsx}'],
   darkMode: 'class',
   theme: {
     extend: {

@@ -261,7 +261,7 @@ for (const mod of modules) {
       `};\n`,
   );
 
-  // pages/<Module>ListPage.tsx
+  // pages/<Module>ListPage.jsx
   const columnsCode = mod.columns
     .map((c) =>
       c.status
@@ -271,15 +271,15 @@ for (const mod of modules) {
     .join('\n');
 
   fs.writeFileSync(
-    path.join(dir, 'pages', `${PageName}.tsx`),
+    path.join(dir, 'pages', `${PageName}.jsx`),
     `import { useQuery } from '@tanstack/react-query';\n` +
-      `import { Table, StatusPill, Button, type Column } from '@/design-system';\n` +
+      `import { Table, StatusPill, Button } from '@/design-system';\n` +
       `import { ${moduleCamel}Api } from '../api/${moduleCamel}Api';\n` +
-      `import type { ${Entity} } from '../types';\n\n` +
+      `\n` +
       `// ${mod.description}\n` +
       `export function ${PageName}() {\n` +
       `  const { data, isLoading } = useQuery({ queryKey: ['${mod.key}'], queryFn: () => ${moduleCamel}Api.list() });\n\n` +
-      `  const columns: Column<${Entity}>[] = [\n${columnsCode}\n  ];\n\n` +
+      `  const columns = [\n${columnsCode}\n  ];\n\n` +
       `  return (\n` +
       `    <div className="flex flex-col gap-4">\n` +
       `      <div className="flex items-center justify-between">\n` +
@@ -295,12 +295,12 @@ for (const mod of modules) {
       `}\n`,
   );
 
-  // routes.tsx
+  // routes.jsx
   fs.writeFileSync(
-    path.join(dir, 'routes.tsx'),
-    `import type { RouteObject } from 'react-router-dom';\n` +
+    path.join(dir, 'routes.jsx'),
+    `` +
       `import { ${PageName} } from './pages/${PageName}';\n\n` +
-      `export const ${moduleCamel}Routes: RouteObject[] = [\n` +
+      `export const ${moduleCamel}Routes = [\n` +
       `  { path: '${mod.path}', element: <${PageName} /> },\n` +
       `];\n`,
   );

@@ -44,7 +44,7 @@ modules/<module-name>/
   api/         one file per module, thin axios wrappers over the module's REST endpoints
   pages/       route-level screens (list, detail, form)
   components/  module-local components not generic enough for the design system
-  routes.tsx   this module's RouteObject[], plus an allowedRoles export where access is restricted
+  routes.jsx   this module's route objects, plus an allowedRoles export where access is restricted
   types.ts     TypeScript interfaces mirroring the module's backend DTOs
 ```
 
@@ -69,15 +69,15 @@ The 16 modules, mapped to the backend's `domain` packages:
 | `reports` | `reports` | Reporting |
 | `audit` | `audit` | Audit trail — role-restricted |
 
-Each module is registered once in `src/routes/AppRoutes.tsx` and once in `src/constants/navigation.ts` (`NAV_ITEMS`) — that's the whole wiring surface for adding a new module.
+Each module is registered once in `src/routes/AppRoutes.jsx` and once in `src/constants/navigation.ts` (`NAV_ITEMS`) — that's the whole wiring surface for adding a new module.
 
 ## App shell & routing
 
-- `src/layouts/AppShell.tsx` — sidebar + topbar + content outlet, wraps all authenticated routes
-- `src/layouts/Sidebar.tsx`, `Topbar.tsx` — read `NAV_ITEMS`, filter by the current user's role
-- `src/layouts/AuthLayout.tsx` — unauthenticated shell for login/forgot-password
-- `src/routes/ProtectedRoute.tsx` — redirects to login if unauthenticated; optionally gates a subtree by `roles`
-- `src/routes/AppRoutes.tsx` — top-level route tree, imports every module's `routes.tsx`
+- `src/layouts/AppShell.jsx` — sidebar + topbar + content outlet, wraps all authenticated routes
+- `src/layouts/Sidebar.jsx`, `Topbar.jsx` — read `NAV_ITEMS`, filter by the current user's role
+- `src/layouts/AuthLayout.jsx` — unauthenticated shell for login/forgot-password
+- `src/routes/ProtectedRoute.jsx` — redirects to login if unauthenticated; optionally gates a subtree by `roles`
+- `src/routes/AppRoutes.jsx` — top-level route tree, imports every module's `routes.jsx`
 
 ## Roles (`src/constants/roles.ts`)
 
@@ -89,7 +89,7 @@ Ten roles from the requirements spec (Director, Project Manager, Site Engineer, 
 - `src/lib/queryClient.ts` — shared TanStack Query client
 - `src/context/authStore.ts` — Zustand store for the logged-in session
 - Path alias `@/*` → `src/*` (see `tsconfig.json` / `vite.config.ts`) — always import via `@/...`, never relative-path across modules
-- `scripts/generate-modules.mjs` — scaffolds a new module (api/pages/components/routes.tsx/types.ts) from a name, so new domain modules stay consistent with the existing 16
+- `scripts/generate-modules.mjs` — scaffolds a new module (api/pages/components/routes.jsx/types.ts) from a name, so new domain modules stay consistent with the existing 16
 
 ## Adding a new module
 
@@ -97,4 +97,4 @@ Ten roles from the requirements spec (Director, Project Manager, Site Engineer, 
 node scripts/generate-modules.mjs <module-name>
 ```
 
-Then register its `routes.tsx` export in `AppRoutes.tsx` and add a `NAV_ITEMS` entry in `navigation.ts`.
+Then register its `routes.jsx` export in `AppRoutes.jsx` and add a `NAV_ITEMS` entry in `navigation.ts`.
