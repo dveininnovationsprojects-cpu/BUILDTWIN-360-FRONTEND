@@ -8,6 +8,7 @@
   }
   body {
     @apply bg-surface-subtle text-ink-900 font-sans text-base;
+    background-image: radial-gradient(circle at 100% 0%, rgba(47, 111, 237, 0.06), transparent 28rem);
   }
   h1,
   h2,
@@ -26,8 +27,16 @@
     @apply bg-surface-base border border-surface-border rounded-md shadow-card;
   }
 
+  .scrollbar-hidden {
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+
   .page-heading {
-    @apply text-2xl font-semibold text-brand-900;
+    @apply text-2xl font-bold text-brand-900;
   }
 
   .page-subheading {

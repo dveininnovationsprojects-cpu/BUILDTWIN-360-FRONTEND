@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Button, Input } from '@/design-system';
-import { useAuthStore } from '@/context/authStore';
+import { DEMO_ACCOUNTS, ROLE_LABELS, useAuthStore } from '@/context/authStore';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
 import type { LoginPayload } from '../types';
 
@@ -47,6 +47,20 @@ export function LoginPage() {
       <Button type="submit" isLoading={isSubmitting} className="mt-2 w-full">
         Sign in
       </Button>
+      <Button type="button" variant="outline" className="w-full" onClick={() => navigate('/register')}>
+        Register
+      </Button>
+      <details className="rounded-md border border-surface-border bg-surface-subtle px-3 py-2 text-xs text-ink-500">
+        <summary className="cursor-pointer font-semibold text-brand-800">Demo role access</summary>
+        <div className="mt-3 space-y-2">
+          {DEMO_ACCOUNTS.map((account) => (
+            <div key={account.email} className="grid grid-cols-[1fr_auto] gap-2 border-t border-surface-border pt-2">
+              <span>{ROLE_LABELS[account.role]}</span>
+              <code className="text-right text-[11px] text-ink-700">{account.email}<br />{account.password}</code>
+            </div>
+          ))}
+        </div>
+      </details>
     </form>
   );
 }

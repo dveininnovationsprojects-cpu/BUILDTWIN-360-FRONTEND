@@ -1,10 +1,14 @@
 import type { RouteObject } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
 import { UsersPage } from './pages/UsersPage';
 import { ROLES } from '@/constants/roles';
 
 // Public (unauthenticated) route — mounted under AuthLayout in AppRoutes.
-export const identityPublicRoutes: RouteObject[] = [{ path: 'login', element: <LoginPage /> }];
+export const identityPublicRoutes: RouteObject[] = [
+	{ path: 'login', element: <LoginPage /> },
+	{ path: 'register', element: <RegisterPage /> },
+];
 
 // Admin-only route — mounted under ProtectedRoute in AppRoutes.
 export const identityRoutes: RouteObject[] = [{ path: 'users', element: <UsersPage /> }];

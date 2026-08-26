@@ -50,85 +50,29 @@ export function BusinessCalculationLogicModule() {
   };
 
   return (
-    <Card className="flex flex-col gap-5 border border-brand-200 shadow-sm">
-      <CardHeader className="border-b border-surface-border pb-4">
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <Cpu className="h-5 w-5 text-brand-600" />
-              <CardTitle className="text-xl font-bold text-brand-950">
-                Business Calculation Logic Alignment with Domain Rules
-              </CardTitle>
-            </div>
-            <p className="mt-1 text-sm text-ink-500">
-              Deterministic Metric Governance Framework, Algebraic Formulas, Database Source Tables & Benchmark Validation Scenarios (Section 11 & 16.3).
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 border border-brand-200">
-              <CheckCircle2 className="h-3.5 w-3.5" /> 12 Standardized Models
-            </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
-              <ShieldAlert className="h-3.5 w-3.5" /> Approved-State Filtered
-            </span>
-          </div>
-        </div>
-      </CardHeader>
-
-      {/* Governance Principles Strip */}
-      <div className="grid grid-cols-1 gap-3 rounded-lg bg-surface-subtle p-3.5 md:grid-cols-4 text-xs">
-        <div className="flex items-start gap-2">
-          <div className="mt-0.5 rounded bg-brand-100 p-1 text-brand-700 font-bold">1</div>
-          <div>
-            <span className="font-semibold text-ink-900">Deterministic Reproducibility</span>
-            <p className="text-ink-500">Calculated purely from immutable DB logs without manual overrides.</p>
-          </div>
-        </div>
-        <div className="flex items-start gap-2">
-          <div className="mt-0.5 rounded bg-brand-100 p-1 text-brand-700 font-bold">2</div>
-          <div>
-            <span className="font-semibold text-ink-900">Approved-State Ingestion</span>
-            <p className="text-ink-500">Analytics consume verified DPRs, GRNs, & inspected quality checks.</p>
-          </div>
-        </div>
-        <div className="flex items-start gap-2">
-          <div className="mt-0.5 rounded bg-brand-100 p-1 text-brand-700 font-bold">3</div>
-          <div>
-            <span className="font-semibold text-ink-900">Baseline Immutability</span>
-            <p className="text-ink-500">Baselines remain frozen; slips calculated without modifying target values.</p>
-          </div>
-        </div>
-        <div className="flex items-start gap-2">
-          <div className="mt-0.5 rounded bg-brand-100 p-1 text-brand-700 font-bold">4</div>
-          <div>
-            <span className="font-semibold text-ink-900">100% Auditability</span>
-            <p className="text-ink-500">Every metric drills down to site evidence, photo logs & store ledger.</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div className="flex flex-col gap-4">
+      {/* Search and Category Filter Bar */}
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between bg-surface-subtle p-3 rounded-lg border border-surface-border">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-ink-400" />
           <Input
-            placeholder="Search by code, formula, metric name, or source table..."
+            placeholder="Search code, formula, KPI name or source table..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9"
+            className="pl-9 bg-white"
           />
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0">
-          <span className="text-xs font-medium text-ink-500 whitespace-nowrap">Category:</span>
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+          <span className="text-xs font-medium text-ink-500 whitespace-nowrap mr-1">Category:</span>
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+              className={`rounded-full px-3 py-1 text-xs font-semibold transition-all ${
                 selectedCategory === cat
-                  ? 'bg-brand-900 text-white'
-                  : 'bg-surface-subtle text-ink-700 hover:bg-surface-border'
+                  ? 'bg-brand-900 text-white shadow-sm'
+                  : 'bg-white text-ink-700 hover:bg-slate-100 border border-surface-border'
               }`}
             >
               {cat}
@@ -298,6 +242,6 @@ export function BusinessCalculationLogicModule() {
           </div>
         </Modal>
       )}
-    </Card>
+    </div>
   );
 }
