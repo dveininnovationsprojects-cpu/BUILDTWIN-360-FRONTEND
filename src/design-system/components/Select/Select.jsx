@@ -1,0 +1,5 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+import { forwardRef } from 'react';
+import { cn } from '@/design-system/utils/cn';
+export const Select = forwardRef(({ className, label, error, options, placeholder, id, ...props }, ref) => (_jsxs("div", { className: "flex flex-col gap-1.5", children: [label && (_jsx("label", { htmlFor: id, className: "text-sm font-medium text-ink-700", children: label })), _jsxs("select", { id: id, ref: ref, className: cn('h-9 rounded border border-surface-border bg-surface-base px-3 text-sm text-ink-900', 'focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-400', error && 'border-status-danger focus:ring-status-danger', className), ...props, children: [placeholder && _jsx("option", { value: "", children: placeholder }), options.map((opt) => (_jsx("option", { value: opt.value, children: opt.label }, opt.value)))] }), error && _jsx("span", { className: "text-xs text-status-danger", children: error })] })));
+Select.displayName = 'Select';

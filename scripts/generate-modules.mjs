@@ -237,31 +237,23 @@ for (const mod of modules) {
   const moduleCamel = camel(mod.key);
   const PageName = `${pascal(mod.key)}ListPage`;
 
-  // types.ts
+  // api/<module>Api.jsx
   fs.writeFileSync(
-    path.join(dir, 'types.ts'),
-    `// ${mod.description}\nexport interface ${Entity} {\n  id: string;\n${mod.columns
-      .map((c) => `  ${c.key}: string;`)
-      .join('\n')}\n}\n`,
-  );
-
-  // api/<module>Api.ts
-  fs.writeFileSync(
-    path.join(dir, 'api', `${moduleCamel}Api.ts`),
-    `import { apiClient } from '@/lib/apiClient';\nimport type { ${Entity} } from '../types';\n\n` +
+    path.join(dir, 'api', `${moduleCamel}Api.jsx`),
+    `import { apiClient } from '@/lib/apiClient';\n\n` +
       `// Maps to ${mod.endpoint} (spec section 14 - API Requirements).\n` +
       `export const ${moduleCamel}Api = {\n` +
-      `  list: (params?: Record<string, unknown>) =>\n` +
-      `    apiClient.get<${Entity}[]>('${mod.endpoint}', { params }).then((r) => r.data),\n` +
-      `  getById: (id: string) => apiClient.get<${Entity}>(\`${mod.endpoint}/\${id}\`).then((r) => r.data),\n` +
-      `  create: (payload: Partial<${Entity}>) =>\n` +
-      `    apiClient.post<${Entity}>('${mod.endpoint}', payload).then((r) => r.data),\n` +
-      `  update: (id: string, payload: Partial<${Entity}>) =>\n` +
-      `    apiClient.put<${Entity}>(\`${mod.endpoint}/\${id}\`, payload).then((r) => r.data),\n` +
+      `  list: (params) =>\n` +
+      `    apiClient.get('${mod.endpoint}', { params }).then((r) => r.data),\n` +
+      `  getById: (id) => apiClient.get(\`${mod.endpoint}/\${id}\`).then((r) => r.data),\n` +
+      `  create: (payload) =>\n` +
+      `    apiClient.post('${mod.endpoint}', payload).then((r) => r.data),\n` +
+      `  update: (id, payload) =>\n` +
+      `    apiClient.put(\`${mod.endpoint}/\${id}\`, payload).then((r) => r.data),\n` +
       `};\n`,
   );
 
-  // pages/<Module>ListPage.tsx
+  // pages/<Module>ListPage.jsx
   const columnsCode = mod.columns
     .map((c) =>
       c.status
@@ -271,15 +263,15 @@ for (const mod of modules) {
     .join('\n');
 
   fs.writeFileSync(
-    path.join(dir, 'pages', `${PageName}.tsx`),
+    path.join(dir, 'pages', `${PageName}.jsx`),
     `import { useQuery } from '@tanstack/react-query';\n` +
-      `import { Table, StatusPill, Button, type Column } from '@/design-system';\n` +
+      `import { Table, StatusPill, Button } from '@/design-system';\n` +
       `import { ${moduleCamel}Api } from '../api/${moduleCamel}Api';\n` +
-      `import type { ${Entity} } from '../types';\n\n` +
+      `\n` +
       `// ${mod.description}\n` +
       `export function ${PageName}() {\n` +
       `  const { data, isLoading } = useQuery({ queryKey: ['${mod.key}'], queryFn: () => ${moduleCamel}Api.list() });\n\n` +
-      `  const columns: Column<${Entity}>[] = [\n${columnsCode}\n  ];\n\n` +
+      `  const columns = [\n${columnsCode}\n  ];\n\n` +
       `  return (\n` +
       `    <div className="flex flex-col gap-4">\n` +
       `      <div className="flex items-center justify-between">\n` +
@@ -295,12 +287,12 @@ for (const mod of modules) {
       `}\n`,
   );
 
-  // routes.tsx
+  // routes.jsx
   fs.writeFileSync(
-    path.join(dir, 'routes.tsx'),
-    `import type { RouteObject } from 'react-router-dom';\n` +
+    path.join(dir, 'routes.jsx'),
+    `` +
       `import { ${PageName} } from './pages/${PageName}';\n\n` +
-      `export const ${moduleCamel}Routes: RouteObject[] = [\n` +
+      `export const ${moduleCamel}Routes = [\n` +
       `  { path: '${mod.path}', element: <${PageName} /> },\n` +
       `];\n`,
   );
