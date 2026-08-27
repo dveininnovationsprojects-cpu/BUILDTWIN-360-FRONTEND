@@ -237,27 +237,19 @@ for (const mod of modules) {
   const moduleCamel = camel(mod.key);
   const PageName = `${pascal(mod.key)}ListPage`;
 
-  // types.ts
+  // api/<module>Api.jsx
   fs.writeFileSync(
-    path.join(dir, 'types.ts'),
-    `// ${mod.description}\nexport interface ${Entity} {\n  id: string;\n${mod.columns
-      .map((c) => `  ${c.key}: string;`)
-      .join('\n')}\n}\n`,
-  );
-
-  // api/<module>Api.ts
-  fs.writeFileSync(
-    path.join(dir, 'api', `${moduleCamel}Api.ts`),
-    `import { apiClient } from '@/lib/apiClient';\nimport type { ${Entity} } from '../types';\n\n` +
+    path.join(dir, 'api', `${moduleCamel}Api.jsx`),
+    `import { apiClient } from '@/lib/apiClient';\n\n` +
       `// Maps to ${mod.endpoint} (spec section 14 - API Requirements).\n` +
       `export const ${moduleCamel}Api = {\n` +
-      `  list: (params?: Record<string, unknown>) =>\n` +
-      `    apiClient.get<${Entity}[]>('${mod.endpoint}', { params }).then((r) => r.data),\n` +
-      `  getById: (id: string) => apiClient.get<${Entity}>(\`${mod.endpoint}/\${id}\`).then((r) => r.data),\n` +
-      `  create: (payload: Partial<${Entity}>) =>\n` +
-      `    apiClient.post<${Entity}>('${mod.endpoint}', payload).then((r) => r.data),\n` +
-      `  update: (id: string, payload: Partial<${Entity}>) =>\n` +
-      `    apiClient.put<${Entity}>(\`${mod.endpoint}/\${id}\`, payload).then((r) => r.data),\n` +
+      `  list: (params) =>\n` +
+      `    apiClient.get('${mod.endpoint}', { params }).then((r) => r.data),\n` +
+      `  getById: (id) => apiClient.get(\`${mod.endpoint}/\${id}\`).then((r) => r.data),\n` +
+      `  create: (payload) =>\n` +
+      `    apiClient.post('${mod.endpoint}', payload).then((r) => r.data),\n` +
+      `  update: (id, payload) =>\n` +
+      `    apiClient.put(\`${mod.endpoint}/\${id}\`, payload).then((r) => r.data),\n` +
       `};\n`,
   );
 

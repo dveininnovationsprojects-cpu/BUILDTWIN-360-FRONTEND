@@ -1,6 +1,9 @@
 import { jsx as _jsx } from "react/jsx-runtime";
 import { cn } from '@/design-system/utils/cn';
-export function Avatar({ name, className }) {
+export function Avatar({ name, src, className }) {
+    if (src) {
+        return (_jsx("img", { src: src, alt: name, className: cn('h-8 w-8 rounded-full object-cover', className) }));
+    }
     const initials = name
         .split(' ')
         .map((p) => p[0])
