@@ -18,7 +18,7 @@ export function LoginPage() {
             navigate('/dashboard');
         }
         catch (err) {
-            pushToast('Invalid email or password.', 'error');
+            pushToast(err instanceof Error ? err.message : 'Invalid email or password.', 'error');
         }
         finally {
             setSubmitting(false);

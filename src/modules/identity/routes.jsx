@@ -11,9 +11,11 @@ export const identityPublicRoutes = [
   { path: 'register', element: <RegisterPage /> },
 ];
 
-// Admin-only route — mounted under ProtectedRoute in AppRoutes.
+// Director / Management and System Administrator only — mounted under
+// ProtectedRoute in AppRoutes (FR-002: create, activate, deactivate and
+// reset user accounts). Also embedded in Settings — see SettingsPage.
 export const identityRoutes = [{ path: 'users', element: <UsersPage /> }];
-export const identityAllowedRoles = [ROLES.SYSTEM_ADMIN];
+export const identityAllowedRoles = [ROLES.SYSTEM_ADMIN, ROLES.DIRECTOR];
 
 // Any authenticated user's own account pages — mounted alongside the
 // unrestricted module routes in AppRoutes (no role gate).

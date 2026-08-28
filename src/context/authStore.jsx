@@ -17,17 +17,25 @@ export const ROLE_LABELS = {
 };
 
 export const DEMO_ACCOUNTS = [
-  { email: 'director@buildtwin360.com', password: 'Director@123', name: 'Director / Management', role: ROLES.DIRECTOR },
-  { email: 'manager@buildtwin360.com', password: 'Manager@123', name: 'Project Manager', role: ROLES.PROJECT_MANAGER },
-  { email: 'engineer@buildtwin360.com', password: 'Engineer@123', name: 'Site Engineer', role: ROLES.SITE_ENGINEER },
-  { email: 'supervisor@buildtwin360.com', password: 'Supervisor@123', name: 'Site Supervisor', role: ROLES.SITE_SUPERVISOR },
-  { email: 'procurement@buildtwin360.com', password: 'Procure@123', name: 'Procurement / Store', role: ROLES.PROCUREMENT_STORE },
-  { email: 'cost@buildtwin360.com', password: 'Cost@123', name: 'Quantity / Cost Coordinator', role: ROLES.COST_COORDINATOR },
-  { email: 'quality@buildtwin360.com', password: 'Quality@123', name: 'Quality Engineer', role: ROLES.QUALITY_ENGINEER },
-  { email: 'analyst@buildtwin360.com', password: 'Analyst@123', name: 'Data Analyst', role: ROLES.DATA_ANALYST },
-  { email: 'admin@buildtwin360.com', password: 'Demo@123', name: 'System Administrator', role: ROLES.SYSTEM_ADMIN },
-  { email: 'auditor@buildtwin360.com', password: 'Auditor@123', name: 'Auditor', role: ROLES.AUDITOR },
+  { id: 'demo-director', email: 'director@buildtwin360.com', password: 'Director@123', name: 'Director / Management', role: ROLES.DIRECTOR, status: 'active' },
+  { id: 'demo-project_manager', email: 'manager@buildtwin360.com', password: 'Manager@123', name: 'Project Manager', role: ROLES.PROJECT_MANAGER, status: 'active' },
+  { id: 'demo-site_engineer', email: 'engineer@buildtwin360.com', password: 'Engineer@123', name: 'Site Engineer', role: ROLES.SITE_ENGINEER, status: 'active' },
+  { id: 'demo-site_supervisor', email: 'supervisor@buildtwin360.com', password: 'Supervisor@123', name: 'Site Supervisor', role: ROLES.SITE_SUPERVISOR, status: 'active' },
+  { id: 'demo-procurement_store', email: 'procurement@buildtwin360.com', password: 'Procure@123', name: 'Procurement / Store', role: ROLES.PROCUREMENT_STORE, status: 'active' },
+  { id: 'demo-cost_coordinator', email: 'cost@buildtwin360.com', password: 'Cost@123', name: 'Quantity / Cost Coordinator', role: ROLES.COST_COORDINATOR, status: 'active' },
+  { id: 'demo-quality_engineer', email: 'quality@buildtwin360.com', password: 'Quality@123', name: 'Quality Engineer', role: ROLES.QUALITY_ENGINEER, status: 'active' },
+  { id: 'demo-data_analyst', email: 'analyst@buildtwin360.com', password: 'Analyst@123', name: 'Data Analyst', role: ROLES.DATA_ANALYST, status: 'active' },
+  { id: 'demo-system_admin', email: 'admin@buildtwin360.com', password: 'Demo@123', name: 'System Administrator', role: ROLES.SYSTEM_ADMIN, status: 'active' },
+  { id: 'demo-auditor', email: 'auditor@buildtwin360.com', password: 'Auditor@123', name: 'Auditor', role: ROLES.AUDITOR, status: 'active' },
 ];
+
+const toUserRecord = (account) => ({
+  id: account.id,
+  name: account.name,
+  email: account.email,
+  roles: [account.role],
+  status: account.status ?? 'active',
+});
 
 function normalizeDemoUser(user, accounts) {
   const demoAccount = DEMO_ACCOUNTS.find((account) => account.email === user.email.toLowerCase())
@@ -48,13 +56,19 @@ export const useAuthStore = create()(
 
       login: async (email, password) => {
         const normalizedEmail = email.trim().toLowerCase();
-        const demoAccount = DEMO_ACCOUNTS.find((account) => account.email === normalizedEmail && account.password === password)
-          ?? get().demoAccounts.find((account) => account.email === normalizedEmail && account.password === password);
+        // get().demoAccounts is seeded from DEMO_ACCOUNTS and is the live,
+        // persisted copy — it reflects accounts created, deactivated or
+        // password-reset via Settings > User Management, unlike the frozen
+        // DEMO_ACCOUNTS constant.
+        const demoAccount = get().demoAccounts.find((account) => account.email === normalizedEmail && account.password === password);
 
         if (demoAccount) {
+          if (demoAccount.status === 'inactive') {
+            throw new Error('This account has been deactivated. Contact an administrator.');
+          }
           get().setSession({
             user: {
-              id: `demo-${demoAccount.role.toLowerCase()}`,
+              id: demoAccount.id,
               name: demoAccount.name,
               email: demoAccount.email,
               roles: [demoAccount.role],
@@ -76,12 +90,48 @@ export const useAuthStore = create()(
       },
 
       register: async (name, email, password) => {
+        get().createDemoUser({ name, email, password, role: ROLES.SITE_ENGINEER });
+      },
+
+      // Local/demo-mode backing for Settings > User Management (FR-002) —
+      // used by identityApi as a fallback when no backend is reachable, so
+      // create/activate/deactivate/reset keep working the same way login
+      // and register already do without one.
+      listDemoUsers: () => get().demoAccounts.map(toUserRecord),
+
+      createDemoUser: ({ name, email, password, role }) => {
         const normalizedEmail = email.trim().toLowerCase();
         if (get().demoAccounts.some((account) => account.email === normalizedEmail)) {
           throw new Error('An account with this email already exists.');
         }
-        const account = { email: normalizedEmail, password, name: name.trim(), role: ROLES.SITE_ENGINEER };
+        const account = {
+          id: crypto.randomUUID(),
+          email: normalizedEmail,
+          password,
+          name: name.trim(),
+          role,
+          status: 'active',
+        };
         set((state) => ({ demoAccounts: [...state.demoAccounts, account] }));
+        return toUserRecord(account);
+      },
+
+      setDemoUserStatus: (id, status) => {
+        set((state) => ({
+          demoAccounts: state.demoAccounts.map((account) => (account.id === id ? { ...account, status } : account)),
+        }));
+        const account = get().demoAccounts.find((a) => a.id === id);
+        if (!account) throw new Error('User not found.');
+        return toUserRecord(account);
+      },
+
+      resetDemoUserPassword: (id, password) => {
+        if (!get().demoAccounts.some((a) => a.id === id)) throw new Error('User not found.');
+        set((state) => ({
+          demoAccounts: state.demoAccounts.map((account) => (account.id === id ? { ...account, password } : account)),
+        }));
+        const account = get().demoAccounts.find((a) => a.id === id);
+        return toUserRecord(account);
       },
 
       refresh: async () => {
@@ -102,6 +152,21 @@ export const useAuthStore = create()(
     }),
     {
       name: 'buildtwin360-auth',
+      // v1: demoAccounts entries gained `id`/`status` for Settings > User
+      // Management. Browsers with a pre-v1 persisted session would
+      // otherwise rehydrate accounts missing both, colliding on
+      // `id: undefined` in the users table and in status/reset lookups.
+      version: 1,
+      migrate: (persistedState, version) => {
+        if (version < 1 && persistedState?.demoAccounts) {
+          persistedState.demoAccounts = persistedState.demoAccounts.map((account) => ({
+            ...account,
+            id: account.id ?? DEMO_ACCOUNTS.find((seed) => seed.email === account.email)?.id ?? crypto.randomUUID(),
+            status: account.status ?? 'active',
+          }));
+        }
+        return persistedState;
+      },
       onRehydrateStorage: () => (state) => {
         if (state?.user) {
           const normalizedUser = normalizeDemoUser(state.user, state.demoAccounts);
