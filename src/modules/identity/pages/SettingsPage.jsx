@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Button, Card, CardHeader, CardTitle, Checkbox } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
+import { ROLES } from '@/constants/roles';
+import { useHasRole } from '@/context/authStore';
+import { UserManagementPanel } from '../components/UserManagementPanel';
 
 const STORAGE_KEY = 'buildtwin360-notification-prefs';
 
@@ -24,6 +27,7 @@ function loadPrefs() {
 export function SettingsPage() {
   const pushToast = useToastStore((s) => s.push);
   const [prefs, setPrefs] = useState(loadPrefs);
+  const canManageUsers = useHasRole(ROLES.DIRECTOR, ROLES.SYSTEM_ADMIN);
 
   function toggle(key) {
     setPrefs((p) => ({ ...p, [key]: !p[key] }));
@@ -77,6 +81,8 @@ export function SettingsPage() {
           Save settings
         </Button>
       </Card>
+
+      {canManageUsers && <UserManagementPanel />}
     </div>
   );
 }

@@ -29,6 +29,10 @@ export const WORKFLOW_STATUS_TONE = {
   HIGH: 'danger',
   CRITICAL: 'critical',
   ACTIVE: 'success',
+  INACTIVE: 'neutral',
   BLOCKED: 'danger',
   OVERDUE: 'critical',
+  PLANNING: 'info',
+  ON_HOLD: 'warning',
+  COMPLETED: 'success',
 };
