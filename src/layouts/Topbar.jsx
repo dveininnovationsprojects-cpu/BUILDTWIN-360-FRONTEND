@@ -16,6 +16,8 @@ export function Topbar({ onMenuToggle }) {
   function confirmLogout() {
     setLogoutConfirmOpen(false);
     logout();
+    // Navigate to login page after logout
+    navigate('/login', { replace: true });
   }
 
   return (

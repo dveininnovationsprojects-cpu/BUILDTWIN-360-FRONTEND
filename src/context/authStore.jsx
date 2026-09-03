@@ -55,12 +55,17 @@ export const useAuthStore = create()(
       demoAccounts: DEMO_ACCOUNTS,
 
       login: async (email, password) => {
+        // Validate input
+        if (!email || !password) {
+          throw new Error('Email and password are required.');
+        }
+
         const normalizedEmail = email.trim().toLowerCase();
-        // get().demoAccounts is seeded from DEMO_ACCOUNTS and is the live,
-        // persisted copy — it reflects accounts created, deactivated or
-        // password-reset via Settings > User Management, unlike the frozen
-        // DEMO_ACCOUNTS constant.
-        const demoAccount = get().demoAccounts.find((account) => account.email === normalizedEmail && account.password === password);
+        
+        // Check demo accounts first (local/demo mode)
+        const demoAccount = get().demoAccounts.find(
+          (account) => account.email === normalizedEmail && account.password === password
+        );
 
         if (demoAccount) {
           if (demoAccount.status === 'inactive') {
@@ -80,12 +85,33 @@ export const useAuthStore = create()(
           return;
         }
 
+        // Try backend API if no demo account found
         try {
-          const { data } = await axios.post('/api/auth/login', { email, password });
+          const { data } = await axios.post('/api/auth/login', { email: normalizedEmail, password });
+          
+          if (!data || !data.user || !data.accessToken) {
+            throw new Error('Invalid login response from server.');
+          }
+          
           get().setSession(data);
         } catch (error) {
-          const message = error instanceof Error ? error.message : 'Unknown login error';
-          throw new Error(message);
+          // Extract meaningful error message from axios error
+          let errorMessage = 'Invalid email or password.';
+          
+          if (error instanceof Error) {
+            // Handle axios error
+            if (error.response?.data?.message) {
+              errorMessage = error.response.data.message;
+            } else if (error.response?.data?.error) {
+              errorMessage = error.response.data.error;
+            } else if (error.message && error.message !== 'Invalid login response from server.') {
+              errorMessage = error.message;
+            } else if (error.message === 'Invalid login response from server.') {
+              errorMessage = error.message;
+            }
+          }
+          
+          throw new Error(errorMessage);
         }
       },
 
@@ -141,7 +167,12 @@ export const useAuthStore = create()(
         return data.accessToken;
       },
 
-      logout: () => set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false }),
+      logout: async () => {
+        // Clear the session state first
+        set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false });
+        // Return a flag to indicate logout was successful
+        return true;
+      },
 
       updateProfile: (partial) => set((state) => ({ user: state.user ? { ...state.user, ...partial } : state.user })),
 

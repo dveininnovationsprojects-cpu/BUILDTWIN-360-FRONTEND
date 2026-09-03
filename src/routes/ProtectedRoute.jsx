@@ -8,12 +8,14 @@ import { useAuthStore, useHasRole } from '@/context/authStore';
 export function ProtectedRoute({ roles }) {
     const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
     const hasRole = useHasRole(...(roles ?? []));
-    const allowed = roles ? hasRole : true;
-    if (!roles && !isAuthenticated)
-        return _jsx(Outlet, {});
+    
+    // If not authenticated, redirect to login page
     if (!isAuthenticated)
         return _jsx(Navigate, { to: "/login", replace: true });
-    if (!allowed)
+    
+    // If specific roles are required, check if user has the required role
+    if (roles && !hasRole)
         return _jsx(Navigate, { to: "/403", replace: true });
+    
     return _jsx(Outlet, {});
 }
