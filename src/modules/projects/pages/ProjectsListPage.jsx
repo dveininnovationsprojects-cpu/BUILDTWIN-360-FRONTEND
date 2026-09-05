@@ -132,11 +132,12 @@ export function ProjectsListPage() {
             Project & site master — code, type, client, buildings/floors/zones (FR-010..014).
           </p>
         </div>
-        {canManageProjects && (
-          <Button size="sm" className="bg-blue-800 hover:bg-blue-900" onClick={openCreateModal}>
-            Add New
-          </Button>
-        )}
+        <Button
+          onClick={openCreateModal}
+          className="bg-blue-500 hover:bg-blue-600 active:scale-95 text-white font-semibold px-5 py-2.5 rounded-xl shadow-sm transition-all duration-200 text-sm border-0 flex items-center justify-center gap-1.5"
+        >
+          Add New
+        </Button>
       </div>
 
       <Table

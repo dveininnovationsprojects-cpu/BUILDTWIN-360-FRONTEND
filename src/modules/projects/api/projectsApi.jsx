@@ -1,6 +1,13 @@
 import { apiClient } from '@/lib/apiClient';
 import { useProjectsStore } from '../store/projectsStore';
 
+const MOCK_PROJECTS = [
+  { id: 'prj-001', code: 'PRJ-001', name: 'Padur Independent Residence', type: 'RESIDENTIAL', client: 'Ashok Builders & Developers', location: 'Padur, OMR, Chennai', status: 'IN_PROGRESS' },
+  { id: 'prj-002', code: 'PRJ-002', name: 'OMR Commercial Block', type: 'COMMERCIAL', client: 'OMR Realty Infra', location: 'Sholinganallur, Chennai', status: 'IN_PROGRESS' },
+  { id: 'prj-003', code: 'PRJ-003', name: 'ECR Luxury Apartments', type: 'INFRASTRUCTURE', client: 'ECR Coast Properties', location: 'Kovalam, Chennai', status: 'PLANNING' },
+];
+
+
 // Maps to /projects (spec section 14 - API Requirements).
 //
 // Each call falls back to the local demo-project store when the backend at

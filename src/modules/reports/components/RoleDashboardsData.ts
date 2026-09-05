@@ -26,27 +26,27 @@ export const ROLE_DASHBOARDS_DATA: Record<Role, DashboardRoleConfig> = {
     responsibilities: 'Portfolio monitoring, approvals, performance review, high-level cost and risk oversight.',
     accessScope: 'All projects, executive dashboards, approvals, reports.',
     kpis: [
-      { label: 'Project Health Index', value: '78.7 / 100', subtext: 'PHI-01 • Amber (Attention)', tone: 'warning', code: 'KPI-HLT-01' },
-      { label: 'Cumulative Physical Progress', value: '64.5%', subtext: 'Across all active projects', tone: 'success', code: 'KPI-PRG-01' },
-      { label: 'Schedule Performance (SPI)', value: '0.92', subtext: 'SPI < 1.00 (8% Slip)', tone: 'warning', code: 'KPI-SCH-01' },
-      { label: 'Cost Performance (CPI)', value: '0.96', subtext: 'CPI < 1.00 (4% Over budget)', tone: 'warning', code: 'KPI-CST-01' },
-      { label: 'Delay Risk Score', value: '34 / 100', subtext: 'Low Overall Portfolio Risk', tone: 'success', code: 'KPI-RSK-01' },
-      { label: 'Forecast Completion Date', value: 'Oct 12, 2026', subtext: '+12 Days Baseline Slip', tone: 'danger', code: 'KPI-FCT-01' },
+      { label: 'Overall Project Health Score', value: '78.7 / 100', subtext: 'PHI-01 • Amber (Attention)', tone: 'warning', code: 'KPI-HLT-01' },
+      { label: 'Total Work Completed', value: '64.5%', subtext: 'Across all active projects', tone: 'success', code: 'KPI-PRG-01' },
+      { label: 'Work Speed Index (SPI)', value: '0.92', subtext: 'SPI < 1.00 (8% Delay)', tone: 'warning', code: 'KPI-SCH-01' },
+      { label: 'Budget Efficiency (CPI)', value: '0.96', subtext: 'CPI < 1.00 (4% Over budget)', tone: 'warning', code: 'KPI-CST-01' },
+      { label: 'Project Delay Risk Level', value: '34 / 100', subtext: 'Low Overall Portfolio Risk', tone: 'success', code: 'KPI-RSK-01' },
+      { label: 'Expected Finish Date', value: 'Oct 12, 2026', subtext: '+12 Days Baseline Slip', tone: 'danger', code: 'KPI-FCT-01' },
     ],
     primaryFocusWidgets: [
       {
         title: 'Executive Portfolio Health',
         description: 'High-level status of major construction sites',
         items: [
-          { label: 'Padur Residence (PRJ-001)', detail: 'Progress: 70% | SPI: 0.833 | Cost: Over budget by 6.25%', badge: 'PHI: 78.7', tone: 'warning' },
-          { label: 'OMR Commercial Block (PRJ-002)', detail: 'Progress: 45% | SPI: 0.950 | Cost: On budget', badge: 'PHI: 86.2', tone: 'success' },
+          { label: 'Padur Residence (PRJ-001)', detail: 'Progress: 70% | Speed: 0.833 | Cost: Over budget by 6.25%', badge: 'PHI: 78.7', tone: 'warning' },
+          { label: 'OMR Commercial Block (PRJ-002)', detail: 'Progress: 45% | Speed: 0.950 | Cost: On budget', badge: 'PHI: 86.2', tone: 'success' },
         ],
       },
       {
         title: 'Executive Approvals Pending',
         description: 'Requires Director signature or authorization',
         items: [
-          { label: 'Padur Residence — Variation Order #04', detail: 'Additional rebar steel for foundation slab (₹1,85,000)', badge: 'Pending Approval', tone: 'warning' },
+          { label: 'Padur Residence — Variation Order #04', detail: 'Additional rebar steel for foundation slab (1,85,000)', badge: 'Pending Approval', tone: 'warning' },
           { label: 'Quarterly Commercial Baseline Audit', detail: 'Review baseline frozen budget before Q4 start', badge: 'Review Needed', tone: 'info' },
         ],
       },
@@ -59,19 +59,19 @@ export const ROLE_DASHBOARDS_DATA: Record<Role, DashboardRoleConfig> = {
     responsibilities: 'Schedule, progress, labour, material, issues, cost coordination and contractor review.',
     accessScope: 'Assigned projects with broad edit/approval rights.',
     kpis: [
-      { label: 'Schedule Variance (Days)', value: '-6 Days', subtext: 'Behind baseline slab target', tone: 'danger', code: 'KPI-SCH-02' },
-      { label: 'Schedule Performance (SPI)', value: '0.833', subtext: 'EV ₹12.5M / PV ₹15.0M', tone: 'danger', code: 'KPI-SCH-01' },
-      { label: 'Labour Productivity (LPI)', value: '88.5%', subtext: '11.5% below benchmark target', tone: 'warning', code: 'KPI-LBR-01' },
-      { label: 'Material Depletion Alert', value: '4 Days', subtext: 'Cement depletes on Aug 29', tone: 'danger', code: 'KPI-MAT-01' },
-      { label: 'Quality NCR Ageing', value: '10 Days', subtext: 'Overdue by 5 days past SLA', tone: 'warning', code: 'KPI-QLT-01' },
-      { label: 'Activity Delay Risk (DRS)', value: '72.0 / 100', subtext: 'ACT-104 Slab Concreting High Risk', tone: 'danger', code: 'KPI-RSK-01' },
+      { label: 'Schedule Delay (Days)', value: '6 Days', subtext: 'Behind baseline slab target', tone: 'danger', code: 'KPI-SCH-02' },
+      { label: 'Work Speed Index (SPI)', value: '0.833', subtext: 'EV 12.5M / PV 15.0M', tone: 'danger', code: 'KPI-SCH-01' },
+      { label: 'Worker Output Efficiency', value: '88.5%', subtext: '11.5% below benchmark target', tone: 'warning', code: 'KPI-LBR-01' },
+      { label: 'Stock Run-out Warning', value: '4 Days', subtext: 'Cement depletes on Aug 29', tone: 'danger', code: 'KPI-MAT-01' },
+      { label: 'Quality Defect Fix Delay', value: '10 Days', subtext: 'Overdue by 5 days past SLA', tone: 'warning', code: 'KPI-QLT-01' },
+      { label: 'Task Delay Risk Level', value: '72.0 / 100', subtext: 'ACT-104 Slab Concreting High Risk', tone: 'danger', code: 'KPI-RSK-01' },
     ],
     primaryFocusWidgets: [
       {
         title: 'Critical Path & Milestones',
         description: 'Schedule tracking for critical activities',
         items: [
-          { label: 'Ground Floor Slab Concreting (ACT-104)', detail: 'Predecessor late + Cement stock low + Crew LPI 83.3%', badge: 'High Risk (DRS 72)', tone: 'danger' },
+          { label: 'Ground Floor Slab Concreting (ACT-104)', detail: 'Predecessor late + Cement stock low + Crew Efficiency 83.3%', badge: 'High Risk (DRS 72)', tone: 'danger' },
           { label: 'Column Reinforcement (ACT-103)', detail: 'Completed 100% on schedule', badge: 'Completed', tone: 'success' },
         ],
       },
@@ -91,12 +91,12 @@ export const ROLE_DASHBOARDS_DATA: Record<Role, DashboardRoleConfig> = {
     responsibilities: 'DPR entry, quantities, photos, labour allocation, material requests, quality observations.',
     accessScope: 'Assigned site/project operational modules.',
     kpis: [
-      { label: 'Today DPR Status', value: 'Submitted', subtext: 'Aug 25 DPR logged with site photos', tone: 'success', code: 'KPI-PRG-01' },
-      { label: 'Physical Progress (Ground Floor)', value: '70.0%', subtext: 'Reinforcement 100% | Slab 50%', tone: 'success', code: 'KPI-PRG-01' },
-      { label: 'Crew Productivity Today', value: '0.25 m³/hr', subtext: 'Target: 0.30 m³/labour-hr', tone: 'warning', code: 'KPI-LBR-01' },
-      { label: 'Site Quality Observations', value: '3 Active', subtext: '1 Honeycombing open', tone: 'warning', code: 'KPI-QLT-01' },
-      { label: 'Pending Material Indents', value: '4 Requisitions', subtext: 'Cement & 12mm Rebar requested', tone: 'info', code: 'KPI-MAT-01' },
-      { label: 'Labour Hours Allocated', value: '50 Hrs', subtext: '10 Masons + 4 Helpers today', tone: 'info', code: 'KPI-LBR-01' },
+      { label: 'Daily Site Log Status', value: 'Submitted', subtext: 'Aug 25 DPR logged with site photos', tone: 'success', code: 'KPI-PRG-01' },
+      { label: 'Ground Floor Work Done', value: '70.0%', subtext: 'Reinforcement 100% | Slab 50%', tone: 'success', code: 'KPI-PRG-01' },
+      { label: 'Worker Output Speed Today', value: '0.25 m³/hr', subtext: 'Target: 0.30 m³/labour-hr', tone: 'warning', code: 'KPI-LBR-01' },
+      { label: 'Quality Issues Found', value: '3 Active', subtext: '1 Honeycombing open', tone: 'warning', code: 'KPI-QLT-01' },
+      { label: 'Pending Material Orders', value: '4 Orders', subtext: 'Cement & 12mm Rebar requested', tone: 'info', code: 'KPI-MAT-01' },
+      { label: 'Total Worker Hours Today', value: '50 Hrs', subtext: '10 Masons + 4 Helpers today', tone: 'info', code: 'KPI-LBR-01' },
     ],
     primaryFocusWidgets: [
       {
@@ -123,12 +123,12 @@ export const ROLE_DASHBOARDS_DATA: Record<Role, DashboardRoleConfig> = {
     responsibilities: 'Attendance support, activity updates, material issue requests, evidence capture.',
     accessScope: 'Restricted field-data access.',
     kpis: [
-      { label: 'Daily Labour Headcount', value: '42 Workers', subtext: 'Masons: 14, Steel: 16, Helpers: 12', tone: 'info', code: 'KPI-LBR-01' },
-      { label: 'Work Activity Progress Today', value: '12.5 m³', subtext: 'Slab concreting poured', tone: 'success', code: 'KPI-PRG-01' },
-      { label: 'Field Evidence Captured', value: '14 Photos', subtext: 'Site log photos uploaded', tone: 'success', code: 'KPI-PRG-01' },
-      { label: 'Store Issue Requests', value: '2 Pending', subtext: 'Cement bags & binding wire drawal', tone: 'warning', code: 'KPI-MAT-01' },
-      { label: 'Shift Attendance Verified', value: '100%', subtext: 'Morning muster call complete', tone: 'success', code: 'KPI-LBR-01' },
-      { label: 'Field Safety Incidents', value: '0 Incidents', subtext: 'Zero reportable injuries', tone: 'success', code: 'KPI-HLT-01' },
+      { label: 'Total Workers On Site', value: '42 Workers', subtext: 'Masons: 14, Steel: 16, Helpers: 12', tone: 'info', code: 'KPI-LBR-01' },
+      { label: 'Concrete Poured Today', value: '12.5 m³', subtext: 'Slab concreting poured', tone: 'success', code: 'KPI-PRG-01' },
+      { label: 'Site Photos Uploaded Today', value: '14 Photos', subtext: 'Site log photos uploaded', tone: 'success', code: 'KPI-PRG-01' },
+      { label: 'Pending Material Requests', value: '2 Pending', subtext: 'Cement bags & binding wire drawal', tone: 'warning', code: 'KPI-MAT-01' },
+      { label: 'Worker Attendance Checked', value: '100%', subtext: 'Morning muster call complete', tone: 'success', code: 'KPI-LBR-01' },
+      { label: 'Site Safety Incidents', value: '0 Incidents', subtext: 'Zero reportable injuries', tone: 'success', code: 'KPI-HLT-01' },
     ],
     primaryFocusWidgets: [
       {
@@ -155,12 +155,12 @@ export const ROLE_DASHBOARDS_DATA: Record<Role, DashboardRoleConfig> = {
     responsibilities: 'Purchase requests, PO data, GRN, stock, issue and supplier records.',
     accessScope: 'Material and procurement modules.',
     kpis: [
-      { label: 'Days to Stock Depletion', value: '4 Days', subtext: 'Cement stock depletes Aug 29', tone: 'danger', code: 'KPI-MAT-01' },
-      { label: 'Rolling Consumption Rate', value: '30 Bags/day', subtext: 'Based on 7-day average', tone: 'info', code: 'KPI-MAT-01' },
-      { label: 'Material Wastage Variance', value: '3.0%', subtext: 'Rebar 12mm (Exceeds 2.5% max)', tone: 'danger', code: 'KPI-MAT-02' },
-      { label: 'Supplier On-Time Delivery', value: '90.0%', subtext: '9 of 10 shipments on PO date', tone: 'success', code: 'KPI-SUP-01' },
-      { label: 'Pending GRN Entry', value: '2 Shipments', subtext: 'RMC Transit mixer at gate', tone: 'warning', code: 'KPI-SUP-01' },
-      { label: 'Usable Store Balance', value: '120 Bags', subtext: 'OPC Cement Store #1', tone: 'warning', code: 'KPI-MAT-01' },
+      { label: 'Days Until Stock Runs Out', value: '4 Days', subtext: 'Cement stock depletes Aug 29', tone: 'danger', code: 'KPI-MAT-01' },
+      { label: 'Daily Material Usage Rate', value: '30 Bags/day', subtext: 'Based on 7-day average', tone: 'info', code: 'KPI-MAT-01' },
+      { label: 'Material Wastage Rate', value: '3.0%', subtext: 'Rebar 12mm (Exceeds 2.5% max)', tone: 'danger', code: 'KPI-MAT-02' },
+      { label: 'Supplier Delivery Success Rate', value: '90.0%', subtext: '9 of 10 shipments on PO date', tone: 'success', code: 'KPI-SUP-01' },
+      { label: 'Pending Goods Delivery Receipts', value: '2 Shipments', subtext: 'RMC Transit mixer at gate', tone: 'warning', code: 'KPI-SUP-01' },
+      { label: 'Available Cement Bags in Store', value: '120 Bags', subtext: 'OPC Cement Store #1', tone: 'warning', code: 'KPI-MAT-01' },
     ],
     primaryFocusWidgets: [
       {
@@ -187,27 +187,27 @@ export const ROLE_DASHBOARDS_DATA: Record<Role, DashboardRoleConfig> = {
     responsibilities: 'BOQ/cost heads, budget, measurements, actual cost and commercial reports.',
     accessScope: 'Cost and measurement modules.',
     kpis: [
-      { label: 'Cost Performance Index (CPI)', value: '0.9375', subtext: 'Over budget by 6.25%', tone: 'danger', code: 'KPI-CST-01' },
-      { label: 'Earned Value (EV)', value: '₹4,50,000', subtext: 'Value of physical work delivered', tone: 'info', code: 'KPI-CST-01' },
-      { label: 'Actual Cost (AC)', value: '₹4,80,000', subtext: 'Spent capital on work done', tone: 'danger', code: 'KPI-CST-01' },
-      { label: 'Cost Variance (CV)', value: '-₹30,000', subtext: 'Negative monetary variance', tone: 'danger', code: 'KPI-CST-01' },
-      { label: 'Budget at Completion (BAC)', value: '₹50,000,000', subtext: 'Total approved baseline budget', tone: 'info', code: 'KPI-CST-01' },
-      { label: 'Approved Measurements', value: '4,250 m³', subtext: 'Cumulative verified QS log', tone: 'success', code: 'KPI-PRG-01' },
+      { label: 'Budget Efficiency Score (CPI)', value: '0.9375', subtext: 'Over budget by 6.25%', tone: 'danger', code: 'KPI-CST-01' },
+      { label: 'Value of Finished Work', value: '4,50,000', subtext: 'Value of physical work delivered', tone: 'info', code: 'KPI-CST-01' },
+      { label: 'Money Spent So Far', value: '4,80,000', subtext: 'Spent capital on work done', tone: 'danger', code: 'KPI-CST-01' },
+      { label: 'Budget Difference (Variance)', value: '30,000', subtext: 'Over budget variance', tone: 'danger', code: 'KPI-CST-01' },
+      { label: 'Approved Total Budget', value: '50,000,000', subtext: 'Total approved baseline budget', tone: 'info', code: 'KPI-CST-01' },
+      { label: 'Verified Work Volume', value: '4,250 m³', subtext: 'Cumulative verified QS log', tone: 'success', code: 'KPI-PRG-01' },
     ],
     primaryFocusWidgets: [
       {
         title: 'Cost Head Budget vs Actual Variance',
         description: 'Commercial financial performance per work package',
         items: [
-          { label: 'Concrete & Formwork Head', detail: 'Budget: ₹3,50,000 • Spent: ₹3,85,000 • Variance: -₹35,000', badge: 'Over Budget', tone: 'danger' },
-          { label: 'Rebar Steel Fabrication Head', detail: 'Budget: ₹1,50,000 • Spent: ₹1,45,000 • Variance: +₹5,000', badge: 'Under Budget', tone: 'success' },
+          { label: 'Concrete & Formwork Head', detail: 'Budget: 3,50,000 • Spent: 3,85,000 • Variance: 35,000', badge: 'Over Budget', tone: 'danger' },
+          { label: 'Rebar Steel Fabrication Head', detail: 'Budget: 1,50,000 • Spent: 1,45,000 • Variance: +5,000', badge: 'Under Budget', tone: 'success' },
         ],
       },
       {
         title: 'Subcontractor Payment Certificates',
         description: 'Certified measurements for billing',
         items: [
-          { label: 'RA Bill #02 — Sri Lakshmi Structurals', detail: 'Claimed: ₹2,10,000 • QS Certified: ₹1,95,000', badge: 'Certified for Payment', tone: 'info' },
+          { label: 'RA Bill #02 — Sri Lakshmi Structurals', detail: 'Claimed: 2,10,000 • QS Certified: 1,95,000', badge: 'Certified for Payment', tone: 'info' },
         ],
       },
     ],
@@ -219,12 +219,12 @@ export const ROLE_DASHBOARDS_DATA: Record<Role, DashboardRoleConfig> = {
     responsibilities: 'Inspection plans, NCR/snag records, evidence and closure.',
     accessScope: 'Quality modules.',
     kpis: [
-      { label: 'NCR Ageing Days', value: '10 Days', subtext: 'NCR-042 open past 5-day SLA', tone: 'danger', code: 'KPI-QLT-01' },
-      { label: 'Quality Closure Rate', value: '75.0%', subtext: '15 of 20 defects resolved', tone: 'warning', code: 'KPI-QLT-01' },
-      { label: 'Open Quality Defect Count', value: '3 Active', subtext: '1 High, 2 Medium Severity', tone: 'danger', code: 'KPI-QLT-01' },
-      { label: 'Inspection Pass Rate', value: '92.0%', subtext: '23 of 25 inspections passed', tone: 'success', code: 'KPI-QLT-01' },
-      { label: 'Hold-Point Approvals', value: '4 Pending', subtext: 'Pre-pour inspection scheduled', tone: 'info', code: 'KPI-QLT-01' },
-      { label: 'Quality Risk Index', value: 'Low Impact', subtext: 'No structural failure risks', tone: 'success', code: 'KPI-RSK-01' },
+      { label: 'Unfixed Defect Delay (Days)', value: '10 Days', subtext: 'NCR-042 open past 5-day SLA', tone: 'danger', code: 'KPI-QLT-01' },
+      { label: 'Defect Fix Success Rate', value: '75.0%', subtext: '15 of 20 defects resolved', tone: 'warning', code: 'KPI-QLT-01' },
+      { label: 'Active Quality Defect Count', value: '3 Active', subtext: '1 High, 2 Medium Severity', tone: 'danger', code: 'KPI-QLT-01' },
+      { label: 'Site Inspection Pass Rate', value: '92.0%', subtext: '23 of 25 inspections passed', tone: 'success', code: 'KPI-QLT-01' },
+      { label: 'Pending Pre-Pour Approvals', value: '4 Pending', subtext: 'Pre-pour inspection scheduled', tone: 'info', code: 'KPI-QLT-01' },
+      { label: 'Quality Risk Level', value: 'Low Impact', subtext: 'No structural failure risks', tone: 'success', code: 'KPI-RSK-01' },
     ],
     primaryFocusWidgets: [
       {
@@ -251,12 +251,12 @@ export const ROLE_DASHBOARDS_DATA: Record<Role, DashboardRoleConfig> = {
     responsibilities: 'KPI models, dashboard validation, trends, forecast and management reports.',
     accessScope: 'Read access to analytical datasets; controlled export.',
     kpis: [
-      { label: 'Composite Health (PHI)', value: '78.69 / 100', subtext: 'Weighted 5-factor model score', tone: 'warning', code: 'KPI-HLT-01' },
-      { label: 'Forecast Completion Date', value: 'Oct 12, 2026', subtext: 'Earned rate FCD (+12 Days)', tone: 'danger', code: 'KPI-FCT-01' },
-      { label: 'Delay Risk Score (DRS)', value: '72.0 / 100', subtext: 'Multi-factor predictive score', tone: 'danger', code: 'KPI-RSK-01' },
-      { label: '14-Day Rolling SPI', value: '0.80', subtext: 'Work burn rate vs plan', tone: 'warning', code: 'KPI-FCT-01' },
-      { label: 'Calculated Earned Value', value: '₹4,50,000', subtext: 'Physical EV calculation', tone: 'info', code: 'KPI-PRG-01' },
-      { label: 'Data Model Governance', value: '100% Validated', subtext: 'Zero manual override flags', tone: 'success', code: 'KPI-HLT-01' },
+      { label: 'Overall Project Health Score', value: '78.69 / 100', subtext: 'Weighted 5-factor model score', tone: 'warning', code: 'KPI-HLT-01' },
+      { label: 'Expected Finish Date', value: 'Oct 12, 2026', subtext: 'Earned rate FCD (+12 Days)', tone: 'danger', code: 'KPI-FCT-01' },
+      { label: 'Predictive Delay Risk', value: '72.0 / 100', subtext: 'Multi-factor predictive score', tone: 'danger', code: 'KPI-RSK-01' },
+      { label: '2-Week Work Speed Trend', value: '0.80', subtext: 'Work burn rate vs plan', tone: 'warning', code: 'KPI-FCT-01' },
+      { label: 'Value of Work Calculated', value: '4,50,000', subtext: 'Physical EV calculation', tone: 'info', code: 'KPI-PRG-01' },
+      { label: 'Data Accuracy Status', value: '100% Validated', subtext: 'Zero manual override flags', tone: 'success', code: 'KPI-HLT-01' },
     ],
     primaryFocusWidgets: [
       {
@@ -283,12 +283,12 @@ export const ROLE_DASHBOARDS_DATA: Record<Role, DashboardRoleConfig> = {
     responsibilities: 'Users, roles, configurations, master data and audit review.',
     accessScope: 'Administrative modules.',
     kpis: [
-      { label: 'Active User Accounts', value: '28 Users', subtext: '10 System roles configured', tone: 'info', code: 'KPI-HLT-01' },
-      { label: 'Calculation Engine Health', value: '99.9% Operational', subtext: 'Real-time & Batch Services', tone: 'success', code: 'KPI-HLT-01' },
-      { label: 'Nightly Analytics Batch', value: 'Completed', subtext: 'Last run: Today 00:00 hrs', tone: 'success', code: 'KPI-HLT-01' },
-      { label: 'Master Audit Event Logs', value: '1,420 Events', subtext: '100% Traceability verified', tone: 'info', code: 'KPI-HLT-01' },
-      { label: 'Database Sync Latency', value: '< 15 ms', subtext: 'PostgreSQL Ledger Sync', tone: 'success', code: 'KPI-HLT-01' },
-      { label: 'Role Access Policies', value: 'Enforced', subtext: 'Field-only & Commercial rules active', tone: 'success', code: 'KPI-HLT-01' },
+      { label: 'Total Active Users', value: '28 Users', subtext: '10 System roles configured', tone: 'info', code: 'KPI-HLT-01' },
+      { label: 'System Calculation Engine', value: '99.9% Operational', subtext: 'Real-time & Batch Services', tone: 'success', code: 'KPI-HLT-01' },
+      { label: 'Daily Data Refresh Status', value: 'Completed', subtext: 'Last run: Today 00:00 hrs', tone: 'success', code: 'KPI-HLT-01' },
+      { label: 'Total System Action Logs', value: '1,420 Events', subtext: '100% Traceability verified', tone: 'info', code: 'KPI-HLT-01' },
+      { label: 'Database Speed / Latency', value: '< 15 ms', subtext: 'PostgreSQL Ledger Sync', tone: 'success', code: 'KPI-HLT-01' },
+      { label: 'User Access Control Rules', value: 'Enforced', subtext: 'Field-only & Commercial rules active', tone: 'success', code: 'KPI-HLT-01' },
     ],
     primaryFocusWidgets: [
       {
@@ -315,12 +315,12 @@ export const ROLE_DASHBOARDS_DATA: Record<Role, DashboardRoleConfig> = {
     responsibilities: 'Read-only history, reports and approval evidence.',
     accessScope: 'Read-only controlled access.',
     kpis: [
-      { label: 'DPR Approval Audit Trail', value: '100% Verified', subtext: 'All DPRs link to site photos', tone: 'success', code: 'KPI-PRG-01' },
-      { label: 'Financial Cost Ledger Entries', value: '148 Verified', subtext: 'Zero unbacked transaction edits', tone: 'success', code: 'KPI-CST-01' },
-      { label: 'Schedule Baseline History', value: 'Immutably Locked', subtext: 'Baseline frozen on Aug 01', tone: 'success', code: 'KPI-SCH-01' },
-      { label: 'Governance Compliance Index', value: '98.5%', subtext: 'Meets Section 11 & 16.3 specs', tone: 'success', code: 'KPI-HLT-01' },
-      { label: 'Stock Issue Audit Log', value: '120 Entries', subtext: 'Matched with approved indents', tone: 'info', code: 'KPI-MAT-01' },
-      { label: 'Unapproved Data Override Attempts', value: '0 Violations', subtext: 'Strict RBAC security active', tone: 'success', code: 'KPI-HLT-01' },
+      { label: 'Daily Log Audit Verification', value: '100% Verified', subtext: 'All DPRs link to site photos', tone: 'success', code: 'KPI-PRG-01' },
+      { label: 'Verified Financial Transactions', value: '148 Verified', subtext: 'Zero unbacked transaction edits', tone: 'success', code: 'KPI-CST-01' },
+      { label: 'Master Fixed Schedule', value: 'Immutably Locked', subtext: 'Baseline frozen on Aug 01', tone: 'success', code: 'KPI-SCH-01' },
+      { label: 'Rules Compliance Score', value: '98.5%', subtext: 'Meets Section 11 & 16.3 specs', tone: 'success', code: 'KPI-HLT-01' },
+      { label: 'Material Distribution Logs', value: '120 Entries', subtext: 'Matched with approved indents', tone: 'info', code: 'KPI-MAT-01' },
+      { label: 'Unauthorized System Changes', value: '0 Violations', subtext: 'Strict RBAC security active', tone: 'success', code: 'KPI-HLT-01' },
     ],
     primaryFocusWidgets: [
       {

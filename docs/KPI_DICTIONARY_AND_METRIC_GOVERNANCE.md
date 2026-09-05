@@ -232,3 +232,20 @@ Every metric in the BuildTwin 360 analytics ecosystem is defined using the stand
 * **Metric Owner:** Data Analyst / Executive Management.
 * **Validation Example (PRJ-001 Padur Residence):**
   * $\text{PHI} = 27.0 + 23.44 + 11.00 + 11.25 + 6.00 = \mathbf{78.69 / 100}$ (**AMBER / NEEDS ATTENTION**).
+
+---
+
+### 3.13 KPI-DQA-01: Analytics Data Quality Checks & Validation Compliance
+
+* **Metric ID:** `KPI-DQA-01`
+* **Metric Name:** Analytics Data Quality & Validation Compliance Rate (%)
+* **Business Purpose:** Evaluates automated site data integrity, zero-denominator guards, approved-state filtering, and transactional audit completeness before analytics ingestion.
+* **Mathematical Formula:**
+  $$\text{Data Quality Index (\%)} = \left( \frac{\text{Validated Clean Ingested Records}}{\text{Total Received Site Log Records}} \right) \times 100$$
+* **Source Tables & Fields:** `dpr_activity_progress`, `stock_ledger`, `labour_daily`, `cost_transactions`, `quality_issues`.
+* **Refresh Trigger:** Real-time on transaction write; Pre-ingestion batch validation.
+* **Exclusions & Edge Cases:** Unapproved DPR drafts, missing baseline activities, and corrupted zero-quantity transactions flagged during automated audit.
+* **Metric Owner:** Data Analyst / Quality Auditor.
+* **Validation Example (PRJ-001 Padur Residence):**
+  * Total site logs = 1,000; Clean validated logs = 985 $\implies \text{Data Quality Index} = \frac{985}{1000} \times 100 = \mathbf{98.5\%}$ (**PASS**).
+

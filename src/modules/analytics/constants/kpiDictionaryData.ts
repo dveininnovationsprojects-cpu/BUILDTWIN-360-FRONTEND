@@ -57,7 +57,8 @@ export const BUILDTWIN_KPI_DICTIONARY: KPIDefinition[] = [
       project: 'PRJ-001 Padur Residence',
       scenario: 'EV = ₹4,50,000, PV = ₹5,00,000. Baseline Slab Date = Aug 20, Forecast = Aug 26',
       calculation: 'SV_monetary = 4,50,000 - 5,00,000; SV_days = Aug 20 - Aug 26',
-      result: '-₹50,000 Monetary SV, -6 Days Schedule Variance'
+      result: '₹50,000 Monetary SV, 6 Days Schedule Variance'
+
     }
   },
   {
@@ -221,5 +222,24 @@ export const BUILDTWIN_KPI_DICTIONARY: KPIDefinition[] = [
       calculation: '27.0 + 23.44 + 11.00 + 11.25 + 6.00',
       result: '78.69 / 100 Project Health Index (AMBER / NEEDS ATTENTION)'
     }
+  },
+  {
+    id: 'kpi-dqa-01',
+    code: 'KPI-DQA-01',
+    name: 'Analytics Data Quality & Validation Compliance',
+    category: 'Quality',
+    businessPurpose: 'Evaluates automated site data integrity, zero-denominator guards, approved-state filtering, and transactional audit completeness before analytics ingestion.',
+    formula: 'Data Quality Index (%) = (Validated Clean Records / Total Ingested Site Log Records) * 100',
+    sourceTables: ['dpr_activity_progress', 'stock_ledger', 'labour_daily', 'cost_transactions', 'quality_issues'],
+    refreshTrigger: 'Real-time on transaction write; Pre-ingestion batch validation.',
+    exclusions: 'Unapproved DPR drafts, missing baseline activities, and corrupted transactions flagged during automated audit.',
+    ownerRole: 'Data Analyst / Quality Auditor',
+    validationExample: {
+      project: 'PRJ-001 Padur Residence',
+      scenario: '1,000 daily site log entries ingested. 985 passed schema, approval filter, and baseline reconciliation.',
+      calculation: '(985 / 1000) * 100',
+      result: '98.5% Data Quality Compliance Rate (PASS)'
+    }
   }
 ];
+

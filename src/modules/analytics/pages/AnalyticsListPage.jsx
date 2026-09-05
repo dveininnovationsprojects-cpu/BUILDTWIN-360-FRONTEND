@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Table, Button } from '@/design-system';
 import { analyticsApi } from '../api/analyticsApi';
-import { BusinessCalculationLogicModule } from '../components/BusinessCalculationLogicModule';
+import { AnalyticsFrameworkContainer } from '../components/AnalyticsFrameworkContainer';
 
 // Delay-risk, forecast completion and project health index (section 11).
 export function AnalyticsListPage() {
@@ -26,8 +26,9 @@ export function AnalyticsListPage() {
 
       <Table columns={columns} data={data ?? []} rowKey={(row) => row.id} isLoading={isLoading} />
 
-      {/* Business Calculation Logic Alignment with Domain Rules */}
-      <BusinessCalculationLogicModule />
+      {/* 7 Modules Master Container */}
+      <AnalyticsFrameworkContainer />
     </div>
   );
 }
+

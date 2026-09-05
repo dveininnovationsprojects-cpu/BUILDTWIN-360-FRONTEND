@@ -18,11 +18,20 @@ import {
   ComposedChart,
 } from 'recharts';
 import { useAuthStore } from '@/context/authStore';
-import { ROLES } from '@/constants/roles';
+import { ROLES, type Role } from '@/constants/roles';
 import { ROLE_DASHBOARDS_DATA } from '../components/RoleDashboardsData';
 
 // 10 Completely Unique Color Themes for each of the 10 domain role dashboards
-const ROLE_THEMES = {
+const ROLE_THEMES: Record<Role, {
+  donut: string[];
+  workload: { completed: string; remaining: string; overdue: string };
+  primary: string;
+  secondary: string;
+  composedBar: string;
+  composedLine: string;
+  badgeBg: string;
+  tabActive: string;
+}> = {
   [ROLES.DIRECTOR]: {
     donut: ['#8b5cf6', '#a855f7', '#c084fc', '#d8b4fe', '#e9d5ff'],
     workload: { completed: '#8b5cf6', remaining: '#c084fc', overdue: '#e9d5ff' },
@@ -126,7 +135,20 @@ const ROLE_THEMES = {
 };
 
 // Full 10 Role Dynamic Data Specifications matching template layout (Clean without $ symbols)
-const ROLE_DATA_SPEC = {
+const ROLE_DATA_SPEC: Record<Role, {
+  completionRate: string;
+  eac: string;
+  utilBudget: string;
+  spent: string;
+  total: string;
+  costBreakdown: {
+    donut: Array<{ name: string; value: number }>;
+    table: Array<{ category: string; amount: string; color: string }>;
+  };
+  workload: Array<{ project: string; completed: number; remaining: number; overdue: number }>;
+  budgetVariance: Array<{ project: string; actualBudget: number; plannedBudget: number }>;
+  resources: Array<{ project: string; plannedResources: number; actualResources: number }>;
+}> = {
   [ROLES.DIRECTOR]: {
     completionRate: '64.5%',
     eac: '12.8M',
@@ -522,7 +544,7 @@ const ROLE_DATA_SPEC = {
 };
 
 // Custom Label for Pie Chart Slices matching screenshot
-const renderCustomizedPieLabel = ({ cx, cy, midAngle, outerRadius, percent }) => {
+const renderCustomizedPieLabel = ({ cx, cy, midAngle, outerRadius, percent }: any) => {
   const RADIAN = Math.PI / 180;
   const radius = outerRadius + 12;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -543,7 +565,7 @@ const renderCustomizedPieLabel = ({ cx, cy, midAngle, outerRadius, percent }) =>
 };
 
 // Dynamic Filter Transformer function
-function getFilteredData(baseSpec, baseKpis, filter) {
+function getFilteredData(baseSpec: any, baseKpis: any[], filter: string) {
   if (filter === 'All') {
     return { roleSpec: baseSpec, kpis: baseKpis };
   }
@@ -554,18 +576,18 @@ function getFilteredData(baseSpec, baseKpis, filter) {
         ...baseSpec,
         completionRate: '68.5%',
         utilBudget: '62.4%',
-        workload: baseSpec.workload.map((item) => ({
+        workload: baseSpec.workload.map((item: any) => ({
           ...item,
           completed: Math.round(item.completed * 0.6),
           remaining: item.remaining + 25,
           overdue: 0,
         })),
-        budgetVariance: baseSpec.budgetVariance.map((b) => ({
+        budgetVariance: baseSpec.budgetVariance.map((b: any) => ({
           ...b,
           actualBudget: Math.round(b.plannedBudget * 0.96),
         })),
       },
-      kpis: baseKpis.map((kpi) => ({
+      kpis: baseKpis.map((kpi: any) => ({
         ...kpi,
         subtext: kpi.subtext ? `${kpi.subtext} • Active` : 'In Progress Focus',
       })),
@@ -579,22 +601,22 @@ function getFilteredData(baseSpec, baseKpis, filter) {
         completionRate: '34.2%',
         utilBudget: '38.1%',
         spent: '1.2M',
-        workload: baseSpec.workload.map((item) => ({
+        workload: baseSpec.workload.map((item: any) => ({
           ...item,
           completed: 0,
           remaining: item.remaining,
           overdue: item.overdue > 0 ? item.overdue : 35,
         })),
-        budgetVariance: baseSpec.budgetVariance.map((b) => ({
+        budgetVariance: baseSpec.budgetVariance.map((b: any) => ({
           ...b,
           actualBudget: Math.round(b.plannedBudget * 1.15),
         })),
-        resources: baseSpec.resources.map((r) => ({
+        resources: baseSpec.resources.map((r: any) => ({
           ...r,
           actualResources: Math.round(r.plannedResources * 0.8),
         })),
       },
-      kpis: baseKpis.map((kpi) => ({
+      kpis: baseKpis.map((kpi: any) => ({
         ...kpi,
         subtext: 'Pending Action / Overdue',
         tone: 'danger',
@@ -609,22 +631,22 @@ function getFilteredData(baseSpec, baseKpis, filter) {
         completionRate: '100%',
         utilBudget: '100%',
         spent: baseSpec.total,
-        workload: baseSpec.workload.map((item) => ({
+        workload: baseSpec.workload.map((item: any) => ({
           ...item,
           completed: item.completed + item.remaining + item.overdue,
           remaining: 0,
           overdue: 0,
         })),
-        budgetVariance: baseSpec.budgetVariance.map((b) => ({
+        budgetVariance: baseSpec.budgetVariance.map((b: any) => ({
           ...b,
           actualBudget: b.plannedBudget,
         })),
-        resources: baseSpec.resources.map((r) => ({
+        resources: baseSpec.resources.map((r: any) => ({
           ...r,
           actualResources: r.plannedResources,
         })),
       },
-      kpis: baseKpis.map((kpi) => ({
+      kpis: baseKpis.map((kpi: any) => ({
         ...kpi,
         value: kpi.value.includes('%') ? '100%' : kpi.value,
         subtext: 'Completed & Verified',
@@ -641,7 +663,7 @@ export function DashboardPage() {
   const [statusFilter, setStatusFilter] = useState('All');
   
   // Dynamic role automatically derived from logged-in user context
-  const userRole = user?.roles?.[0] ?? ROLES.DIRECTOR;
+  const userRole = (user?.roles?.[0] ?? ROLES.DIRECTOR) as Role;
 
   const rawConfig = ROLE_DASHBOARDS_DATA[userRole] ?? ROLE_DASHBOARDS_DATA[ROLES.DIRECTOR];
   const rawRoleSpec = ROLE_DATA_SPEC[userRole] ?? ROLE_DATA_SPEC[ROLES.DIRECTOR];
@@ -779,7 +801,7 @@ export function DashboardPage() {
                       <Cell key={`cell-${index}`} fill={theme.donut[index % theme.donut.length]} />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} formatter={(v) => [`${v}%`, '']} />
+                  <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} formatter={(v: any) => [`${v}%`, '']} />
                 </PieChart>
               </ResponsiveContainer>
             </div>

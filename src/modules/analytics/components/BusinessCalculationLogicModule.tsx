@@ -233,7 +233,7 @@ export function BusinessCalculationLogicModule() {
                   Algebraic Evaluation Step
                 </div>
                 <code className="text-amber-300 font-mono text-[11px]">{selectedKpi.validationExample.calculation}</code>
-                <div className="mt-1 flex items-center justify-between border-t border-slate-800 pt-1 text.emerald-400 font-bold">
+                <div className="mt-1 flex items-center justify-between border-t border-slate-800 pt-1 text-emerald-400 font-bold">
                   <span className="text-slate-300">Expected Result:</span>
                   <span className="text-emerald-400 font-mono text-sm">{selectedKpi.validationExample.result}</span>
                 </div>
