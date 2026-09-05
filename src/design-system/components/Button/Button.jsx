@@ -3,10 +3,10 @@ import { forwardRef } from 'react';
 import { cva } from 'class-variance-authority';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/design-system/utils/cn';
-const buttonVariants = cva('inline-flex items-center justify-center gap-2 rounded font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-1', {
+const buttonVariants = cva('liquid-glass-button inline-flex items-center justify-center gap-2 rounded font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-1', {
     variants: {
         variant: {
-            primary: 'bg-brand-500 text-white hover:bg-brand-600',
+            primary: 'gradient-accent text-white hover:shadow-md',
             secondary: 'bg-brand-100 text-brand-800 hover:bg-brand-200',
             outline: 'border border-surface-border text-ink-900 hover:bg-surface-muted',
             ghost: 'text-ink-700 hover:bg-surface-muted',

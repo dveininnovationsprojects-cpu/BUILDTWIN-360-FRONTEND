@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import axios from 'axios';
 import { ROLES } from '@/constants/roles';
+import { apiClient } from '@/lib/apiClient';
 
 export const ROLE_LABELS = {
   [ROLES.DIRECTOR]: 'Director / Management',
@@ -13,7 +13,7 @@ export const ROLE_LABELS = {
   [ROLES.QUALITY_ENGINEER]: 'Quality Engineer',
   [ROLES.DATA_ANALYST]: 'Data / Management Analyst',
   [ROLES.SYSTEM_ADMIN]: 'System Administrator',
-  [ROLES.AUDITOR]: 'Auditor',
+  [ROLES.AUDITOR]: 'Auditor / Reviewer',
 };
 
 export const DEMO_ACCOUNTS = [
@@ -65,6 +65,8 @@ export const useAuthStore = create()(
         // Check demo accounts first (local/demo mode)
         const demoAccount = get().demoAccounts.find(
           (account) => account.email === normalizedEmail && account.password === password
+        ) ?? DEMO_ACCOUNTS.find(
+          (account) => account.email === normalizedEmail && account.password === password
         );
 
         if (demoAccount) {
@@ -87,7 +89,7 @@ export const useAuthStore = create()(
 
         // Try backend API if no demo account found
         try {
-          const { data } = await axios.post('/api/auth/login', { email: normalizedEmail, password });
+          const { data } = await apiClient.post('/auth/login', { email: normalizedEmail, password });
           
           if (!data || !data.user || !data.accessToken) {
             throw new Error('Invalid login response from server.');
@@ -162,7 +164,7 @@ export const useAuthStore = create()(
 
       refresh: async () => {
         const { refreshToken } = get();
-        const { data } = await axios.post('/api/auth/refresh', { refreshToken });
+        const { data } = await apiClient.post('/auth/refresh', { refreshToken });
         get().setSession(data);
         return data.accessToken;
       },

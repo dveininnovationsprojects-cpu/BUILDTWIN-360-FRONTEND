@@ -133,7 +133,7 @@ export function ProjectsListPage() {
           </p>
         </div>
         {canManageProjects && (
-          <Button size="sm" className="bg-blue-800 hover:bg-blue-900" onClick={openCreateModal}>
+          <Button size="sm" onClick={openCreateModal}>
             Add New
           </Button>
         )}

@@ -60,15 +60,15 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
+    <div className="flex flex-col items-center gap-4">
+      <div className="w-full max-w-xl text-center">
         <h1 className="page-heading">My Profile</h1>
         <p className="page-subheading">View and update your account details.</p>
       </div>
 
-      <Card className="max-w-xl">
-        <CardHeader>
-          <div className="flex items-center gap-4">
+      <Card className="liquid-glass w-full max-w-xl rounded-2xl p-6">
+        <CardHeader className="justify-center">
+          <div className="flex flex-col items-center gap-3 text-center">
             <div className="relative">
               <Avatar
                 name={user?.name ?? 'Guest'}

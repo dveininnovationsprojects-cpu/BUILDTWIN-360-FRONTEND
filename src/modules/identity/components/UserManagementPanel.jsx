@@ -94,10 +94,20 @@ export function UserManagementPanel() {
     resetMutation.mutate({ id: resetTarget.id, password: values.password, user: resetTarget });
   }
 
+  const getRoleLabel = (role) => ROLE_LABELS[String(role).trim().toUpperCase()] ?? role;
+
   const columns = [
-    { key: 'name', header: 'Name' },
+    {
+      key: 'name',
+      header: 'Name',
+      render: (u) => u.roles?.length ? u.roles.map(getRoleLabel).join(', ') : u.name,
+    },
     { key: 'email', header: 'Email' },
-    { key: 'roles', header: 'Roles', render: (u) => u.roles.map((r) => ROLE_LABELS[r] ?? r).join(', ') },
+    {
+      key: 'roles',
+      header: 'Roles',
+      render: (u) => u.roles.map(getRoleLabel).join(', '),
+    },
     { key: 'status', header: 'Status', render: (u) => <StatusPill status={u.status} /> },
     {
       key: 'actions',
@@ -125,7 +135,7 @@ export function UserManagementPanel() {
   const confirmCopy = confirmAction && CONFIRM_COPY[confirmAction.kind];
 
   return (
-    <Card className="max-w-4xl">
+    <Card className="liquid-glass w-full max-w-5xl rounded-2xl">
       <CardHeader>
         <CardTitle>User Management</CardTitle>
         <Button size="sm" onClick={() => setCreateOpen(true)}>

@@ -94,7 +94,7 @@ export function LoginPage() {
         type="submit"
         isLoading={isSubmitting}
         disabled={isSubmitting}
-        className="mt-2 w-full"
+        className="sign-in-button mt-2 w-full"
       >
         {isSubmitting ? 'Signing in...' : 'Sign in'}
       </Button>
@@ -109,9 +109,9 @@ export function LoginPage() {
         Don't have an account? Register
       </Button>
 
-      <details className="rounded-md border border-surface-border bg-surface-subtle px-3 py-2 text-xs text-ink-500">
+      <details className="rounded-md border border-surface-border bg-white px-3 py-2 text-xs text-ink-500">
         <summary className="cursor-pointer font-semibold text-brand-800">
-          📋 Demo role access
+          Demo role access
         </summary>
         <div className="mt-3 space-y-2 max-h-64 overflow-y-auto">
           {DEMO_ACCOUNTS.map((account) => (
