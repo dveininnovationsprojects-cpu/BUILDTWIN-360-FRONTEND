@@ -114,14 +114,14 @@ const ROLE_THEMES = {
     tabActive: 'bg-slate-800 text-white',
   },
   [ROLES.AUDITOR]: {
-    donut: ['#047857', '#059669', '#10b981', '#34d399', '#a7f3d0'],
-    workload: { completed: '#065f46', remaining: '#059669', overdue: '#34d399' },
-    primary: '#059669',
-    secondary: '#047857',
-    composedBar: '#022c22',
-    composedLine: '#064e3b',
-    badgeBg: 'bg-emerald-100 text-emerald-900 border-emerald-300',
-    tabActive: 'bg-emerald-800 text-white',
+    donut: ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#d1fae5'],
+    workload: { completed: '#10b981', remaining: '#34d399', overdue: '#a7f3d0' },
+    primary: '#10b981',
+    secondary: '#34d399',
+    composedBar: '#34d399',
+    composedLine: '#059669',
+    badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+    tabActive: 'bg-emerald-500 text-white',
   },
 };
 
@@ -502,7 +502,7 @@ const ROLE_DATA_SPEC = {
         { category: 'DPR Audit Trail', amount: '100% Verified', color: 'bg-emerald-50 text-slate-800' },
         { category: 'Cost Ledger Audit', amount: '148 Verified', color: 'bg-emerald-100/70 text-slate-800' },
         { category: 'Baseline History', amount: 'Locked', color: 'bg-emerald-200/70 text-slate-800' },
-        { category: 'Stock Audit Log', amount: '120 Entries', color: 'bg-emerald-700 text-white font-bold' },
+        { category: 'Stock Audit Log', amount: '120 Entries', color: 'bg-emerald-300/80 text-emerald-950 font-bold' },
       ],
     },
     workload: [
