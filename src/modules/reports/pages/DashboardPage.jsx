@@ -493,13 +493,13 @@ const ROLE_DATA_SPEC = {
     total: '4.2M',
     costBreakdown: {
       donut: [
-        { name: 'DPR Audit Trail', value: 35.0 },
+        { name: 'DPR Analytics Data Pipelines', value: 35.0 },
         { name: 'Cost Ledger Audit', value: 30.0 },
         { name: 'Baseline History', value: 25.0 },
         { name: 'Stock Audit Log', value: 10.0 },
       ],
       table: [
-        { category: 'DPR Audit Trail', amount: '100% Verified', color: 'bg-emerald-50 text-slate-800' },
+        { category: 'Daily Progress Report (DPR) Analytics Data Pipelines', amount: '100% Verified', color: 'bg-emerald-50 text-slate-800 font-semibold' },
         { category: 'Cost Ledger Audit', amount: '148 Verified', color: 'bg-emerald-100/70 text-slate-800' },
         { category: 'Baseline History', amount: 'Locked', color: 'bg-emerald-200/70 text-slate-800' },
         { category: 'Stock Audit Log', amount: '120 Entries', color: 'bg-emerald-300/80 text-emerald-950 font-bold' },
