@@ -7,6 +7,7 @@ import { Button } from '@/design-system/components/Button/Button';
 import { Modal } from '@/design-system/components/Modal/Modal';
 import { ROLE_LABELS, useAuthStore } from '@/context/authStore';
 import { NAV_ITEMS } from '@/constants/navigation';
+import { normalizeRole } from '@/constants/roles';
 
 export function Topbar({ onMenuToggle }) {
   const user = useAuthStore((s) => s.user);
@@ -40,7 +41,8 @@ export function Topbar({ onMenuToggle }) {
     if (!normalizedQuery) return [];
 
     return NAV_ITEMS.filter((item) => {
-      const canAccess = !item.roles || item.roles.some((role) => user?.roles?.includes(role));
+      const userRoles = (user?.roles ?? []).map(normalizeRole);
+      const canAccess = !item.roles || item.roles.some((role) => userRoles.includes(normalizeRole(role)));
       return canAccess && `${item.label} ${item.key}`.toLowerCase().includes(normalizedQuery);
     }).slice(0, 8);
   }, [searchQuery, user]);
@@ -136,7 +138,7 @@ export function Topbar({ onMenuToggle }) {
               <span className="hidden text-left sm:block">
                 <span className="block text-xs font-semibold leading-4 text-ink-900">{user?.name ?? 'Guest'}</span>
                 <span className="block text-[11px] leading-4 text-ink-500">
-                  {user ? ROLE_LABELS[user.roles[0]] : 'Local access'}
+                  {user ? (ROLE_LABELS[normalizeRole(user.roles?.[0])] || user.roles?.[0] || 'User') : 'Local access'}
                 </span>
               </span>
               <ChevronDown className="h-4 w-4 text-ink-400" />

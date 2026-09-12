@@ -1,50 +1,39 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { ROLES } from '@/constants/roles';
+import { ROLES, ROLE_DEFINITIONS, normalizeRole, toBackendRole } from '@/constants/roles';
 import { apiClient } from '@/lib/apiClient';
 
-export const ROLE_LABELS = {
-  [ROLES.DIRECTOR]: 'Director / Management',
-  [ROLES.PROJECT_MANAGER]: 'Project Manager',
-  [ROLES.SITE_ENGINEER]: 'Site Engineer',
-  [ROLES.SITE_SUPERVISOR]: 'Site Supervisor',
-  [ROLES.PROCUREMENT_STORE]: 'Procurement / Store',
-  [ROLES.COST_COORDINATOR]: 'Quantity / Cost Coordinator',
-  [ROLES.QUALITY_ENGINEER]: 'Quality Engineer',
-  [ROLES.DATA_ANALYST]: 'Data / Management Analyst',
-  [ROLES.SYSTEM_ADMIN]: 'System Administrator',
-  [ROLES.AUDITOR]: 'Auditor / Reviewer',
-};
+export const ROLE_LABELS = Object.fromEntries(
+  Object.entries(ROLE_DEFINITIONS).map(([role, def]) => [role, def.label])
+);
 
-export const DEMO_ACCOUNTS = [
-  { id: 'demo-director', email: 'director@buildtwin360.com', password: 'Director@123', name: 'Director / Management', role: ROLES.DIRECTOR, status: 'active' },
-  { id: 'demo-project_manager', email: 'manager@buildtwin360.com', password: 'Manager@123', name: 'Project Manager', role: ROLES.PROJECT_MANAGER, status: 'active' },
-  { id: 'demo-site_engineer', email: 'engineer@buildtwin360.com', password: 'Engineer@123', name: 'Site Engineer', role: ROLES.SITE_ENGINEER, status: 'active' },
-  { id: 'demo-site_supervisor', email: 'supervisor@buildtwin360.com', password: 'Supervisor@123', name: 'Site Supervisor', role: ROLES.SITE_SUPERVISOR, status: 'active' },
-  { id: 'demo-procurement_store', email: 'procurement@buildtwin360.com', password: 'Procure@123', name: 'Procurement / Store', role: ROLES.PROCUREMENT_STORE, status: 'active' },
-  { id: 'demo-cost_coordinator', email: 'cost@buildtwin360.com', password: 'Cost@123', name: 'Quantity / Cost Coordinator', role: ROLES.COST_COORDINATOR, status: 'active' },
-  { id: 'demo-quality_engineer', email: 'quality@buildtwin360.com', password: 'Quality@123', name: 'Quality Engineer', role: ROLES.QUALITY_ENGINEER, status: 'active' },
-  { id: 'demo-data_analyst', email: 'analyst@buildtwin360.com', password: 'Analyst@123', name: 'Data Analyst', role: ROLES.DATA_ANALYST, status: 'active' },
-  { id: 'demo-system_admin', email: 'admin@buildtwin360.com', password: 'Demo@123', name: 'System Administrator', role: ROLES.SYSTEM_ADMIN, status: 'active' },
-  { id: 'demo-auditor', email: 'auditor@buildtwin360.com', password: 'Auditor@123', name: 'Auditor', role: ROLES.AUDITOR, status: 'active' },
-];
+// Backward-compatibility export so any existing references do not throw errors
+export const DEMO_ACCOUNTS = [];
 
-const toUserRecord = (account) => ({
-  id: account.id,
-  name: account.name,
-  email: account.email,
-  roles: [account.role],
-  status: account.status ?? 'active',
-});
+/**
+ * Normalizes backend user summary into the frontend user shape.
+ * Strips 'ROLE_' prefixes and ensures canonical role names.
+ */
+function normalizeBackendUser(rawUser) {
+  if (!rawUser) return null;
+  const rawRoles = rawUser.roles ?? [];
+  const normalizedRoles = Array.from(
+    new Set(
+      rawRoles.map((r) => normalizeRole(typeof r === 'object' ? r.name : r))
+    )
+  );
 
-function normalizeDemoUser(user, accounts) {
-  const demoAccount = DEMO_ACCOUNTS.find((account) => account.email === user.email.toLowerCase())
-    ?? DEMO_ACCOUNTS.find((account) => account.role === user.roles[0] && (user.id.startsWith('demo-') || user.email.includes('buildtwin360')))
-    ?? accounts.find((account) => account.email === user.email.toLowerCase());
-  return demoAccount ? { ...user, name: demoAccount.name, email: demoAccount.email, roles: [demoAccount.role] } : user;
+  return {
+    id: rawUser.id,
+    name: rawUser.name ?? rawUser.username ?? 'User',
+    username: rawUser.username ?? '',
+    email: rawUser.email ?? '',
+    roles: normalizedRoles,
+    status: String(rawUser.status ?? 'ACTIVE').toUpperCase(),
+    createdAt: rawUser.createdAt ?? null,
+  };
 }
 
-// Backed by POST /auth/login and POST /auth/refresh (FR-001, section 14).
 export const useAuthStore = create()(
   persist(
     (set, get) => ({
@@ -52,167 +41,184 @@ export const useAuthStore = create()(
       accessToken: null,
       refreshToken: null,
       isAuthenticated: false,
-      demoAccounts: DEMO_ACCOUNTS,
+      isLoading: false,
 
-      login: async (email, password) => {
-        // Validate input
-        if (!email || !password) {
-          throw new Error('Email and password are required.');
+      /**
+       * Authenticate user with Spring Boot REST Backend
+       * Calls POST /api/v1/auth/login
+       */
+      login: async (usernameOrEmail, password) => {
+        if (!usernameOrEmail || !password) {
+          throw new Error('Username/email and password are required.');
         }
 
-        const normalizedEmail = email.trim().toLowerCase();
-        
-        // Check demo accounts first (local/demo mode)
-        const demoAccount = get().demoAccounts.find(
-          (account) => account.email === normalizedEmail && account.password === password
-        ) ?? DEMO_ACCOUNTS.find(
-          (account) => account.email === normalizedEmail && account.password === password
-        );
-
-        if (demoAccount) {
-          if (demoAccount.status === 'inactive') {
-            throw new Error('This account has been deactivated. Contact an administrator.');
-          }
-          get().setSession({
-            user: {
-              id: demoAccount.id,
-              name: demoAccount.name,
-              email: demoAccount.email,
-              roles: [demoAccount.role],
-              projectIds: ['demo-project-1'],
-            },
-            accessToken: `demo-${demoAccount.role.toLowerCase()}-access-token`,
-            refreshToken: `demo-${demoAccount.role.toLowerCase()}-refresh-token`,
-          });
-          return;
-        }
-
-        // Try backend API if no demo account found
+        set({ isLoading: true });
         try {
-          const { data } = await apiClient.post('/auth/login', { email: normalizedEmail, password });
-          
-          if (!data || !data.user || !data.accessToken) {
-            throw new Error('Invalid login response from server.');
+          const res = await apiClient.post('/auth/login', {
+            usernameOrEmail: usernameOrEmail.trim(),
+            password,
+          });
+
+          // With apiClient unwrap, res.data contains AuthResponse
+          const authData = res.data?.data ?? res.data;
+
+          if (!authData?.accessToken) {
+            throw new Error(authData?.message || 'Authentication failed. No access token received.');
           }
-          
-          get().setSession(data);
+
+          const normalizedUser = normalizeBackendUser(authData.user);
+
+          set({
+            user: normalizedUser,
+            accessToken: authData.accessToken,
+            refreshToken: authData.refreshToken ?? null,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+
+          return normalizedUser;
         } catch (error) {
-          // Extract meaningful error message from axios error
-          let errorMessage = 'Invalid email or password.';
-          
-          if (error instanceof Error) {
-            // Handle axios error
-            if (error.response?.data?.message) {
-              errorMessage = error.response.data.message;
-            } else if (error.response?.data?.error) {
-              errorMessage = error.response.data.error;
-            } else if (error.message && error.message !== 'Invalid login response from server.') {
-              errorMessage = error.message;
-            } else if (error.message === 'Invalid login response from server.') {
-              errorMessage = error.message;
-            }
-          }
-          
-          throw new Error(errorMessage);
+          set({ isLoading: false });
+          throw error;
         }
       },
 
-      register: async (name, email, password) => {
-        get().createDemoUser({ name, email, password, role: ROLES.SITE_ENGINEER });
-      },
-
-      // Local/demo-mode backing for Settings > User Management (FR-002) —
-      // used by identityApi as a fallback when no backend is reachable, so
-      // create/activate/deactivate/reset keep working the same way login
-      // and register already do without one.
-      listDemoUsers: () => get().demoAccounts.map(toUserRecord),
-
-      createDemoUser: ({ name, email, password, role }) => {
-        const normalizedEmail = email.trim().toLowerCase();
-        if (get().demoAccounts.some((account) => account.email === normalizedEmail)) {
-          throw new Error('An account with this email already exists.');
+      /**
+       * Register new user profile with Spring Boot REST Backend
+       * Calls POST /api/v1/auth/register
+       */
+      register: async ({ username, email, password, roles }) => {
+        if (!username || !email || !password) {
+          throw new Error('Username, email, and password are required.');
         }
-        const account = {
-          id: crypto.randomUUID(),
-          email: normalizedEmail,
+
+        const selectedRoles = (roles && roles.length > 0)
+          ? roles.map(toBackendRole)
+          : ['ROLE_SITE_ENGINEER'];
+
+        const res = await apiClient.post('/auth/register', {
+          username: username.trim(),
+          email: email.trim().toLowerCase(),
           password,
-          name: name.trim(),
-          role,
-          status: 'active',
-        };
-        set((state) => ({ demoAccounts: [...state.demoAccounts, account] }));
-        return toUserRecord(account);
+          roles: selectedRoles,
+        });
+
+        const data = res.data?.data ?? res.data;
+        return data;
       },
 
-      setDemoUserStatus: (id, status) => {
-        set((state) => ({
-          demoAccounts: state.demoAccounts.map((account) => (account.id === id ? { ...account, status } : account)),
-        }));
-        const account = get().demoAccounts.find((a) => a.id === id);
-        if (!account) throw new Error('User not found.');
-        return toUserRecord(account);
-      },
-
-      resetDemoUserPassword: (id, password) => {
-        if (!get().demoAccounts.some((a) => a.id === id)) throw new Error('User not found.');
-        set((state) => ({
-          demoAccounts: state.demoAccounts.map((account) => (account.id === id ? { ...account, password } : account)),
-        }));
-        const account = get().demoAccounts.find((a) => a.id === id);
-        return toUserRecord(account);
-      },
-
+      /**
+       * Refresh current access token using refresh token
+       * Calls POST /api/v1/auth/refresh
+       */
       refresh: async () => {
         const { refreshToken } = get();
-        const { data } = await apiClient.post('/auth/refresh', { refreshToken });
-        get().setSession(data);
-        return data.accessToken;
+        if (!refreshToken) {
+          throw new Error('No refresh token available');
+        }
+
+        const res = await apiClient.post('/auth/refresh', { refreshToken });
+        const authData = res.data?.data ?? res.data;
+
+        if (authData?.accessToken) {
+          set({
+            accessToken: authData.accessToken,
+            refreshToken: authData.refreshToken || refreshToken,
+            user: authData.user ? normalizeBackendUser(authData.user) : get().user,
+            isAuthenticated: true,
+          });
+          return authData.accessToken;
+        }
+        throw new Error('Failed to refresh token.');
       },
 
-      logout: async () => {
-        // Clear the session state first
-        set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false });
-        // Return a flag to indicate logout was successful
+      /**
+       * Fetch latest user profile from backend using Bearer token
+       * Calls GET /api/v1/auth/me
+       */
+      fetchCurrentUser: async () => {
+        if (!get().accessToken) return null;
+        try {
+          const res = await apiClient.get('/auth/me');
+          const userData = res.data?.data ?? res.data;
+          const normalized = normalizeBackendUser(userData);
+          set({ user: normalized });
+          return normalized;
+        } catch (error) {
+          // If token expired or invalid, clear session
+          if (error.response?.status === 401) {
+            get().logout();
+          }
+          return null;
+        }
+      },
+
+      /**
+       * Change password for currently logged-in user
+       * Calls POST /api/v1/auth/change-password
+       */
+      changePassword: async (currentPassword, newPassword) => {
+        const res = await apiClient.post('/auth/change-password', {
+          currentPassword,
+          newPassword,
+        });
+        return res.data;
+      },
+
+      /**
+       * Log out and clear state
+       */
+      logout: () => {
+        set({
+          user: null,
+          accessToken: null,
+          refreshToken: null,
+          isAuthenticated: false,
+          isLoading: false,
+        });
         return true;
       },
 
-      updateProfile: (partial) => set((state) => ({ user: state.user ? { ...state.user, ...partial } : state.user })),
+      updateProfile: (partial) =>
+        set((state) => ({ user: state.user ? { ...state.user, ...partial } : state.user })),
 
       setSession: ({ user, accessToken, refreshToken }) => {
-        const normalizedUser = normalizeDemoUser(user, get().demoAccounts);
-        set({ user: normalizedUser, accessToken, refreshToken, isAuthenticated: true });
+        set({
+          user: normalizeBackendUser(user),
+          accessToken,
+          refreshToken,
+          isAuthenticated: !!accessToken,
+        });
       },
     }),
     {
       name: 'buildtwin360-auth',
-      // v1: demoAccounts entries gained `id`/`status` for Settings > User
-      // Management. Browsers with a pre-v1 persisted session would
-      // otherwise rehydrate accounts missing both, colliding on
-      // `id: undefined` in the users table and in status/reset lookups.
-      version: 1,
+      version: 2,
       migrate: (persistedState, version) => {
-        if (version < 1 && persistedState?.demoAccounts) {
-          persistedState.demoAccounts = persistedState.demoAccounts.map((account) => ({
-            ...account,
-            id: account.id ?? DEMO_ACCOUNTS.find((seed) => seed.email === account.email)?.id ?? crypto.randomUUID(),
-            status: account.status ?? 'active',
-          }));
+        if (version < 2) {
+          return {
+            user: persistedState?.user ? normalizeBackendUser(persistedState.user) : null,
+            accessToken: persistedState?.accessToken ?? null,
+            refreshToken: persistedState?.refreshToken ?? null,
+            isAuthenticated: !!persistedState?.accessToken,
+          };
         }
         return persistedState;
       },
-      onRehydrateStorage: () => (state) => {
-        if (state?.user) {
-          const normalizedUser = normalizeDemoUser(state.user, state.demoAccounts);
-          if (normalizedUser.name !== state.user.name || normalizedUser.roles[0] !== state.user.roles[0]) {
-            state.setSession({ user: normalizedUser, accessToken: state.accessToken ?? '', refreshToken: state.refreshToken ?? '' });
-          }
-        }
-      },
-    },
-  ),
+    }
+  )
 );
 
+/**
+ * Hook to verify if authenticated user holds any of the allowed roles.
+ * Normalizes both allowed and user roles for 100% reliable matching.
+ */
 export function useHasRole(...allowed) {
-  const roles = useAuthStore((s) => s.user?.roles ?? []);
-  return allowed.some((r) => roles.includes(r));
+  const userRoles = useAuthStore((s) => s.user?.roles ?? []);
+  if (!allowed || allowed.length === 0) return true;
+
+  const normalizedAllowed = allowed.map(normalizeRole);
+  return userRoles.some((userRole) =>
+    normalizedAllowed.includes(normalizeRole(userRole))
+  );
 }

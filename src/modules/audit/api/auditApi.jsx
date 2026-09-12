@@ -9,7 +9,7 @@ const MOCK_AUDIT = [
 // Maps to /audit-logs (spec section 14 - API Requirements).
 export const auditApi = {
   list: (params) =>
-    apiClient.get('/audit-logs', { params }).then((r) => r.data).catch(() => MOCK_AUDIT),
+    apiClient.get('/audit-logs', { params }).then((r) => r.data).then((data) => data?.content ?? data).catch(() => MOCK_AUDIT),
   getById: (id) => apiClient.get(`/audit-logs/${id}`).then((r) => r.data).catch(() => MOCK_AUDIT[0]),
   create: (payload) =>
     apiClient.post('/audit-logs', payload).then((r) => r.data).catch(() => ({ id: `aud-${Date.now()}`, ...payload })),

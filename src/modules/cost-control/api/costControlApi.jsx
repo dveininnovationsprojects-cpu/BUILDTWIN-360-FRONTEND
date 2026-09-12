@@ -8,12 +8,12 @@ const MOCK_BUDGETS = [
 
 // Maps to /budgets (spec section 14 - API Requirements).
 export const costControlApi = {
-  list: (params) =>
-    apiClient.get('/budgets', { params }).then((r) => r.data).catch(() => MOCK_BUDGETS),
-  getById: (id) => apiClient.get(`/budgets/${id}`).then((r) => r.data).catch(() => MOCK_BUDGETS[0]),
+  list: (params = {}) =>
+    apiClient.get(params.projectId ? `/cost/budgets/project/${params.projectId}` : '/cost/budgets', { params: params.projectId ? undefined : params }).then((r) => r.data).catch(() => MOCK_BUDGETS),
+  getById: (id) => apiClient.get(`/cost/budgets/${id}`).then((r) => r.data).catch(() => MOCK_BUDGETS[0]),
   create: (payload) =>
-    apiClient.post('/budgets', payload).then((r) => r.data).catch(() => ({ id: `cst-${Date.now()}`, ...payload })),
+    apiClient.post('/cost/budgets', payload).then((r) => r.data).catch(() => ({ id: `cst-${Date.now()}`, ...payload })),
   update: (id, payload) =>
-    apiClient.put(`/budgets/${id}`, payload).then((r) => r.data).catch(() => ({ id, ...payload })),
+    apiClient.post('/cost/budgets', { ...payload, id }).then((r) => r.data).catch(() => ({ id, ...payload })),
 };
 

@@ -8,8 +8,8 @@ const MOCK_LABOUR = [
 
 // Maps to /labour/daily (spec section 14 - API Requirements).
 export const labourContractorsApi = {
-  list: (params) =>
-    apiClient.get('/labour/daily', { params }).then((r) => r.data).catch(() => MOCK_LABOUR),
+  list: (params = {}) =>
+    apiClient.get(params.projectId ? `/labour/daily/project/${params.projectId}` : '/labour/daily', { params: params.projectId ? undefined : params }).then((r) => r.data).catch(() => MOCK_LABOUR),
   getById: (id) => apiClient.get(`/labour/daily/${id}`).then((r) => r.data).catch(() => MOCK_LABOUR[0]),
   create: (payload) =>
     apiClient.post('/labour/daily', payload).then((r) => r.data).catch(() => ({ id: `lbr-${Date.now()}`, ...payload })),

@@ -8,12 +8,12 @@ const MOCK_ISSUES = [
 
 // Maps to /issues (spec section 14 - API Requirements).
 export const issuesRisksApi = {
-  list: (params) =>
-    apiClient.get('/issues', { params }).then((r) => r.data).catch(() => MOCK_ISSUES),
+  list: (params = {}) =>
+    apiClient.get(params.projectId ? `/issues/project/${params.projectId}` : '/issues', { params: params.projectId ? undefined : params }).then((r) => r.data).catch(() => MOCK_ISSUES),
   getById: (id) => apiClient.get(`/issues/${id}`).then((r) => r.data).catch(() => MOCK_ISSUES[0]),
   create: (payload) =>
     apiClient.post('/issues', payload).then((r) => r.data).catch(() => ({ id: `iss-${Date.now()}`, ...payload })),
   update: (id, payload) =>
-    apiClient.put(`/issues/${id}`, payload).then((r) => r.data).catch(() => ({ id, ...payload })),
+    apiClient.post(`/issues/${id}/resolve`).then((r) => r.data).catch(() => ({ id, ...payload })),
 };
 

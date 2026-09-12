@@ -30,6 +30,8 @@ export const WORKFLOW_STATUS_TONE = {
   CRITICAL: 'critical',
   ACTIVE: 'success',
   INACTIVE: 'neutral',
+  SUSPENDED: 'danger',
+  PENDING_APPROVAL: 'warning',
   BLOCKED: 'danger',
   OVERDUE: 'critical',
   PLANNING: 'info',

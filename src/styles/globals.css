@@ -220,6 +220,16 @@
     transform: none;
   }
 
+  /* The public login screen always keeps the normal default appearance. */
+  [data-theme] .auth-default-scene {
+    background-color: #0f172a !important;
+    background-image: linear-gradient(90deg, rgba(7, 57, 176, 0.66), rgba(15, 23, 42, 0.22)), url('https://images.unsplash.com/photo-1487958449943-2429e8be8625?auto=format&fit=crop&w=2200&q=88') !important;
+  }
+
+  [data-theme] .auth-default-glass {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.58)) !important;
+  }
+
   .scrollbar-hidden {
     scrollbar-width: none;
   }
