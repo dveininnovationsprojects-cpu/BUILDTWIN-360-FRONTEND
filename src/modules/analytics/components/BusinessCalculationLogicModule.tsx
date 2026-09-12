@@ -49,8 +49,294 @@ export function BusinessCalculationLogicModule() {
     }
   };
 
+  // Interactive Live Calculation Engine State
+  const [activeCalcTab, setActiveCalcTab] = useState<'PRG' | 'SCH_VAR' | 'SPI'>('PRG');
+
+  // Calculator State 1: Physical Progress %
+  const [colWeight, setColWeight] = useState<number | string>(0.40);
+  const [colDonePct, setColDonePct] = useState<number | string>(100);
+  const [slabWeight, setSlabWeight] = useState<number | string>(0.60);
+  const [slabDonePct, setSlabDonePct] = useState<number | string>(50);
+
+  const calculatedPhysicalProgress = useMemo(() => {
+    const w1 = typeof colWeight === 'number' ? colWeight : parseFloat(colWeight) || 0;
+    const p1 = (typeof colDonePct === 'number' ? colDonePct : parseFloat(colDonePct) || 0) / 100;
+    const w2 = typeof slabWeight === 'number' ? slabWeight : parseFloat(slabWeight) || 0;
+    const p2 = (typeof slabDonePct === 'number' ? slabDonePct : parseFloat(slabDonePct) || 0) / 100;
+    const totalW = w1 + w2 || 1;
+    return (((w1 * Math.min(1.0, p1) + w2 * Math.min(1.0, p2)) / totalW) * 100).toFixed(2);
+  }, [colWeight, colDonePct, slabWeight, slabDonePct]);
+
+  // Calculator State 2: Schedule Variance & Timing Slippage
+  const [calcEv, setCalcEv] = useState<number>(450000);
+  const [calcPv, setCalcPv] = useState<number>(500000);
+  const [baselineDays, setBaselineDays] = useState<number>(30);
+  const [forecastDays, setForecastDays] = useState<number>(36);
+
+  const monetarySv = useMemo(() => calcEv - calcPv, [calcEv, calcPv]);
+  const slippageDays = useMemo(() => forecastDays - baselineDays, [forecastDays, baselineDays]);
+
+  // Calculator State 3: Schedule Performance Index (SPI)
+  const [spiEv, setSpiEv] = useState<number>(12500000);
+  const [spiPv, setSpiPv] = useState<number>(15000000);
+
+  const calculatedSpi = useMemo(() => {
+    if (!spiPv || spiPv === 0) return '1.000';
+    return (spiEv / spiPv).toFixed(3);
+  }, [spiEv, spiPv]);
+
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
+      {/* Featured Interactive Calculation Simulator for 3 Core Logics */}
+      <div className="rounded-xl border border-brand-200 bg-gradient-to-r from-brand-950 via-slate-900 to-brand-900 text-white p-5 shadow-lg">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="bg-emerald-500/20 text-emerald-300 font-mono text-xs px-2.5 py-0.5 rounded-full font-bold border border-emerald-500/30 flex items-center gap-1">
+                <Cpu className="h-3.5 w-3.5" /> LIVE CALCULATION LOGIC SIMULATOR
+              </span>
+              <h3 className="text-lg font-bold text-white">Domain Rule Execution Engine</h3>
+            </div>
+            <p className="text-xs text-slate-300 mt-1">
+              Select any of the 3 domain calculation logics to test real-time mathematical evaluations with site inputs.
+            </p>
+          </div>
+
+          {/* Selector Tabs matching the 3 items from user request */}
+          <div className="flex items-center gap-1.5 bg-slate-950/80 p-1 rounded-lg border border-slate-800">
+            <button
+              onClick={() => setActiveCalcTab('PRG')}
+              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+                activeCalcTab === 'PRG'
+                  ? 'bg-brand-500 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              1. Physical Progress %
+            </button>
+            <button
+              onClick={() => setActiveCalcTab('SCH_VAR')}
+              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+                activeCalcTab === 'SCH_VAR'
+                  ? 'bg-brand-500 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              2. Schedule Variance & Slippage
+            </button>
+            <button
+              onClick={() => setActiveCalcTab('SPI')}
+              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+                activeCalcTab === 'SPI'
+                  ? 'bg-brand-500 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              3. Schedule Performance Index (SPI)
+            </button>
+          </div>
+        </div>
+
+        {/* Tab 1: Physical Progress % Weighted Calculation Logic */}
+        {activeCalcTab === 'PRG' && (
+          <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
+            <div className="lg:col-span-2 space-y-3 bg-slate-900/90 p-4 rounded-lg border border-slate-800">
+              <div className="font-semibold text-brand-300 flex items-center justify-between">
+                <span>Weighted Activity Work Packages (PRJ-001 Padur Site)</span>
+                <span className="font-mono text-[11px] text-slate-400">KPI-PRG-01 Rule</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Col Rebar Weight (w₁)</label>
+                  <input
+                    type="number"
+                    step="0.05"
+                    value={colWeight}
+                    onChange={(e) => setColWeight(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Col Done % (p₁)</label>
+                  <input
+                    type="number"
+                    value={colDonePct}
+                    onChange={(e) => setColDonePct(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Slab Conc Weight (w₂)</label>
+                  <input
+                    type="number"
+                    step="0.05"
+                    value={slabWeight}
+                    onChange={(e) => setSlabWeight(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Slab Done % (p₂)</label>
+                  <input
+                    type="number"
+                    value={slabDonePct}
+                    onChange={(e) => setSlabDonePct(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+              </div>
+              <div className="text-[11px] text-slate-400 bg-slate-950/60 p-2 rounded border border-slate-800/80 font-mono">
+                Formula: ∑ (min(1.0, Qty_done / Qty_planned) × Weight) × 100 ➔ ({colWeight} × {colDonePct}%) + ({slabWeight} × {slabDonePct}%)
+              </div>
+            </div>
+
+            <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 flex flex-col justify-between">
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Calculated Physical Progress</span>
+                <div className="text-3xl font-black text-emerald-400 font-mono mt-1">
+                  {calculatedPhysicalProgress}%
+                </div>
+                <div className="text-[11px] text-slate-300 mt-1">
+                  Weighted physical completion score across active structure activities.
+                </div>
+              </div>
+              <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">Rule Status:</span>
+                <span className="text-emerald-400 font-bold flex items-center gap-1">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> VALIDATED
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 2: Schedule Variance & Baseline Timing Slippage Logic */}
+        {activeCalcTab === 'SCH_VAR' && (
+          <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
+            <div className="lg:col-span-2 space-y-3 bg-slate-900/90 p-4 rounded-lg border border-slate-800">
+              <div className="font-semibold text-brand-300 flex items-center justify-between">
+                <span>Schedule Monetary & Calendar Slippage Inputs</span>
+                <span className="font-mono text-[11px] text-slate-400">KPI-SCH-02 Rule</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Earned Value (EV ₹)</label>
+                  <input
+                    type="number"
+                    value={calcEv}
+                    onChange={(e) => setCalcEv(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Planned Value (PV ₹)</label>
+                  <input
+                    type="number"
+                    value={calcPv}
+                    onChange={(e) => setCalcPv(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Baseline Days</label>
+                  <input
+                    type="number"
+                    value={baselineDays}
+                    onChange={(e) => setBaselineDays(parseInt(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Forecast Days</label>
+                  <input
+                    type="number"
+                    value={forecastDays}
+                    onChange={(e) => setForecastDays(parseInt(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+              </div>
+              <div className="text-[11px] text-slate-400 bg-slate-950/60 p-2 rounded border border-slate-800/80 font-mono">
+                Formula: SV_monetary = EV ({calcEv.toLocaleString()}) - PV ({calcPv.toLocaleString()}); SV_days = Forecast ({forecastDays}) - Baseline ({baselineDays})
+              </div>
+            </div>
+
+            <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 flex flex-col justify-between">
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Schedule Variance & Slippage</span>
+                <div className={`text-2xl font-black font-mono mt-1 ${monetarySv < 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                  ₹ {monetarySv.toLocaleString()}
+                </div>
+                <div className={`text-sm font-bold font-mono mt-1 ${slippageDays > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                  {slippageDays > 0 ? `+${slippageDays} Days Baseline Slippage` : `${Math.abs(slippageDays)} Days Ahead`}
+                </div>
+              </div>
+              <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">Status:</span>
+                <span className={`font-bold ${slippageDays > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                  {slippageDays > 0 ? 'BEHIND SCHEDULE' : 'ON TRACK'}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 3: Schedule Performance Index (SPI) */}
+        {activeCalcTab === 'SPI' && (
+          <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
+            <div className="lg:col-span-2 space-y-3 bg-slate-900/90 p-4 rounded-lg border border-slate-800">
+              <div className="font-semibold text-brand-300 flex items-center justify-between">
+                <span>SPI Efficiency Input Parameters</span>
+                <span className="font-mono text-[11px] text-slate-400">KPI-SCH-01 Rule</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Earned Value (EV ₹)</label>
+                  <input
+                    type="number"
+                    value={spiEv}
+                    onChange={(e) => setSpiEv(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Planned Value (PV ₹)</label>
+                  <input
+                    type="number"
+                    value={spiPv}
+                    onChange={(e) => setSpiPv(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+              </div>
+              <div className="text-[11px] text-slate-400 bg-slate-950/60 p-2 rounded border border-slate-800/80 font-mono">
+                Formula: SPI = EV / PV ➔ ({spiEv.toLocaleString()} / {spiPv.toLocaleString()})
+              </div>
+            </div>
+
+            <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 flex flex-col justify-between">
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Schedule Performance Index (SPI)</span>
+                <div className={`text-3xl font-black font-mono mt-1 ${parseFloat(calculatedSpi) < 1.0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                  {calculatedSpi}
+                </div>
+                <div className="text-[11px] text-slate-300 mt-1">
+                  {parseFloat(calculatedSpi) < 1.0
+                    ? `SPI < 1.00 (${((1 - parseFloat(calculatedSpi)) * 100).toFixed(1)}% Behind Schedule)`
+                    : `SPI ≥ 1.00 (${((parseFloat(calculatedSpi) - 1) * 100).toFixed(1)}% Ahead of Schedule)`}
+                </div>
+              </div>
+              <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">Efficiency Index:</span>
+                <span className={`font-bold ${parseFloat(calculatedSpi) < 1.0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                  {parseFloat(calculatedSpi) < 1.0 ? 'SLIPPAGE ALERT' : 'OPTIMAL BURN'}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Search and Category Filter Bar */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between bg-surface-subtle p-3 rounded-lg border border-surface-border">
         <div className="relative flex-1 max-w-md">
