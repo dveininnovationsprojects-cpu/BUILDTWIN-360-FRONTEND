@@ -261,10 +261,11 @@ export const ROLE_DASHBOARDS_DATA: Record<Role, DashboardRoleConfig> = {
     primaryFocusWidgets: [
       {
         title: 'Predictive Analytics & Model Drivers',
-        description: 'Mathematical breakdown of forecast models',
+        description: 'Mathematical breakdown of forecast & pipeline models',
         items: [
-          { label: 'FCD Calculation Breakdown (KPI-FCT-01)', detail: 'Remaining Work Days: 36 • Rolling SPI: 0.80 -> Adjusted Days: 45 + 3 Blocker = 48 Days', badge: 'Oct 12 Forecast', tone: 'danger' },
-          { label: 'DRS Multi-Factor Weightings (KPI-RSK-01)', detail: 'Pred (35%*80) + Mat (25%*100) + Lbr (20%*20) + Prod (10%*60) + Qlt (10%*90) = 72.0', badge: 'CRITICAL RISK', tone: 'danger' },
+          { label: 'Daily Progress Report (DPR) Analytics Data Pipelines', detail: 'Ingestion, cleaning, normalization & fact table publication', badge: '100% Active', tone: 'success' },
+          { label: 'Cumulative Progress & Achieved Rate Aggregation', detail: 'Hierarchical weighted WBS rollup & survey cross-validation', badge: '68.5% Aggregated', tone: 'success' },
+          { label: 'Site Progress Evidence Analytics', detail: 'Geo-tagged field photos & site log audit verification', badge: '100% Verified', tone: 'success' },
         ],
       },
       {
@@ -324,11 +325,12 @@ export const ROLE_DASHBOARDS_DATA: Record<Role, DashboardRoleConfig> = {
     ],
     primaryFocusWidgets: [
       {
-        title: 'Audit Trail & Immutable Records Inspection',
-        description: 'Read-only historical verification logs',
+        title: 'Analytics Modules & Audit Trail Verification',
+        description: 'Verification of core analytics data pipelines and evidence logs',
         items: [
-          { label: 'Audit Event #8912 — DPR Quantities Approval', detail: 'Approved by PM Suresh on Aug 25 18:30 • Linked Photo #IMG-9012 • Geo: Padur Site', badge: 'VERIFIED AUDIT', tone: 'success' },
-          { label: 'Audit Event #8910 — Goods Receipt Note #GRN-104', detail: 'Logged by Store Officer • 120 cement bags • Supplier: Chennai Ready-Mix', badge: 'VERIFIED AUDIT', tone: 'success' },
+          { label: 'Daily Progress Report (DPR) Analytics Data Pipelines', detail: '100% verified ETL pipeline execution with zero data drift', badge: 'PASSED AUDIT', tone: 'success' },
+          { label: 'Cumulative Progress & Achieved Rate Aggregation', detail: 'Weighted physical completion score cross-checked with site total station survey', badge: 'PASSED AUDIT', tone: 'success' },
+          { label: 'Site Progress Evidence Analytics', detail: '100% geo-tagged photos and site log audit trail linked to DPR submissions', badge: 'PASSED AUDIT', tone: 'success' },
         ],
       },
       {

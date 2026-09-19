@@ -445,26 +445,24 @@ const ROLE_DATA_SPEC: Record<Role, {
     total: '4.2M',
     costBreakdown: {
       donut: [
-        { name: 'SPI Engine', value: 30.0 },
-        { name: 'CPI Engine', value: 25.0 },
-        { name: 'DRS Model', value: 25.0 },
-        { name: 'PHI Aggregation', value: 20.0 },
+        { name: 'DPR Data Pipelines', value: 35.0 },
+        { name: 'Cumulative Aggregation', value: 35.0 },
+        { name: 'Site Evidence Analytics', value: 30.0 },
       ],
       table: [
-        { category: 'SPI Engine', amount: '100% Validated', color: 'bg-cyan-50 text-slate-800' },
-        { category: 'CPI Engine', amount: '100% Validated', color: 'bg-cyan-100/70 text-slate-800' },
-        { category: 'DRS Model', amount: '72.0 Score', color: 'bg-cyan-200/70 text-slate-800' },
-        { category: 'PHI Aggregation', amount: '78.7 PHI', color: 'bg-cyan-300/80 text-slate-900' },
+        { category: 'Daily Progress Report (DPR) Analytics Data Pipelines', amount: '100% Validated', color: 'bg-cyan-50 text-slate-800 font-semibold' },
+        { category: 'Cumulative Progress & Achieved Rate Aggregation', amount: '68.5% Aggregated', color: 'bg-cyan-100/70 text-slate-800 font-semibold' },
+        { category: 'Site Progress Evidence Analytics', amount: '100% Verified', color: 'bg-cyan-200/70 text-slate-800 font-semibold' },
       ],
     },
     workload: [
-      { project: 'SPI Pipeline', completed: 290, remaining: 10, overdue: 0 },
-      { project: 'CPI Pipeline', completed: 280, remaining: 20, overdue: 0 },
-      { project: 'FCD Forecast', completed: 250, remaining: 50, overdue: 0 },
+      { project: 'DPR Pipelines', completed: 290, remaining: 10, overdue: 0 },
+      { project: 'Rate Aggregation', completed: 280, remaining: 20, overdue: 0 },
+      { project: 'Evidence Analytics', completed: 250, remaining: 50, overdue: 0 },
     ],
     budgetVariance: [
-      { project: 'SPI Pipeline', actualBudget: 500, plannedBudget: 500 },
-      { project: 'CPI Pipeline', actualBudget: 480, plannedBudget: 480 },
+      { project: 'DPR Pipelines', actualBudget: 500, plannedBudget: 500 },
+      { project: 'Rate Aggregation', actualBudget: 480, plannedBudget: 480 },
     ],
     resources: [
       { project: 'DataPipelines', plannedResources: 200, actualResources: 200 },
@@ -515,26 +513,24 @@ const ROLE_DATA_SPEC: Record<Role, {
     total: '4.2M',
     costBreakdown: {
       donut: [
-        { name: 'DPR Analytics Data Pipelines', value: 35.0 },
-        { name: 'Cost Ledger Audit', value: 30.0 },
-        { name: 'Baseline History', value: 25.0 },
-        { name: 'Stock Audit Log', value: 10.0 },
+        { name: 'DPR Data Pipelines', value: 35.0 },
+        { name: 'Cumulative Aggregation', value: 35.0 },
+        { name: 'Site Evidence Analytics', value: 30.0 },
       ],
       table: [
         { category: 'Daily Progress Report (DPR) Analytics Data Pipelines', amount: '100% Verified', color: 'bg-emerald-50 text-slate-800 font-semibold' },
-        { category: 'Cost Ledger Audit', amount: '148 Verified', color: 'bg-emerald-100/70 text-slate-800' },
-        { category: 'Baseline History', amount: 'Locked', color: 'bg-emerald-200/70 text-slate-800' },
-        { category: 'Stock Audit Log', amount: '120 Entries', color: 'bg-emerald-300/80 text-emerald-950 font-bold' },
+        { category: 'Cumulative Progress & Achieved Rate Aggregation', amount: '100% Verified', color: 'bg-emerald-100/70 text-slate-800 font-semibold' },
+        { category: 'Site Progress Evidence Analytics', amount: '100% Verified', color: 'bg-emerald-200/70 text-slate-800 font-semibold' },
       ],
     },
     workload: [
       { project: 'DPR Trail', completed: 300, remaining: 0, overdue: 0 },
-      { project: 'Cost Ledger', completed: 295, remaining: 5, overdue: 0 },
-      { project: 'Stock Log', completed: 290, remaining: 10, overdue: 0 },
+      { project: 'Rate Aggregation', completed: 295, remaining: 5, overdue: 0 },
+      { project: 'Evidence Analytics', completed: 290, remaining: 10, overdue: 0 },
     ],
     budgetVariance: [
       { project: 'DPR Audit', actualBudget: 200, plannedBudget: 200 },
-      { project: 'Cost Audit', actualBudget: 180, plannedBudget: 180 },
+      { project: 'Rate Audit', actualBudget: 180, plannedBudget: 180 },
     ],
     resources: [
       { project: 'Auditors', plannedResources: 100, actualResources: 100 },
