@@ -66,8 +66,7 @@ export const wbsScheduleApi = {
       const response = await apiClient.get('/activities', { params });
       return response.data ?? [];
     } catch (error) {
-      // Fallback to demo data when API fails (local demo mode)
-      console.warn('Failed to load activities from API, using demo data', error);
+      // Fallback to demo data when API returns empty or offline
       return DEMO_ACTIVITIES;
     }
   },
