@@ -1,4 +1,6 @@
-import { ROLES, type Role } from '@/constants/roles';
+import { ROLES } from '@/constants/roles';
+
+export type Role = typeof ROLES[keyof typeof ROLES];
 
 export interface DashboardRoleConfig {
   role: Role;
