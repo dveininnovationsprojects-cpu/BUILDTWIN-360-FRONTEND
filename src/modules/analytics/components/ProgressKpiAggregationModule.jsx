@@ -2,87 +2,87 @@ import { useState, useMemo } from 'react';
 import { StatusPill, Button } from '@/design-system';
 import { Network, Layers, CheckCircle2, ChevronRight, AlertCircle, BarChart, Scale } from 'lucide-react';
 
+const HIERARCHY_DATA = [
+  {
+    id: 'LEVEL-0',
+    level: 'PROJECT',
+    code: 'PRJ-001',
+    name: 'Padur Residence Project (Master Aggregation)',
+    weightage: '1.0000 (100.0%)',
+    calculatedProgress: '68.50%',
+    groundTruthSurvey: '68.20%',
+    variance: '+0.30%',
+    status: 'VALIDATED',
+    subNodes: '2 Buildings (Tower A & Tower B)'
+  },
+  {
+    id: 'LEVEL-1A',
+    level: 'BUILDING',
+    code: 'PRJ-001.T1',
+    name: 'Tower A (Residential Block - 14 Floors)',
+    weightage: '0.6000 (60.0%)',
+    calculatedProgress: '72.00%',
+    groundTruthSurvey: '72.00%',
+    variance: '0.00%',
+    status: 'VALIDATED',
+    subNodes: '14 Floor Packages'
+  },
+  {
+    id: 'LEVEL-1B',
+    level: 'BUILDING',
+    code: 'PRJ-001.T2',
+    name: 'Tower B (Commercial & Amenities Block)',
+    weightage: '0.4000 (40.0%)',
+    calculatedProgress: '63.25%',
+    groundTruthSurvey: '62.50%',
+    variance: '+0.75%',
+    status: 'VALIDATED',
+    subNodes: '8 Floor Packages'
+  },
+  {
+    id: 'LEVEL-2A',
+    level: 'FLOOR',
+    code: 'PRJ-001.T1.F1',
+    name: 'Tower A — Ground Floor Structural Slab',
+    weightage: '0.0800 (8.0%)',
+    calculatedProgress: '100.00%',
+    groundTruthSurvey: '100.00%',
+    variance: '0.00%',
+    status: 'VALIDATED',
+    subNodes: '4 Work Packages (Civil, Rebar, Concrete, MEP)'
+  },
+  {
+    id: 'LEVEL-2B',
+    level: 'FLOOR',
+    code: 'PRJ-001.T1.F2',
+    name: 'Tower A — 1st Floor Columns & Beams',
+    weightage: '0.0750 (7.5%)',
+    calculatedProgress: '85.00%',
+    groundTruthSurvey: '84.00%',
+    variance: '+1.00%',
+    status: 'VALIDATED',
+    subNodes: '4 Work Packages'
+  },
+  {
+    id: 'LEVEL-3A',
+    level: 'WORK_PACKAGE',
+    code: 'PRJ-001.T1.F2.CIV',
+    name: 'Civil Concrete Works — Floor 1',
+    weightage: '0.0400 (4.0%)',
+    calculatedProgress: '90.00%',
+    groundTruthSurvey: '90.00%',
+    variance: '0.00%',
+    status: 'VALIDATED',
+    subNodes: '3 Activity Packages'
+  }
+];
+
 export function ProgressKpiAggregationModule() {
   const [selectedLevel, setSelectedLevel] = useState('ALL');
 
-  const hierarchyData = [
-    {
-      id: 'LEVEL-0',
-      level: 'PROJECT',
-      code: 'PRJ-001',
-      name: 'Padur Residence Project (Master Aggregation)',
-      weightage: '1.0000 (100.0%)',
-      calculatedProgress: '68.50%',
-      groundTruthSurvey: '68.20%',
-      variance: '+0.30%',
-      status: 'VALIDATED',
-      subNodes: '2 Buildings (Tower A & Tower B)'
-    },
-    {
-      id: 'LEVEL-1A',
-      level: 'BUILDING',
-      code: 'PRJ-001.T1',
-      name: 'Tower A (Residential Block - 14 Floors)',
-      weightage: '0.6000 (60.0%)',
-      calculatedProgress: '72.00%',
-      groundTruthSurvey: '72.00%',
-      variance: '0.00%',
-      status: 'VALIDATED',
-      subNodes: '14 Floor Packages'
-    },
-    {
-      id: 'LEVEL-1B',
-      level: 'BUILDING',
-      code: 'PRJ-001.T2',
-      name: 'Tower B (Commercial & Amenities Block)',
-      weightage: '0.4000 (40.0%)',
-      calculatedProgress: '63.25%',
-      groundTruthSurvey: '62.50%',
-      variance: '+0.75%',
-      status: 'VALIDATED',
-      subNodes: '8 Floor Packages'
-    },
-    {
-      id: 'LEVEL-2A',
-      level: 'FLOOR',
-      code: 'PRJ-001.T1.F1',
-      name: 'Tower A — Ground Floor Structural Slab',
-      weightage: '0.0800 (8.0%)',
-      calculatedProgress: '100.00%',
-      groundTruthSurvey: '100.00%',
-      variance: '0.00%',
-      status: 'VALIDATED',
-      subNodes: '4 Work Packages (Civil, Rebar, Concrete, MEP)'
-    },
-    {
-      id: 'LEVEL-2B',
-      level: 'FLOOR',
-      code: 'PRJ-001.T1.F2',
-      name: 'Tower A — 1st Floor Columns & Beams',
-      weightage: '0.0750 (7.5%)',
-      calculatedProgress: '85.00%',
-      groundTruthSurvey: '84.00%',
-      variance: '+1.00%',
-      status: 'VALIDATED',
-      subNodes: '4 Work Packages'
-    },
-    {
-      id: 'LEVEL-3A',
-      level: 'WORK_PACKAGE',
-      code: 'PRJ-001.T1.F2.CIV',
-      name: 'Civil Concrete Works — Floor 1',
-      weightage: '0.0400 (4.0%)',
-      calculatedProgress: '90.00%',
-      groundTruthSurvey: '90.00%',
-      variance: '0.00%',
-      status: 'VALIDATED',
-      subNodes: '3 Activity Packages'
-    }
-  ];
-
   const filteredHierarchy = useMemo(() => {
-    return hierarchyData.filter((item) => selectedLevel === 'ALL' || item.level === selectedLevel);
-  }, [hierarchyData, selectedLevel]);
+    return HIERARCHY_DATA.filter((item) => selectedLevel === 'ALL' || item.level === selectedLevel);
+  }, [selectedLevel]);
 
   return (
     <div className="flex flex-col gap-5 bg-white p-5 rounded-xl border border-surface-border shadow-sm">
