@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Download, Camera, Tag, Eye, Plus, Search, Filter, Calendar, Building } from 'lucide-react';
 import { Table, StatusPill, Button, Input } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
-import { useAuthStore } from '@/context/authStore';
+import { useAuthStore, useHasRole } from '@/context/authStore';
+import { ROLES } from '@/constants/roles';
 import { progressDprApi } from '../api/progressDprApi';
 import { DprEntryFormModal } from '../components/DprEntryFormModal';
 import { DprDetailsModal } from '../components/DprDetailsModal';
@@ -19,6 +20,14 @@ export function ProgressDprListPage() {
   const [selectedDprForDetails, setSelectedDprForDetails] = useState(null);
   const [galleryModalData, setGalleryModalData] = useState({ open: false, photos: [], title: '' });
   const [searchQuery, setSearchQuery] = useState('');
+
+  const canCreateDpr = useHasRole(
+    ROLES.SITE_ENGINEER,
+    ROLES.SITE_SUPERVISOR,
+    ROLES.PROJECT_MANAGER,
+    ROLES.DIRECTOR,
+    ROLES.ADMIN
+  );
 
   const queryClient = useQueryClient();
   const pushToast = useToastStore((state) => state.push);
@@ -197,16 +206,18 @@ export function ProgressDprListPage() {
             Submit daily site quantities, upload high-res photos (up to 100MB), tag work activities, and generate audit-ready PDF reports.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            size="sm"
-            onClick={() => setEntryOpen(true)}
-            className="flex items-center gap-1.5 shadow-sm"
-          >
-            <Plus className="h-4 w-4" />
-            <span>New DPR Entry</span>
-          </Button>
-        </div>
+        {canCreateDpr && (
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={() => setEntryOpen(true)}
+              className="flex items-center gap-1.5 shadow-sm"
+            >
+              <Plus className="h-4 w-4" />
+              <span>New DPR Entry</span>
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Filter / Search Bar */}

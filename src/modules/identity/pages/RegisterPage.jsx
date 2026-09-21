@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { User, Mail, Lock, CheckCircle2, Shield, ArrowLeft, ArrowRight } from 'lucide-react';
+import { User, Mail, Lock, CheckCircle2, Shield, ArrowLeft, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { Button, Select } from '@/design-system';
 import { useAuthStore } from '@/context/authStore';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
@@ -22,6 +22,8 @@ export function RegisterPage() {
 
   const [isSubmitting, setSubmitting] = useState(false);
   const [registeredSuccess, setRegisteredSuccess] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const {
     register,
@@ -98,7 +100,7 @@ export function RegisterPage() {
 
         <Button
           onClick={() => navigate('/login')}
-          className="w-full justify-center"
+          className="auth-submit-btn w-full justify-center"
         >
           <span>Return to Sign In</span>
           <ArrowRight className="ml-2 h-4 w-4" />
@@ -193,11 +195,11 @@ export function RegisterPage() {
             <Lock className="h-4 w-4" />
           </div>
           <input
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             autoComplete="new-password"
             placeholder="At least 6 characters"
             disabled={isSubmitting}
-            className={`w-full rounded-lg border bg-surface-card py-2 pl-9 pr-3 text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 ${
+            className={`w-full rounded-lg border bg-surface-card py-2 pl-9 pr-10 text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 ${
               errors.password ? 'border-rose-500' : 'border-surface-border'
             }`}
             {...register('password', {
@@ -205,6 +207,15 @@ export function RegisterPage() {
               minLength: { value: 6, message: 'Password must be at least 6 characters' },
             })}
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            tabIndex={-1}
+            className="absolute inset-y-0 right-0 flex items-center pr-3 text-ink-400 hover:text-ink-700 focus:outline-none"
+            title={showPassword ? 'Hide password' : 'Show password'}
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
         </div>
         {errors.password && (
           <p className="mt-1 text-xs text-rose-600">{errors.password.message}</p>
@@ -220,11 +231,11 @@ export function RegisterPage() {
             <Lock className="h-4 w-4" />
           </div>
           <input
-            type="password"
+            type={showConfirmPassword ? 'text' : 'password'}
             autoComplete="new-password"
             placeholder="Confirm your password"
             disabled={isSubmitting}
-            className={`w-full rounded-lg border bg-surface-card py-2 pl-9 pr-3 text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 ${
+            className={`w-full rounded-lg border bg-surface-card py-2 pl-9 pr-10 text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 ${
               errors.confirmPassword ? 'border-rose-500' : 'border-surface-border'
             }`}
             {...register('confirmPassword', {
@@ -232,6 +243,15 @@ export function RegisterPage() {
               validate: (val) => val === passwordVal || 'Passwords do not match',
             })}
           />
+          <button
+            type="button"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            tabIndex={-1}
+            className="absolute inset-y-0 right-0 flex items-center pr-3 text-ink-400 hover:text-ink-700 focus:outline-none"
+            title={showConfirmPassword ? 'Hide password' : 'Show password'}
+          >
+            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
         </div>
         {errors.confirmPassword && (
           <p className="mt-1 text-xs text-rose-600">{errors.confirmPassword.message}</p>
@@ -242,7 +262,7 @@ export function RegisterPage() {
         type="submit"
         isLoading={isSubmitting}
         disabled={isSubmitting}
-        className="mt-1 w-full justify-center shadow-md shadow-brand-700/20"
+        className="auth-submit-btn mt-1 w-full justify-center shadow-md shadow-brand-700/20"
       >
         <span>{isSubmitting ? 'Submitting Registration...' : 'Create Account'}</span>
         {!isSubmitting && <ArrowRight className="ml-2 h-4 w-4" />}

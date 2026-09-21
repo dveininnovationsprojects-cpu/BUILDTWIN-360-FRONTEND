@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Table, Button, Modal, Input } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
+import { useHasRole } from '@/context/authStore';
+import { ROLES } from '@/constants/roles';
 import { reportsApi } from '../api/reportsApi';
 
 // Executive/project/site dashboards and scheduled/exportable reports (FR-130..135).
@@ -10,6 +12,16 @@ export function ReportsListPage() {
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
   const pushToast = useToastStore((state) => state.push);
+
+  // Management, Analysts, Auditors, and Admins can generate & schedule master reports. Field supervisors have read-only access.
+  const canManage = useHasRole(
+    ROLES.DIRECTOR,
+    ROLES.PROJECT_MANAGER,
+    ROLES.DATA_ANALYST,
+    ROLES.AUDITOR,
+    ROLES.ADMIN
+  );
+
   const form = useForm({
     defaultValues: {
       name: '',
@@ -61,7 +73,7 @@ export function ReportsListPage() {
             Executive/project/site dashboards and scheduled/exportable reports (FR-130..135).
           </p>
         </div>
-        <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>
+        {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>
 
       <Table columns={columns} data={data ?? []} rowKey={(row) => row.id} isLoading={isLoading} />

@@ -21,6 +21,8 @@ import {
 } from 'lucide-react';
 import { Table, StatusPill, Button, Input, Select, Modal, Textarea } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
+import { useHasRole } from '@/context/authStore';
+import { ROLES } from '@/constants/roles';
 import {
   materialsInventoryApi,
   stockLedgerApi,
@@ -456,6 +458,15 @@ export function MaterialsInventoryListPage() {
   const [transactionMaterial, setTransactionMaterial] = useState(null);
   const [activeTab, setActiveTab] = useState('catalog'); // 'catalog' | 'low-stock'
 
+  const canManage = useHasRole(
+    ROLES.PROCUREMENT_STORE,
+    ROLES.PROJECT_MANAGER,
+    ROLES.DIRECTOR,
+    ROLES.ADMIN,
+    ROLES.SITE_ENGINEER
+  );
+  const canDelete = useHasRole(ROLES.DIRECTOR, ROLES.ADMIN, ROLES.PROCUREMENT_STORE);
+
   const pushToast = useToastStore((s) => s.push);
   const queryClient = useQueryClient();
 
@@ -560,23 +571,27 @@ export function MaterialsInventoryListPage() {
           >
             <Eye className="h-3.5 w-3.5" />
           </Button>
-          <Button
-            size="sm" variant="ghost"
-            className="h-7 px-2 text-xs text-status-success hover:bg-status-successBg"
-            onClick={() => setTransactionMaterial(row)}
-            title="Record stock movement"
-          >
-            <RefreshCw className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            size="sm" variant="ghost"
-            className="h-7 px-2 text-xs text-status-danger hover:bg-status-dangerBg"
-            onClick={() => deleteMutation.mutate(row.id)}
-            disabled={deleteMutation.isPending}
-            title="Remove from catalog"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
+          {canManage && (
+            <Button
+              size="sm" variant="ghost"
+              className="h-7 px-2 text-xs text-status-success hover:bg-status-successBg"
+              onClick={() => setTransactionMaterial(row)}
+              title="Record stock movement"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              size="sm" variant="ghost"
+              className="h-7 px-2 text-xs text-status-danger hover:bg-status-dangerBg"
+              onClick={() => deleteMutation.mutate(row.id)}
+              disabled={deleteMutation.isPending}
+              title="Remove from catalog"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          )}
         </div>
       ),
     },
@@ -598,17 +613,21 @@ export function MaterialsInventoryListPage() {
       key: 'status', header: 'Alert',
       render: (row) => <StockBadge status={row.status} />,
     },
-    {
-      key: 'actions', header: 'Action',
-      render: (row) => (
-        <Button size="sm" variant="outline"
-          className="h-7 px-2 text-xs border-status-success text-status-success hover:bg-status-successBg"
-          onClick={(e) => { e.stopPropagation(); setTransactionMaterial(row); }}
-        >
-          <ArrowUpCircle className="h-3.5 w-3.5 mr-1" /> Restock
-        </Button>
-      ),
-    },
+    ...(canManage
+      ? [
+          {
+            key: 'actions', header: 'Action',
+            render: (row) => (
+              <Button size="sm" variant="outline"
+                className="h-7 px-2 text-xs border-status-success text-status-success hover:bg-status-successBg"
+                onClick={(e) => { e.stopPropagation(); setTransactionMaterial(row); }}
+              >
+                <ArrowUpCircle className="h-3.5 w-3.5 mr-1" /> Restock
+              </Button>
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -626,10 +645,12 @@ export function MaterialsInventoryListPage() {
             Material catalog, stock ledger, GRN receipts, site issues, consumption, and low-stock alerts.
           </p>
         </div>
-        <Button size="sm" onClick={() => setAddModalOpen(true)} className="flex items-center gap-1.5">
-          <Plus className="h-4 w-4" />
-          Add Material
-        </Button>
+        {canManage && (
+          <Button size="sm" onClick={() => setAddModalOpen(true)} className="flex items-center gap-1.5">
+            <Plus className="h-4 w-4" />
+            Add Material
+          </Button>
+        )}
       </div>
 
       {/* Stats Summary Bar */}

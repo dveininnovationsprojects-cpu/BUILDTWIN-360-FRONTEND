@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Table, Button, Modal, Input } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
+import { useHasRole } from '@/context/authStore';
+import { ROLES } from '@/constants/roles';
 import { costControlApi } from '../api/costControlApi';
 
 // Cost heads, budget revisions, committed/actual cost, PV/EV/AC/SPI/CPI (FR-070..075).
@@ -10,6 +12,14 @@ export function CostControlListPage() {
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
   const pushToast = useToastStore((state) => state.push);
+
+  const canManage = useHasRole(
+    ROLES.QUANTITY_COST_COORDINATOR,
+    ROLES.PROJECT_MANAGER,
+    ROLES.DIRECTOR,
+    ROLES.ADMIN
+  );
+
   const form = useForm({
     defaultValues: {
       code: '',
@@ -63,12 +73,12 @@ export function CostControlListPage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="page-heading">Cost & Budget</h1>
+          <h1 className="page-heading">Cost Control & Budget</h1>
           <p className="page-subheading">
             Cost heads, budget revisions, committed/actual cost, PV/EV/AC/SPI/CPI (FR-070..075).
           </p>
         </div>
-        <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>
+        {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>
 
       <Table columns={columns} data={data ?? []} rowKey={(row) => row.id} isLoading={isLoading} />

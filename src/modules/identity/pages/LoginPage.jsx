@@ -169,7 +169,7 @@ export function LoginPage() {
           type="submit"
           isLoading={isSubmitting}
           disabled={isSubmitting}
-          className="mt-2 w-full justify-center shadow-md shadow-brand-700/20"
+          className="auth-submit-btn sign-in-button mt-2 w-full justify-center shadow-md shadow-brand-700/20"
         >
           <span>{isSubmitting ? 'Authenticating...' : 'Sign In'}</span>
           {!isSubmitting && <ArrowRight className="ml-2 h-4 w-4" />}

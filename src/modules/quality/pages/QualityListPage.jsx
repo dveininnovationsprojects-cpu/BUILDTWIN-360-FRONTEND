@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Table, Button, Modal, Input, StatusPill } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
+import { useHasRole } from '@/context/authStore';
+import { ROLES } from '@/constants/roles';
 import { qualityApi } from '../api/qualityApi';
 
 // Inspection checklists, NCR/snag workflow, evidence and closure (FR-080..084).
@@ -10,6 +12,15 @@ export function QualityListPage() {
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
   const pushToast = useToastStore((state) => state.push);
+
+  const canManage = useHasRole(
+    ROLES.QUALITY_ENGINEER,
+    ROLES.SITE_ENGINEER,
+    ROLES.PROJECT_MANAGER,
+    ROLES.DIRECTOR,
+    ROLES.ADMIN
+  );
+
   const form = useForm({
     defaultValues: {
       code: `NCR-00${Math.floor(Math.random() * 90 + 10)}`,
@@ -61,12 +72,12 @@ export function QualityListPage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="page-heading">Quality & NCR</h1>
+          <h1 className="page-heading">Quality & Inspections (NCR)</h1>
           <p className="page-subheading">
             Inspection checklists, NCR/snag workflow, evidence and closure (FR-080..084).
           </p>
         </div>
-        <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>
+        {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>
 
       <Table columns={columns} data={data ?? []} rowKey={(row) => row.id} isLoading={isLoading} />

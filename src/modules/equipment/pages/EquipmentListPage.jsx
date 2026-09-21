@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Table, Button, Modal, Input, StatusPill } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
+import { useHasRole } from '@/context/authStore';
+import { ROLES } from '@/constants/roles';
 import { equipmentApi } from '../api/equipmentApi';
 
 // Equipment/asset register, site allocation, downtime and usage hours (FR-100..102).
@@ -10,6 +12,15 @@ export function EquipmentListPage() {
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
   const pushToast = useToastStore((state) => state.push);
+
+  const canManage = useHasRole(
+    ROLES.SITE_ENGINEER,
+    ROLES.PROJECT_MANAGER,
+    ROLES.DIRECTOR,
+    ROLES.ADMIN,
+    ROLES.PROCUREMENT_STORE
+  );
+
   const form = useForm({
     defaultValues: {
       assetCode: `EQ-00${Math.floor(Math.random() * 90 + 10)}`,
@@ -62,7 +73,7 @@ export function EquipmentListPage() {
             Equipment/asset register, site allocation, downtime and usage hours (FR-100..102).
           </p>
         </div>
-        <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>
+        {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>
 
       <Table columns={columns} data={data ?? []} rowKey={(row) => row.id} isLoading={isLoading} />

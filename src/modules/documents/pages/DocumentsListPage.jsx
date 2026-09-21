@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Table, Button, Modal, Input } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
+import { useHasRole } from '@/context/authStore';
+import { ROLES } from '@/constants/roles';
 import { documentsApi } from '../api/documentsApi';
 
 // Document/photo repository by project/category/version with search (FR-110..114).
@@ -10,6 +12,15 @@ export function DocumentsListPage() {
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
   const pushToast = useToastStore((state) => state.push);
+
+  const canManage = useHasRole(
+    ROLES.SITE_ENGINEER,
+    ROLES.PROJECT_MANAGER,
+    ROLES.DIRECTOR,
+    ROLES.ADMIN,
+    ROLES.QUALITY_ENGINEER
+  );
+
   const form = useForm({
     defaultValues: {
       name: '',
@@ -62,7 +73,7 @@ export function DocumentsListPage() {
             Document/photo repository by project/category/version with search (FR-110..114).
           </p>
         </div>
-        <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>
+        {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>
 
       <Table columns={columns} data={data ?? []} rowKey={(row) => row.id} isLoading={isLoading} />

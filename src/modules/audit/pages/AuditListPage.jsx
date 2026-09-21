@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Table, Button, Modal, Input } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
+import { useHasRole } from '@/context/authStore';
+import { ROLES } from '@/constants/roles';
 import { auditApi } from '../api/auditApi';
 
 // Read-only history of create/update/approve actions (FR-005).
@@ -10,6 +12,10 @@ export function AuditListPage() {
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
   const pushToast = useToastStore((state) => state.push);
+
+  // Auditor, Admin, Director, and Project Manager can log audit events
+  const canAddLog = useHasRole(ROLES.AUDITOR, ROLES.ADMIN, ROLES.DIRECTOR, ROLES.PROJECT_MANAGER);
+
   const form = useForm({
     defaultValues: {
       action: 'SITE_AUDIT',
@@ -61,7 +67,7 @@ export function AuditListPage() {
             History of system actions, approvals, and configuration changes (FR-005).
           </p>
         </div>
-        <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>
+        {canAddLog && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>
 
       <Table columns={columns} data={data ?? []} rowKey={(row) => row.id} isLoading={isLoading} />

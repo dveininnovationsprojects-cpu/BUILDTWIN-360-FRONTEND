@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Table, Button, Modal, Input, StatusPill } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
+import { useHasRole } from '@/context/authStore';
+import { ROLES } from '@/constants/roles';
 import { procurementApi } from '../api/procurementApi';
 
 // Supplier profile, PO tracking, delivery status and supplier performance (FR-060..063).
@@ -10,6 +12,14 @@ export function ProcurementListPage() {
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
   const pushToast = useToastStore((state) => state.push);
+
+  const canManage = useHasRole(
+    ROLES.PROCUREMENT_STORE,
+    ROLES.PROJECT_MANAGER,
+    ROLES.DIRECTOR,
+    ROLES.ADMIN
+  );
+
   const form = useForm({
     defaultValues: {
       poNumber: `PO-${new Date().getFullYear()}-00${Math.floor(Math.random() * 90 + 10)}`,
@@ -62,7 +72,7 @@ export function ProcurementListPage() {
             Supplier profile, PO tracking, delivery status and supplier performance (FR-060..063).
           </p>
         </div>
-        <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>
+        {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>
 
       <Table columns={columns} data={data ?? []} rowKey={(row) => row.id} isLoading={isLoading} />

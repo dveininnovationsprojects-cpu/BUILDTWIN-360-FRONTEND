@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Table, Button, Modal, Input, StatusPill } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
+import { useHasRole } from '@/context/authStore';
+import { ROLES } from '@/constants/roles';
 import { notificationsApi } from '../api/notificationsApi';
 
 // In-app alerts for overdue activities, low stock, pending approvals (FR-120..123).
@@ -10,6 +12,9 @@ export function NotificationsListPage() {
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
   const pushToast = useToastStore((state) => state.push);
+
+  const canManage = useHasRole(ROLES.PROJECT_MANAGER, ROLES.DIRECTOR, ROLES.ADMIN);
+
   const form = useForm({
     defaultValues: {
       message: '',
@@ -60,7 +65,7 @@ export function NotificationsListPage() {
             In-app alerts for overdue activities, low stock, pending approvals (FR-120..123).
           </p>
         </div>
-        <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>
+        {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>
 
       <Table columns={columns} data={data ?? []} rowKey={(row) => row.id} isLoading={isLoading} />

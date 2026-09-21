@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Table, Button, Modal, Input } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
+import { useHasRole } from '@/context/authStore';
+import { ROLES } from '@/constants/roles';
 import { labourContractorsApi } from '../api/labourContractorsApi';
 
 // Contractor master, daily headcount/allocation and productivity analytics (FR-040..045).
@@ -10,6 +12,16 @@ export function LabourContractorsListPage() {
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
   const pushToast = useToastStore((state) => state.push);
+
+  // Field/management roles can manage labour logs, Auditor & Analyst are read-only
+  const canManage = useHasRole(
+    ROLES.SITE_ENGINEER,
+    ROLES.SITE_SUPERVISOR,
+    ROLES.PROJECT_MANAGER,
+    ROLES.DIRECTOR,
+    ROLES.ADMIN
+  );
+
   const form = useForm({
     defaultValues: {
       date: new Date().toISOString().slice(0, 10),
@@ -64,7 +76,7 @@ export function LabourContractorsListPage() {
             Contractor master, daily headcount/allocation and productivity analytics (FR-040..045).
           </p>
         </div>
-        <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>
+        {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>
 
       <Table columns={columns} data={data ?? []} rowKey={(row) => row.id} isLoading={isLoading} />

@@ -3,12 +3,22 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Table, Button, Modal, Input } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
+import { useHasRole } from '@/context/authStore';
+import { ROLES } from '@/constants/roles';
 import { analyticsApi } from '../api/analyticsApi';
 
 export function AnalyticsListPage() {
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
   const pushToast = useToastStore((state) => state.push);
+
+  const canManage = useHasRole(
+    ROLES.DATA_ANALYST,
+    ROLES.DIRECTOR,
+    ROLES.PROJECT_MANAGER,
+    ROLES.ADMIN
+  );
+
   const form = useForm({
     defaultValues: {
       project: '',
@@ -61,7 +71,7 @@ export function AnalyticsListPage() {
             Project health index, EVM performance metrics, and completion forecasts.
           </p>
         </div>
-        <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>
+        {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>
 
       <Table columns={columns} data={data ?? []} rowKey={(row) => row.id || row.project} isLoading={isLoading} />

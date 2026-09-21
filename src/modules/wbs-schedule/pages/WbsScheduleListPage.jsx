@@ -4,6 +4,8 @@ import { Edit } from 'lucide-react';
 import { Table, StatusPill, Button } from '@/design-system';
 import { Modal } from '@/design-system/components/Modal/Modal';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
+import { useHasRole } from '@/context/authStore';
+import { ROLES } from '@/constants/roles';
 import { wbsScheduleApi } from '../api/wbsScheduleApi';
 import { WbsScheduleForm } from '../components/WbsScheduleForm';
 
@@ -15,6 +17,13 @@ export function WbsScheduleListPage() {
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState(null);
   const [isSubmitting, setSubmitting] = useState(false);
+
+  // RBAC: Only Admin, Director, and Project Manager can create or edit WBS activities
+  const canCreateOrEdit = useHasRole(
+    ROLES.ADMIN,
+    ROLES.DIRECTOR,
+    ROLES.PROJECT_MANAGER
+  );
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['wbs-schedule'],
@@ -29,22 +38,26 @@ export function WbsScheduleListPage() {
     { key: 'name', header: 'Activity' },
     { key: 'discipline', header: 'Discipline' },
     { key: 'status', header: 'Status', render: (row) => <StatusPill status={row.status} /> },
-    {
-      key: 'actions',
-      header: 'Actions',
-      render: (row) => (
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => handleEditClick(row)}
-            className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-brand-600 transition-colors hover:bg-brand-50 active:bg-brand-100"
-            title="Edit activity"
-          >
-            <Edit className="h-4 w-4" />
-            Edit
-          </button>
-        </div>
-      ),
-    },
+    ...(canCreateOrEdit
+      ? [
+          {
+            key: 'actions',
+            header: 'Actions',
+            render: (row) => (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleEditClick(row)}
+                  className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-brand-600 transition-colors hover:bg-brand-50 active:bg-brand-100"
+                  title="Edit activity"
+                >
+                  <Edit className="h-4 w-4" />
+                  Edit
+                </button>
+              </div>
+            ),
+          },
+        ]
+      : []),
   ];
 
   function handleEditClick(activity) {
@@ -87,33 +100,37 @@ export function WbsScheduleListPage() {
     }
   }
 
+  const activitiesList = Array.isArray(data) ? data : data?.content || [];
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="page-heading">WBS & Schedule</h1>
+          <h1 className="page-heading">WBS &amp; Schedule</h1>
           <p className="page-subheading">
             WBS hierarchy, baseline schedule, dependencies and 7/14-day look-ahead (FR-020..025).
           </p>
         </div>
-        <Button
-          size="sm"
-          onClick={() => setAddModalOpen(true)}
-          disabled={isSubmitting}
-        >
-          Add New
-        </Button>
+        {canCreateOrEdit && (
+          <Button
+            size="sm"
+            onClick={() => setAddModalOpen(true)}
+            disabled={isSubmitting}
+          >
+            Add New
+          </Button>
+        )}
       </div>
 
-      {error && data === undefined && (
+      {error && (!activitiesList || activitiesList.length === 0) && (
         <div className="rounded-md border border-status-warning/20 bg-status-warning/10 p-4">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-status-warning">
-                ⚠️ Unable to load from server - showing demo data
+                ⚠️ Unable to load from server - showing offline data
               </p>
               <p className="text-xs text-status-warning/70 mt-1">
-                Backend server is not available. Create test data to see changes.
+                Backend server is not available. Local changes are saved in your session.
               </p>
             </div>
             <Button
@@ -128,25 +145,27 @@ export function WbsScheduleListPage() {
         </div>
       )}
 
-      {data && data.length === 0 && (
+      {activitiesList.length === 0 && !isLoading && (
         <div className="rounded-md border-2 border-dashed border-surface-border bg-surface-subtle p-8 text-center">
           <p className="text-sm font-medium text-ink-500">No WBS activities found</p>
           <p className="text-xs text-ink-400 mt-1">
-            Click "Add New" to create your first activity.
+            {canCreateOrEdit
+              ? 'Click "Add New" to create your first activity.'
+              : 'No activities scheduled currently.'}
           </p>
         </div>
       )}
 
-      {data && data.length > 0 && (
+      {activitiesList.length > 0 && (
         <Table
           columns={columns}
-          data={data}
+          data={activitiesList}
           rowKey={(row) => row.id}
           isLoading={isLoading}
         />
       )}
 
-      {isLoading && !data && (
+      {isLoading && activitiesList.length === 0 && (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="inline-block">

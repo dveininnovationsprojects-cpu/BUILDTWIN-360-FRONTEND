@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Table, Button, Modal, Input, StatusPill } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
+import { useHasRole } from '@/context/authStore';
+import { ROLES } from '@/constants/roles';
 import { issuesRisksApi } from '../api/issuesRisksApi';
 
 // Issue/blocker tracking, escalation and project risk register (FR-090..093).
@@ -10,6 +12,15 @@ export function IssuesRisksListPage() {
   const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
   const pushToast = useToastStore((state) => state.push);
+
+  const canManage = useHasRole(
+    ROLES.SITE_ENGINEER,
+    ROLES.QUALITY_ENGINEER,
+    ROLES.PROJECT_MANAGER,
+    ROLES.DIRECTOR,
+    ROLES.ADMIN
+  );
+
   const form = useForm({
     defaultValues: {
       title: '',
@@ -62,7 +73,7 @@ export function IssuesRisksListPage() {
             Issue/blocker tracking, escalation and project risk register (FR-090..093).
           </p>
         </div>
-        <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>
+        {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>
 
       <Table columns={columns} data={data ?? []} rowKey={(row) => row.id} isLoading={isLoading} />

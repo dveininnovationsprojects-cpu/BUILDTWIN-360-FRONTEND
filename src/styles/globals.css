@@ -127,9 +127,6 @@
   [data-theme] .auth-glass {
     background: linear-gradient(135deg, color-mix(in srgb, var(--theme-brand-50) 82%, white), color-mix(in srgb, var(--theme-brand-300) 24%, white));
   }
-  [data-theme] .auth-glass .gradient-accent {
-    background: linear-gradient(135deg, var(--theme-brand-500), var(--theme-glow)) !important;
-  }
   [data-theme] .auth-glass button[type='button'] {
     border-color: color-mix(in srgb, var(--theme-brand-500) 46%, white) !important;
     color: var(--theme-brand-900) !important;
@@ -139,9 +136,28 @@
     border-color: color-mix(in srgb, var(--theme-brand-300) 42%, var(--theme-brand-50)) !important;
   }
 
-  .auth-glass button[type='submit'] {
+  /* Auth screen action buttons (Sign In / Create Account) are permanently classic Dark Blue */
+  .auth-glass button[type='submit'],
+  .auth-glass .auth-submit-btn,
+  [data-theme] .auth-glass button[type='submit'],
+  [data-theme] .auth-glass .auth-submit-btn,
+  [data-theme] .auth-glass button.sign-in-button {
     background: #0739b0 !important;
+    background-image: linear-gradient(135deg, #0739b0, #0a2560) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(7, 57, 176, 0.35) !important;
   }
+
+  .auth-glass button[type='submit']:hover,
+  .auth-glass .auth-submit-btn:hover,
+  [data-theme] .auth-glass button[type='submit']:hover,
+  [data-theme] .auth-glass .auth-submit-btn:hover,
+  [data-theme] .auth-glass button.sign-in-button:hover {
+    background: #062e8f !important;
+    background-image: linear-gradient(135deg, #062e8f, #081d4a) !important;
+    color: #ffffff !important;
+  }
+
   [data-theme] .surface-panel table {
     background: color-mix(in srgb, var(--theme-brand-50) 54%, white) !important;
   }
@@ -197,27 +213,6 @@
   .gradient-accent > * {
     position: relative;
     z-index: 1;
-  }
-
-  /* Sign in stays solid navy while other primary actions use the gradient. */
-  .auth-glass button.sign-in-button.gradient-accent {
-    background: #0f2a4a !important;
-    box-shadow: none !important;
-    filter: none;
-    transform: none;
-    transition: none;
-  }
-
-  .auth-glass button.sign-in-button.gradient-accent::before {
-    display: none;
-  }
-
-  .auth-glass button.sign-in-button.gradient-accent:hover,
-  .auth-glass button.sign-in-button.gradient-accent:focus-visible {
-    background: #0f2a4a !important;
-    box-shadow: none !important;
-    filter: none;
-    transform: none;
   }
 
   /* The public login screen always keeps the normal default appearance. */
