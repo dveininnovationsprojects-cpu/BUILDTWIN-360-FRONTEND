@@ -56,13 +56,21 @@ function toPayload(values, status, submittedBy, photos = []) {
       locationTag: p.locationTag || '',
       uploadedAt: p.uploadedAt || new Date().toISOString(),
     })),
-    remarks: values.remarks.trim(),
+    remarks: values.remarks?.trim() ?? '',
     status,
     submittedBy,
   };
 }
 
-export function DprEntryFormModal({ open, onClose, onSave, isSaving, submittedBy }) {
+export function DprEntryFormModal({
+  open,
+  onClose,
+  onSave,
+  isSaving,
+  submittedBy,
+  initialData = null,
+}) {
+  const isEdit = Boolean(initialData && initialData.id);
   const form = useForm({ mode: 'onBlur', defaultValues: initialValues() });
   const { fields, append, remove } = useFieldArray({ control: form.control, name: 'quantities' });
   const [photos, setPhotos] = useState([]);
@@ -79,10 +87,28 @@ export function DprEntryFormModal({ open, onClose, onSave, isSaving, submittedBy
 
   useEffect(() => {
     if (open) {
-      form.reset(initialValues());
-      setPhotos([]);
+      if (initialData) {
+        form.reset({
+          reportDate: initialData.reportDate || initialData.date || new Date().toISOString().slice(0, 10),
+          siteName: initialData.siteName || initialData.project || '',
+          activity: initialData.activity || '',
+          remarks: initialData.remarks || '',
+          quantities:
+            Array.isArray(initialData.quantities) && initialData.quantities.length > 0
+              ? initialData.quantities.map((q) => ({
+                  workDescription: q.workDescription || '',
+                  completedQuantity: q.completedQuantity ?? '',
+                  unit: q.unit || 'm3',
+                }))
+              : [emptyQuantity()],
+        });
+        setPhotos(initialData.photos || []);
+      } else {
+        form.reset(initialValues());
+        setPhotos([]);
+      }
     }
-  }, [open, form]);
+  }, [open, initialData, form]);
 
   async function save(status, downloadAfter = false) {
     const baseFieldsAreValid = await form.trigger(['reportDate', 'siteName']);
@@ -117,7 +143,11 @@ export function DprEntryFormModal({ open, onClose, onSave, isSaving, submittedBy
     }
 
     try {
-      await onSave(toPayload(values, status, submittedBy, photos), downloadAfter);
+      const payload = toPayload(values, status, submittedBy, photos);
+      if (isEdit) {
+        payload.id = initialData.id;
+      }
+      await onSave(payload, downloadAfter);
     } catch {
       // The list page shows the failure toast and leaves this form open for correction.
     }
@@ -130,12 +160,14 @@ export function DprEntryFormModal({ open, onClose, onSave, isSaving, submittedBy
         if (!isSaving) onClose();
       }}
       size="xl"
-      title="New Daily Progress Report (DPR)"
+      title={isEdit ? `Edit Daily Progress Report: ${initialData?.siteName || initialData?.id}` : 'New Daily Progress Report (DPR)'}
       footer={
         <div className="flex w-full flex-wrap items-center justify-between gap-2">
           <Button variant="outline" onClick={onClose} disabled={isSaving}>Cancel</Button>
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" onClick={() => save('DRAFT')} isLoading={isSaving} disabled={isSaving}>Save Draft</Button>
+            <Button variant="outline" onClick={() => save('DRAFT')} isLoading={isSaving} disabled={isSaving}>
+              {isEdit ? 'Save as Draft' : 'Save Draft'}
+            </Button>
             <Button
               variant="outline"
               className="flex items-center gap-1.5 border-brand-500 text-brand-600 hover:bg-brand-50"
@@ -146,7 +178,9 @@ export function DprEntryFormModal({ open, onClose, onSave, isSaving, submittedBy
               <Download className="h-4 w-4" />
               <span>Save & Download PDF</span>
             </Button>
-            <Button onClick={() => save('SUBMITTED')} isLoading={isSaving} disabled={isSaving}>Submit DPR</Button>
+            <Button onClick={() => save('SUBMITTED')} isLoading={isSaving} disabled={isSaving}>
+              {isEdit ? 'Update DPR' : 'Submit DPR'}
+            </Button>
           </div>
         </div>
       }

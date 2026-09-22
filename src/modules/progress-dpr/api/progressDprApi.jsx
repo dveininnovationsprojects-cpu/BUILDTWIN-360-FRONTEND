@@ -91,13 +91,26 @@ const FALLBACK_DPRS = [
   },
 ];
 
-// In-memory & local fallback store
-let localDprs = [...FALLBACK_DPRS];
+const LOCAL_DPR_KEY = 'buildtwin.dpr.local';
 
-function canUseLocalFallback(error) {
-  const status = error?.response?.status;
-  return !status || status === 404 || status === 503 || error.code === 'ERR_NETWORK';
+function getStoredDprs() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(LOCAL_DPR_KEY) || '[]');
+    return Array.isArray(stored) && stored.length > 0 ? stored : FALLBACK_DPRS;
+  } catch {
+    return FALLBACK_DPRS;
+  }
 }
+
+function saveStoredDprs(records) {
+  try {
+    localStorage.setItem(LOCAL_DPR_KEY, JSON.stringify(records));
+  } catch {
+    // ignore
+  }
+}
+
+let localDprs = getStoredDprs();
 
 function formatQuantities(quantities = []) {
   const complete = quantities.filter((item) => Number.isFinite(Number(item.completedQuantity)) && item.unit);
@@ -132,35 +145,42 @@ function normaliseDpr(dpr) {
     photos,
     qtyCompleted: dpr.qtyCompleted ?? formatQuantities(quantities),
     remarks: dpr.remarks ?? '',
+    status: dpr.status || 'SUBMITTED',
   };
 }
 
-function extractRecords(data) {
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.content)) return data.content;
-  if (Array.isArray(data?.items)) return data.items;
-  return [];
-}
-
-// Client-side DPR API with in-memory & local state supporting up to 100MB photo uploads and activity tagging.
+// Client-side DPR API with in-memory & local state supporting update, delete, up to 100MB photo uploads and activity tagging.
 export const progressDprApi = {
   async list(_params) {
+    localDprs = getStoredDprs();
     return localDprs.map(normaliseDpr);
   },
 
   async getById(id) {
-    return normaliseDpr(localDprs.find((dpr) => dpr.id === id) ?? localDprs[0]);
+    localDprs = getStoredDprs();
+    return normaliseDpr(localDprs.find((dpr) => String(dpr.id) === String(id)) ?? localDprs[0]);
   },
 
   async create(payload) {
     const created = normaliseDpr({ id: `dpr-${Date.now()}`, ...payload });
     localDprs = [created, ...localDprs];
+    saveStoredDprs(localDprs);
     return created;
   },
 
   async update(id, payload) {
-    const updated = normaliseDpr({ id, ...payload });
-    localDprs = localDprs.map((dpr) => (dpr.id === id ? updated : dpr));
+    localDprs = getStoredDprs();
+    const existing = localDprs.find((dpr) => String(dpr.id) === String(id));
+    const updated = normaliseDpr({ ...(existing || {}), ...payload, id });
+    localDprs = localDprs.map((dpr) => (String(dpr.id) === String(id) ? updated : dpr));
+    saveStoredDprs(localDprs);
     return updated;
+  },
+
+  async delete(id) {
+    localDprs = getStoredDprs();
+    localDprs = localDprs.filter((dpr) => String(dpr.id) !== String(id));
+    saveStoredDprs(localDprs);
+    return true;
   },
 };

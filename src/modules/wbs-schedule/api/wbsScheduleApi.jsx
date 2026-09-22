@@ -98,12 +98,12 @@ function normalizeActivity(item) {
   if (!item) return null;
   return {
     id: String(item.id || item.workPackageId || Date.now()),
-    wbsCode: item.wbsCode || item.code || item.workPackageCode || '1.0',
+    wbsCode: item.code || item.wbsCode || item.workPackageCode || '1.0',
     name: item.name || item.title || item.workPackageName || 'Unnamed Activity',
     discipline: (item.discipline || item.tradeDiscipline || 'civil').toLowerCase(),
     status: (item.status || 'planned').toLowerCase().replace('_', '-'),
-    startDate: item.startDate || item.plannedStartDate || '',
-    endDate: item.endDate || item.plannedEndDate || '',
+    startDate: item.plannedStartDate || item.startDate || '',
+    endDate: item.plannedEndDate || item.endDate || '',
     duration: item.duration || (item.plannedDurationDays ? Number(item.plannedDurationDays) : 30),
     description: item.description || '',
   };
@@ -112,24 +112,26 @@ function normalizeActivity(item) {
 export const wbsScheduleApi = {
   list: async (params = {}) => {
     try {
-      const response = await apiClient.get('/projects/1/work-packages', { params }).catch(() => null);
+      const response = await apiClient.get('/projects/1/work-packages', {
+        params: { size: 100, ...params }
+      });
       if (response && response.data) {
-        const raw = response.data;
-        const items = Array.isArray(raw) ? raw : raw?.content ?? [];
-        if (items.length > 0) {
+        const payload = response.data.data !== undefined ? response.data.data : response.data;
+        const items = Array.isArray(payload) ? payload : (payload?.content || []);
+        if (Array.isArray(items)) {
           return items.map(normalizeActivity);
         }
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.warn('Backend /projects/1/work-packages list fetch failed, fallback to local:', err);
     }
 
     try {
-      const res = await apiClient.get('/activities', { params }).catch(() => null);
+      const res = await apiClient.get('/activities', { params });
       if (res && res.data) {
-        const raw = res.data;
-        const items = Array.isArray(raw) ? raw : raw?.content ?? [];
-        if (items.length > 0) {
+        const payload = res.data.data !== undefined ? res.data.data : res.data;
+        const items = Array.isArray(payload) ? payload : (payload?.content || []);
+        if (Array.isArray(items) && items.length > 0) {
           return items.map(normalizeActivity);
         }
       }
@@ -141,76 +143,93 @@ export const wbsScheduleApi = {
   },
 
   getById: async (id) => {
+    try {
+      const response = await apiClient.get(`/work-packages/${id}`);
+      if (response && response.data) {
+        const item = response.data.data !== undefined ? response.data.data : response.data;
+        return normalizeActivity(item);
+      }
+    } catch {
+      // ignore
+    }
     const list = await wbsScheduleApi.list();
     return list.find((a) => String(a.id) === String(id)) || null;
   },
 
   create: async (payload) => {
-    try {
-      const response = await apiClient.post('/projects/1/work-packages', {
-        code: payload.wbsCode,
-        name: payload.name,
-        tradeDiscipline: (payload.discipline || 'CIVIL').toUpperCase(),
-        status: (payload.status || 'PLANNED').toUpperCase().replace('-', '_'),
-        plannedStartDate: payload.startDate,
-        plannedEndDate: payload.endDate,
-        description: payload.description,
-      }).catch(() => null);
+    let normalizedDiscipline = (payload.discipline || 'CIVIL').toUpperCase();
+    if (normalizedDiscipline === 'GENERAL') normalizedDiscipline = 'CIVIL';
+    if (normalizedDiscipline === 'MECHANICAL') normalizedDiscipline = 'MEP';
 
-      if (response && response.data) {
-        return normalizeActivity(response.data);
-      }
-    } catch {
-      // ignore
+    let normalizedStatus = (payload.status || 'PLANNED').toUpperCase().replace('-', '_');
+    if (!['PLANNED', 'IN_PROGRESS', 'ON_HOLD', 'COMPLETED', 'CANCELLED'].includes(normalizedStatus)) {
+      normalizedStatus = 'PLANNED';
     }
 
-    const current = getStoredActivities();
-    const newActivity = {
-      id: String(Date.now()),
-      ...payload,
+    const requestBody = {
+      code: String(payload.wbsCode || '').trim(),
+      name: String(payload.name || '').trim(),
+      discipline: normalizedDiscipline,
+      status: normalizedStatus,
+      plannedStartDate: payload.startDate || null,
+      plannedEndDate: payload.endDate || null,
+      description: payload.description || '',
     };
-    const updated = [newActivity, ...current];
-    saveStoredActivities(updated);
-    return newActivity;
+
+    try {
+      const response = await apiClient.post('/projects/1/work-packages', requestBody);
+      if (response && response.data) {
+        const item = response.data.data !== undefined ? response.data.data : response.data;
+        return normalizeActivity(item);
+      }
+    } catch (err) {
+      console.error('API create work package failed:', err);
+      const msg = err.response?.data?.message || err.message || 'Failed to create work package on server';
+      throw new Error(msg);
+    }
   },
 
   update: async (id, payload) => {
+    let normalizedDiscipline = (payload.discipline || 'CIVIL').toUpperCase();
+    if (normalizedDiscipline === 'GENERAL') normalizedDiscipline = 'CIVIL';
+    if (normalizedDiscipline === 'MECHANICAL') normalizedDiscipline = 'MEP';
+
+    let normalizedStatus = (payload.status || 'PLANNED').toUpperCase().replace('-', '_');
+    if (!['PLANNED', 'IN_PROGRESS', 'ON_HOLD', 'COMPLETED', 'CANCELLED'].includes(normalizedStatus)) {
+      normalizedStatus = 'PLANNED';
+    }
+
+    const requestBody = {
+      code: String(payload.wbsCode || payload.code || '1.0').trim(),
+      name: String(payload.name || '').trim(),
+      discipline: normalizedDiscipline,
+      status: normalizedStatus,
+      plannedStartDate: payload.startDate || null,
+      plannedEndDate: payload.endDate || null,
+      description: payload.description || '',
+    };
+
     try {
-      const response = await apiClient.put(`/work-packages/${id}`, {
-        name: payload.name,
-        tradeDiscipline: (payload.discipline || 'CIVIL').toUpperCase(),
-        plannedStartDate: payload.startDate,
-        plannedEndDate: payload.endDate,
-        description: payload.description,
-      }).catch(() => null);
-
+      const response = await apiClient.put(`/work-packages/${id}`, requestBody);
       if (response && response.data) {
-        return normalizeActivity(response.data);
+        const item = response.data.data !== undefined ? response.data.data : response.data;
+        return normalizeActivity(item);
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.error('API update work package failed:', err);
+      const msg = err.response?.data?.message || err.message || 'Failed to update work package on server';
+      throw new Error(msg);
     }
-
-    const current = getStoredActivities();
-    const index = current.findIndex((a) => String(a.id) === String(id));
-    if (index >= 0) {
-      current[index] = { ...current[index], ...payload };
-      saveStoredActivities(current);
-      return current[index];
-    }
-    return payload;
   },
 
   delete: async (id) => {
     try {
-      await apiClient.delete(`/work-packages/${id}`).catch(() => null);
-    } catch {
-      // ignore
+      await apiClient.delete(`/work-packages/${id}`);
+      return true;
+    } catch (err) {
+      console.error('API delete work package failed:', err);
+      const msg = err.response?.data?.message || err.message || 'Failed to delete work package on server';
+      throw new Error(msg);
     }
-
-    const current = getStoredActivities();
-    const filtered = current.filter((a) => String(a.id) !== String(id));
-    saveStoredActivities(filtered);
-    return true;
   },
 };

@@ -5,11 +5,15 @@ import { Button, Input, Select, Textarea } from '@/design-system';
 const DISCIPLINES = [
   { value: 'civil', label: 'Civil' },
   { value: 'structural', label: 'Structural' },
+  { value: 'mep', label: 'MEP' },
   { value: 'electrical', label: 'Electrical' },
   { value: 'mechanical', label: 'Mechanical' },
   { value: 'plumbing', label: 'Plumbing' },
   { value: 'hvac', label: 'HVAC' },
   { value: 'finishing', label: 'Finishing' },
+  { value: 'fire_fighting', label: 'Fire Fighting' },
+  { value: 'waterproofing', label: 'Waterproofing' },
+  { value: 'infrastructure', label: 'Infrastructure' },
   { value: 'general', label: 'General' },
 ];
 
@@ -37,7 +41,7 @@ export function WbsScheduleForm({
     defaultValues: initialData ? {
       wbsCode: initialData.wbsCode || '',
       name: initialData.name || '',
-      discipline: initialData.discipline || 'general',
+      discipline: initialData.discipline || 'civil',
       status: initialData.status || 'planned',
       description: initialData.description || '',
       startDate: initialData.startDate || '',
@@ -46,7 +50,7 @@ export function WbsScheduleForm({
     } : {
       wbsCode: '',
       name: '',
-      discipline: 'general',
+      discipline: 'civil',
       status: 'planned',
       description: '',
       startDate: '',
@@ -78,14 +82,14 @@ export function WbsScheduleForm({
         {/* WBS Code */}
         <Input
           label="WBS Code"
-          placeholder="e.g., 1.1.1"
+          placeholder="e.g., WP-CIV-02 or 1.1"
           error={errors.wbsCode?.message}
           disabled={isSubmitting || isEditMode}
           {...register('wbsCode', {
             required: 'WBS Code is required',
             pattern: {
-              value: /^[\d.]+$/,
-              message: 'WBS Code should contain only numbers and dots',
+              value: /^[a-zA-Z0-9.\-_/ ]+$/,
+              message: 'WBS Code can contain alphanumeric characters, hyphens, and dots',
             },
           })}
         />

@@ -146,8 +146,15 @@ export function DprPhotoUploadSection({
     );
   };
 
-  const removePhoto = (photoId) => {
-    onChange(photos.filter((p) => p.id !== photoId));
+  const removePhoto = (photoId, index) => {
+    onChange(
+      photos.filter((p, i) => {
+        if (photoId && p.id) {
+          return String(p.id) !== String(photoId);
+        }
+        return i !== index;
+      })
+    );
   };
 
   const applyBatchTag = () => {
@@ -313,8 +320,16 @@ export function DprPhotoUploadSection({
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
 
+                  {/* Click to Enlarge Hover Icon */}
+                  <div className="absolute inset-0 z-10 pointer-events-none flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-xs font-medium text-ink-900 shadow">
+                      <Eye className="h-3.5 w-3.5 text-brand-600" />
+                      View Large
+                    </span>
+                  </div>
+
                   {/* Top Overlay Badge for Activity Tag */}
-                  <div className="absolute left-2 top-2 max-w-[85%] truncate">
+                  <div className="absolute left-2 top-2 z-20 max-w-[80%] truncate pointer-events-none">
                     <span className="inline-flex items-center gap-1 rounded-md bg-brand-900/80 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur shadow-sm">
                       <Tag className="h-3 w-3 text-brand-300 shrink-0" />
                       <span className="truncate">{photo.activityTag || 'Untagged'}</span>
@@ -325,23 +340,17 @@ export function DprPhotoUploadSection({
                   <button
                     type="button"
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
-                      removePhoto(photo.id);
+                      removePhoto(photo.id, index);
                     }}
                     disabled={disabled}
-                    className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-rose-600 text-white shadow-md hover:bg-rose-700 transition-transform active:scale-95"
+                    className="absolute right-2 top-2 z-30 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-rose-600 text-white shadow-md hover:bg-rose-700 hover:scale-110 active:scale-95 transition-all"
                     title="Remove photo"
+                    aria-label="Remove photo"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
-
-                  {/* Click to Enlarge Hover Icon */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-xs font-medium text-ink-900 shadow">
-                      <Eye className="h-3.5 w-3.5 text-brand-600" />
-                      View Large
-                    </span>
-                  </div>
 
                   {/* File Size Badge Bottom Right */}
                   <div className="absolute bottom-1.5 right-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur">

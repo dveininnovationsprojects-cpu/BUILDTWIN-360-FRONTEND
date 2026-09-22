@@ -1,7 +1,19 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Download, Camera, Tag, Eye, Plus, Search, Filter, Calendar, Building } from 'lucide-react';
-import { Table, StatusPill, Button, Input } from '@/design-system';
+import {
+  Download,
+  Camera,
+  Tag,
+  Eye,
+  Pencil,
+  Trash2,
+  Plus,
+  Search,
+  Filter,
+  Calendar,
+  Building,
+} from 'lucide-react';
+import { Table, StatusPill, Button, Input, Modal } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
 import { useAuthStore, useHasRole } from '@/context/authStore';
 import { ROLES } from '@/constants/roles';
@@ -17,6 +29,8 @@ function displayQuantities(row) {
 
 export function ProgressDprListPage() {
   const [isEntryOpen, setEntryOpen] = useState(false);
+  const [editingDpr, setEditingDpr] = useState(null);
+  const [deletingDpr, setDeletingDpr] = useState(null);
   const [selectedDprForDetails, setSelectedDprForDetails] = useState(null);
   const [galleryModalData, setGalleryModalData] = useState({ open: false, photos: [], title: '' });
   const [searchQuery, setSearchQuery] = useState('');
@@ -29,26 +43,60 @@ export function ProgressDprListPage() {
     ROLES.ADMIN
   );
 
+  const canManageDpr = useHasRole(
+    ROLES.SITE_ENGINEER,
+    ROLES.SITE_SUPERVISOR,
+    ROLES.PROJECT_MANAGER,
+    ROLES.DIRECTOR,
+    ROLES.ADMIN
+  );
+
+  const canDeleteDpr = useHasRole(
+    ROLES.ADMIN,
+    ROLES.DIRECTOR,
+    ROLES.PROJECT_MANAGER,
+    ROLES.SITE_ENGINEER
+  );
+
   const queryClient = useQueryClient();
   const pushToast = useToastStore((state) => state.push);
   const user = useAuthStore((state) => state.user);
   const { data, isLoading } = useQuery({ queryKey: ['progress-dpr'], queryFn: () => progressDprApi.list() });
+  
   const createMutation = useMutation({ mutationFn: progressDprApi.create });
+  const updateMutation = useMutation({ mutationFn: ({ id, payload }) => progressDprApi.update(id, payload) });
+  const deleteMutation = useMutation({ mutationFn: (id) => progressDprApi.delete(id) });
+
   const submittedBy = user?.name || user?.username || 'Site Engineer';
 
   async function saveDpr(payload, shouldDownload = false) {
     try {
-      const savedResult = await createMutation.mutateAsync(payload);
-      await queryClient.invalidateQueries({ queryKey: ['progress-dpr'] });
+      let savedResult;
+      if (editingDpr) {
+        savedResult = await updateMutation.mutateAsync({ id: editingDpr.id, payload });
+        await queryClient.invalidateQueries({ queryKey: ['progress-dpr'] });
 
-      const fullRecord = savedResult || payload;
-      if (shouldDownload) {
-        generateDprPdf(fullRecord);
-        pushToast('DPR saved and PDF report downloaded!', 'success');
+        const fullRecord = savedResult || payload;
+        if (shouldDownload) {
+          generateDprPdf(fullRecord);
+          pushToast('DPR updated and PDF report downloaded!', 'success');
+        } else {
+          pushToast('DPR updated successfully.', 'success');
+        }
       } else {
-        pushToast(payload.status === 'DRAFT' ? 'DPR saved as a draft.' : 'DPR submitted successfully with photos.', 'success');
+        savedResult = await createMutation.mutateAsync(payload);
+        await queryClient.invalidateQueries({ queryKey: ['progress-dpr'] });
+
+        const fullRecord = savedResult || payload;
+        if (shouldDownload) {
+          generateDprPdf(fullRecord);
+          pushToast('DPR saved and PDF report downloaded!', 'success');
+        } else {
+          pushToast(payload.status === 'DRAFT' ? 'DPR saved as a draft.' : 'DPR submitted successfully with photos.', 'success');
+        }
       }
       setEntryOpen(false);
+      setEditingDpr(null);
     } catch (error) {
       pushToast(error?.message || 'Unable to save the DPR. Please try again.', 'error');
       throw error;
@@ -87,15 +135,23 @@ export function ProgressDprListPage() {
   });
 
   const columns = [
-    { key: 'reportDate', header: 'Date', render: (row) => (
-      <span className="font-semibold text-ink-900">{row.reportDate}</span>
-    )},
-    { key: 'siteName', header: 'Site / Project', render: (row) => (
-      <div className="flex flex-col">
-        <span className="font-medium text-ink-900">{row.siteName}</span>
-        <span className="text-[11px] text-ink-400">ID: {row.id}</span>
-      </div>
-    )},
+    {
+      key: 'reportDate',
+      header: 'Date',
+      render: (row) => (
+        <span className="font-semibold text-ink-900">{row.reportDate}</span>
+      ),
+    },
+    {
+      key: 'siteName',
+      header: 'Site / Project',
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="font-medium text-ink-900">{row.siteName}</span>
+          <span className="text-[11px] text-ink-400">ID: {row.id}</span>
+        </div>
+      ),
+    },
     { key: 'activity', header: 'Work Summary' },
     { key: 'qtyCompleted', header: 'Quantities', render: displayQuantities },
     {
@@ -165,17 +221,47 @@ export function ProgressDprListPage() {
       key: 'actions',
       header: 'Actions',
       render: (row) => (
-        <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
           <Button
             size="sm"
             variant="ghost"
-            className="h-8 px-2 text-xs text-ink-600 hover:text-brand-600"
+            className="h-8 w-8 p-0 text-ink-600 hover:text-brand-600"
             onClick={() => setSelectedDprForDetails(row)}
             title="View DPR Details & Attached Photos"
+            aria-label="View Details"
           >
-            <Eye className="h-3.5 w-3.5 mr-1" />
-            <span>Details</span>
+            <Eye className="h-4 w-4" />
           </Button>
+
+          {canManageDpr && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 w-8 p-0 text-brand-600 hover:bg-brand-50"
+              onClick={() => {
+                setEditingDpr(row);
+                setEntryOpen(true);
+              }}
+              title="Update / Edit DPR"
+              aria-label="Update DPR"
+            >
+              <Pencil className="h-4 w-4" />
+            </Button>
+          )}
+
+          {canDeleteDpr && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-8 w-8 p-0 text-status-danger hover:bg-status-dangerBg"
+              onClick={() => setDeletingDpr(row)}
+              title="Delete DPR"
+              aria-label="Delete DPR"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+
           <Button
             size="sm"
             variant="outline"
@@ -210,7 +296,10 @@ export function ProgressDprListPage() {
           <div className="flex items-center gap-2">
             <Button
               size="sm"
-              onClick={() => setEntryOpen(true)}
+              onClick={() => {
+                setEditingDpr(null);
+                setEntryOpen(true);
+              }}
               className="flex items-center gap-1.5 shadow-sm"
             >
               <Plus className="h-4 w-4" />
@@ -252,13 +341,17 @@ export function ProgressDprListPage() {
         }
       />
 
-      {/* DPR Entry Form Modal (with 100MB Photo Upload & Activity Tagging) */}
+      {/* DPR Entry Form Modal (Create & Update modes) */}
       <DprEntryFormModal
         open={isEntryOpen}
-        onClose={() => setEntryOpen(false)}
+        onClose={() => {
+          setEntryOpen(false);
+          setEditingDpr(null);
+        }}
         onSave={saveDpr}
-        isSaving={createMutation.isPending}
+        isSaving={createMutation.isPending || updateMutation.isPending}
         submittedBy={submittedBy}
+        initialData={editingDpr}
       />
 
       {/* DPR Details & Evidence Modal */}
@@ -266,6 +359,11 @@ export function ProgressDprListPage() {
         open={Boolean(selectedDprForDetails)}
         onClose={() => setSelectedDprForDetails(null)}
         dpr={selectedDprForDetails}
+        onEdit={(row) => {
+          setEditingDpr(row);
+          setEntryOpen(true);
+        }}
+        onDelete={(row) => setDeletingDpr(row)}
       />
 
       {/* Direct Photo Gallery Lightbox */}
@@ -275,6 +373,55 @@ export function ProgressDprListPage() {
         photos={galleryModalData.photos}
         title={galleryModalData.title}
       />
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        open={Boolean(deletingDpr)}
+        onClose={() => setDeletingDpr(null)}
+        title="Delete Daily Progress Report"
+        size="sm"
+        footer={
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDeletingDpr(null)}
+              disabled={deleteMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              onClick={() => {
+                if (deletingDpr) {
+                  deleteMutation.mutate(deletingDpr.id, {
+                    onSuccess: () => {
+                      queryClient.invalidateQueries({ queryKey: ['progress-dpr'] });
+                      pushToast('DPR deleted successfully.', 'success');
+                      setDeletingDpr(null);
+                    },
+                    onError: (err) => {
+                      pushToast(err?.message || 'Failed to delete DPR.', 'error');
+                    },
+                  });
+                }
+              }}
+              isLoading={deleteMutation.isPending}
+            >
+              Delete Report
+            </Button>
+          </div>
+        }
+      >
+        <div className="py-2 text-sm text-ink-700">
+          Are you sure you want to delete the DPR for <strong>{deletingDpr?.siteName}</strong> on{' '}
+          <strong>{deletingDpr?.reportDate}</strong>?
+          <p className="mt-2 text-xs text-status-danger font-medium">
+            This action cannot be undone.
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }

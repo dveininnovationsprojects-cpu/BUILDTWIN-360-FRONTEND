@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Edit } from 'lucide-react';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { Edit, Trash2 } from 'lucide-react';
 import { Table, StatusPill, Button } from '@/design-system';
 import { Modal } from '@/design-system/components/Modal/Modal';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
@@ -16,10 +16,16 @@ export function WbsScheduleListPage() {
   const [isAddModalOpen, setAddModalOpen] = useState(false);
   const [isEditModalOpen, setEditModalOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState(null);
+  const [activityToDelete, setActivityToDelete] = useState(null);
   const [isSubmitting, setSubmitting] = useState(false);
 
-  // RBAC: Only Admin, Director, and Project Manager can create or edit WBS activities
+  // RBAC: Only Admin, Director, and Project Manager can create, edit, or delete WBS activities
   const canCreateOrEdit = useHasRole(
+    ROLES.ADMIN,
+    ROLES.DIRECTOR,
+    ROLES.PROJECT_MANAGER
+  );
+  const canDelete = useHasRole(
     ROLES.ADMIN,
     ROLES.DIRECTOR,
     ROLES.PROJECT_MANAGER
@@ -33,26 +39,53 @@ export function WbsScheduleListPage() {
     retryDelay: 1000,
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id) => wbsScheduleApi.delete(id),
+    onSuccess: () => {
+      pushToast('Activity deleted successfully', 'success');
+      queryClient.invalidateQueries({ queryKey: ['wbs-schedule'] });
+      setActivityToDelete(null);
+    },
+    onError: (err) => {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete activity';
+      pushToast(errorMessage, 'error');
+    },
+  });
+
+  const hasActions = canCreateOrEdit || canDelete;
+
   const columns = [
     { key: 'wbsCode', header: 'WBS Code' },
     { key: 'name', header: 'Activity' },
     { key: 'discipline', header: 'Discipline' },
     { key: 'status', header: 'Status', render: (row) => <StatusPill status={row.status} /> },
-    ...(canCreateOrEdit
+    ...(hasActions
       ? [
           {
             key: 'actions',
             header: 'Actions',
             render: (row) => (
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleEditClick(row)}
-                  className="inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-brand-600 transition-colors hover:bg-brand-50 active:bg-brand-100"
-                  title="Edit activity"
-                >
-                  <Edit className="h-4 w-4" />
-                  Edit
-                </button>
+                {canCreateOrEdit && (
+                  <button
+                    onClick={() => handleEditClick(row)}
+                    className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-sm font-medium text-brand-600 transition-colors hover:bg-brand-50 active:bg-brand-100"
+                    title="Edit activity"
+                  >
+                    <Edit className="h-4 w-4" />
+                    Edit
+                  </button>
+                )}
+                {canDelete && (
+                  <button
+                    onClick={() => setActivityToDelete(row)}
+                    className="inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 active:bg-red-100 dark:hover:bg-red-950/40"
+                    title="Delete activity"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </button>
+                )}
               </div>
             ),
           },
@@ -209,6 +242,41 @@ export function WbsScheduleListPage() {
             mode="edit"
           />
         )}
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        open={!!activityToDelete}
+        onClose={() => !deleteMutation.isPending && setActivityToDelete(null)}
+        title="Delete Activity"
+        size="sm"
+        footer={
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setActivityToDelete(null)}
+              disabled={deleteMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => activityToDelete && deleteMutation.mutate(activityToDelete.id)}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete Activity'}
+            </Button>
+          </div>
+        }
+      >
+        <div className="py-2 text-sm text-ink-700">
+          Are you sure you want to delete activity{' '}
+          <strong>{activityToDelete?.name}</strong>{' '}
+          {activityToDelete?.wbsCode && `(${activityToDelete.wbsCode})`}?
+          <p className="mt-2 text-xs text-status-danger font-medium">
+            This action cannot be undone.
+          </p>
+        </div>
       </Modal>
     </div>
   );

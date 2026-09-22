@@ -13,12 +13,14 @@ import {
   Eye,
   Layers,
   Sparkles,
+  Pencil,
+  Trash2,
 } from 'lucide-react';
 import { Modal, Button, StatusPill } from '@/design-system';
 import { DprPhotoGalleryModal } from './DprPhotoGalleryModal';
 import { generateDprPdf } from '../utils/dprPdfGenerator';
 
-export function DprDetailsModal({ open, onClose, dpr }) {
+export function DprDetailsModal({ open, onClose, dpr, onEdit, onDelete }) {
   const [activeTagFilter, setActiveTagFilter] = useState('ALL');
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
@@ -65,10 +67,38 @@ export function DprDetailsModal({ open, onClose, dpr }) {
           </div>
         }
         footer={
-          <div className="flex w-full items-center justify-between gap-2">
-            <Button variant="outline" onClick={onClose}>
-              Close
-            </Button>
+          <div className="flex w-full flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={onClose}>
+                Close
+              </Button>
+              {onEdit && (
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-1.5 border-brand-500 text-brand-600 hover:bg-brand-50"
+                  onClick={() => {
+                    onClose();
+                    onEdit(dpr);
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                  <span>Edit DPR</span>
+                </Button>
+              )}
+              {onDelete && (
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-1.5 text-status-danger hover:bg-status-dangerBg"
+                  onClick={() => {
+                    onClose();
+                    onDelete(dpr);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span>Delete</span>
+                </Button>
+              )}
+            </div>
             <Button
               variant="outline"
               className="flex items-center gap-1.5 border-brand-500 text-brand-600 hover:bg-brand-50"
