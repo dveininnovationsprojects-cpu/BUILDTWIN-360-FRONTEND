@@ -244,7 +244,6 @@ export function SitesManager({ projectId, projectName, onSelectSite }) {
         data={sites}
         rowKey={(row) => row.id}
         isLoading={isLoading}
-        onRowClick={(row) => onSelectSite?.(row)}
       />
 
       {/* Add/Edit Site Modal */}

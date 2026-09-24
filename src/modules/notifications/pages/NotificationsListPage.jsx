@@ -61,9 +61,6 @@ export function NotificationsListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-heading">Notifications & Alerts</h1>
-          <p className="page-subheading">
-            In-app alerts for overdue activities, low stock, pending approvals (FR-120..123).
-          </p>
         </div>
         {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>

@@ -74,9 +74,6 @@ export function CostControlListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-heading">Cost Control & Budget</h1>
-          <p className="page-subheading">
-            Cost heads, budget revisions, committed/actual cost, PV/EV/AC/SPI/CPI (FR-070..075).
-          </p>
         </div>
         {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>

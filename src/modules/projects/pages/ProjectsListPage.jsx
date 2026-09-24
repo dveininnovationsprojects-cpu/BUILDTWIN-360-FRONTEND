@@ -287,9 +287,6 @@ export function ProjectsListPage() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="page-heading">Construction Projects</h1>
-          <p className="page-subheading">
-            Project master registry — manage sites, buildings, floors, zones and hierarchy.
-          </p>
         </div>
         {canManage && (
           <Button size="sm" onClick={openCreate} className="flex items-center gap-1.5">
@@ -373,7 +370,6 @@ export function ProjectsListPage() {
         data={projects}
         rowKey={(row) => row.id}
         isLoading={isLoading}
-        onRowClick={(row) => setSelectedProjectId(row.id)}
       />
 
       {/* Project Create/Edit Form Modal */}

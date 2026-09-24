@@ -234,7 +234,6 @@ export function BuildingsManager({ siteId, siteName, projectId, onSelectBuilding
         data={buildings}
         rowKey={(row) => row.id}
         isLoading={isLoading}
-        onRowClick={(row) => onSelectBuilding?.(row)}
       />
 
       {/* Add/Edit Modal */}

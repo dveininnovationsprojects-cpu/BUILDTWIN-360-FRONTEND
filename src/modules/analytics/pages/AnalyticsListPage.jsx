@@ -67,9 +67,6 @@ export function AnalyticsListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-heading">Executive Analytics</h1>
-          <p className="page-subheading">
-            Project health index, EVM performance metrics, and completion forecasts.
-          </p>
         </div>
         {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>

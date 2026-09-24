@@ -198,10 +198,12 @@ export const buildingsApi = {
   update: (id, payload) =>
     apiClient
       .put(`/buildings/${id}`, {
+        code: payload.code,
         name: payload.name,
         buildingType: payload.buildingType,
         totalFloors: payload.totalFloors ? Number(payload.totalFloors) : null,
         totalBuiltUpAreaSqFt: payload.totalBuiltUpAreaSqFt ? Number(payload.totalBuiltUpAreaSqFt) : null,
+        status: payload.status,
         description: payload.description || '',
       })
       .then((r) => r.data)
@@ -257,9 +259,11 @@ export const floorsApi = {
   update: (id, payload) =>
     apiClient
       .put(`/floors/${id}`, {
+        floorNumber: payload.floorNumber != null ? Number(payload.floorNumber) : 0,
         floorName: payload.floorName,
         floorType: payload.floorType,
         builtUpAreaSqFt: payload.builtUpAreaSqFt ? Number(payload.builtUpAreaSqFt) : null,
+        status: payload.status,
       })
       .then((r) => r.data)
       .catch(() => useProjectsStore.getState().updateDemoFloor(id, payload)),
@@ -314,9 +318,11 @@ export const zonesApi = {
   update: (id, payload) =>
     apiClient
       .put(`/zones/${id}`, {
+        code: payload.code,
         name: payload.name,
         zoneType: payload.zoneType,
         areaSqFt: payload.areaSqFt ? Number(payload.areaSqFt) : null,
+        status: payload.status,
       })
       .then((r) => r.data)
       .catch(() => useProjectsStore.getState().updateDemoZone(id, payload)),

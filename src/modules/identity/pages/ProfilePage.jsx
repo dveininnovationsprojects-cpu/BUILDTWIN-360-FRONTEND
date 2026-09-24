@@ -100,7 +100,6 @@ export function ProfilePage() {
     <div className="flex flex-col items-center gap-6 py-2">
       <div className="w-full max-w-2xl text-center">
         <h1 className="page-heading">My Profile</h1>
-        <p className="page-subheading">Manage personal details, view system roles and update security credentials.</p>
       </div>
 
       <div className="w-full max-w-2xl space-y-6">

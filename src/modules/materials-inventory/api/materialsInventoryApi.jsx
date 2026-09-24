@@ -220,6 +220,39 @@ export const materialsInventoryApi = {
     }
   },
 
+  /** GET /api/v1/materials/code/:materialCode — fetch by SKU code */
+  async getByCode(materialCode) {
+    if (!materialCode) return null;
+    try {
+      const res = await apiClient.get(`/materials/code/${encodeURIComponent(materialCode)}`);
+      return normaliseMaterial(res.data);
+    } catch (err) {
+      if (isNetworkError(err)) {
+        const found = localMaterials.find(
+          (m) => m.materialCode?.toUpperCase() === String(materialCode).toUpperCase()
+        );
+        return found ? normaliseMaterial(found) : null;
+      }
+      throw err;
+    }
+  },
+
+  /** GET /api/v1/materials/category/:category — filter materials by category */
+  async getByCategory(category) {
+    if (!category) return this.list();
+    try {
+      const res = await apiClient.get(`/materials/category/${encodeURIComponent(category)}`);
+      return extractList(res.data).map(normaliseMaterial);
+    } catch (err) {
+      if (isNetworkError(err)) {
+        return localMaterials
+          .filter((m) => m.category?.toUpperCase() === String(category).toUpperCase())
+          .map(normaliseMaterial);
+      }
+      throw err;
+    }
+  },
+
   /** GET /api/v1/materials/low-stock — fetch low-stock materials */
   async getLowStock() {
     try {
@@ -235,7 +268,7 @@ export const materialsInventoryApi = {
     }
   },
 
-  /** GET /api/v1/materials/reorder-alerts */
+  /** GET /api/v1/materials/reorder-alerts — fetch reorder threshold alerts */
   async getReorderAlerts() {
     try {
       const res = await apiClient.get('/materials/reorder-alerts');
@@ -357,7 +390,6 @@ export const stockLedgerApi = {
       return normaliseLedger(res.data);
     } catch (err) {
       if (isNetworkError(err)) {
-        // Update local material stock
         const mat = localMaterials.find((m) => String(m.id) === String(body.materialId));
         if (mat) {
           const qty = Number(body.quantity);
@@ -379,6 +411,151 @@ export const stockLedgerApi = {
         };
         localLedger = [entry, ...localLedger];
         return normaliseLedger(entry);
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * POST /api/v1/stock-ledger/issue
+   * Issues material from store to specific WBS Activity, Zone, or Contractor
+   */
+  async issue(payload) {
+    const body = {
+      materialId: Number(payload.materialId),
+      projectId: Number(payload.projectId || 1),
+      siteId: payload.siteId ? Number(payload.siteId) : null,
+      activityId: payload.activityId ? Number(payload.activityId) : null,
+      zone: payload.zone || null,
+      contractorId: payload.contractorId ? Number(payload.contractorId) : null,
+      transactionType: 'ISSUE',
+      quantity: Number(payload.quantity),
+      unitPrice: payload.unitPrice ? Number(payload.unitPrice) : null,
+      referenceId: payload.referenceId || null,
+      remarks: payload.remarks || null,
+    };
+    try {
+      const res = await apiClient.post('/stock-ledger/issue', body);
+      return normaliseLedger(res.data);
+    } catch (err) {
+      if (isNetworkError(err)) {
+        return this.recordTransaction(body);
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * POST /api/v1/stock-ledger/consumption
+   * Records actual material consumption on site work against WBS activity and Zone
+   */
+  async recordConsumption(payload) {
+    const body = {
+      materialId: Number(payload.materialId),
+      projectId: Number(payload.projectId || 1),
+      siteId: payload.siteId ? Number(payload.siteId) : null,
+      activityId: payload.activityId ? Number(payload.activityId) : null,
+      zone: payload.zone || null,
+      contractorId: payload.contractorId ? Number(payload.contractorId) : null,
+      transactionType: 'CONSUMPTION',
+      quantity: Number(payload.quantity),
+      unitPrice: payload.unitPrice ? Number(payload.unitPrice) : null,
+      referenceId: payload.referenceId || null,
+      remarks: payload.remarks || null,
+    };
+    try {
+      const res = await apiClient.post('/stock-ledger/consumption', body);
+      return normaliseLedger(res.data);
+    } catch (err) {
+      if (isNetworkError(err)) {
+        return this.recordTransaction(body);
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * POST /api/v1/stock-ledger/wastage
+   * Tracks material wastage on site and updates stock balance transactionally
+   */
+  async recordWastage(payload) {
+    const body = {
+      materialId: Number(payload.materialId),
+      projectId: Number(payload.projectId || 1),
+      siteId: payload.siteId ? Number(payload.siteId) : null,
+      activityId: payload.activityId ? Number(payload.activityId) : null,
+      zone: payload.zone || null,
+      contractorId: payload.contractorId ? Number(payload.contractorId) : null,
+      transactionType: 'WASTAGE',
+      quantity: Number(payload.quantity),
+      unitPrice: payload.unitPrice ? Number(payload.unitPrice) : null,
+      referenceId: payload.referenceId || null,
+      remarks: payload.remarks || null,
+    };
+    try {
+      const res = await apiClient.post('/stock-ledger/wastage', body);
+      return normaliseLedger(res.data);
+    } catch (err) {
+      if (isNetworkError(err)) {
+        return this.recordTransaction(body);
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * POST /api/v1/stock-ledger/reconcile
+   * Compares system stock vs physical stock count, computes variance, and logs stock adjustment
+   * Payload: { projectId, siteId, materialId, physicalQty, auditedBy, remarks }
+   * Returns: { materialId, materialCode, materialName, systemStock, physicalStock, variance, adjustmentTransactionId, auditedBy, reconciledAt }
+   */
+  async reconcile(payload) {
+    const body = {
+      projectId: Number(payload.projectId || 1),
+      siteId: payload.siteId ? Number(payload.siteId) : null,
+      materialId: Number(payload.materialId),
+      physicalQty: Number(payload.physicalQty),
+      auditedBy: payload.auditedBy || 'Auditor',
+      remarks: payload.remarks || null,
+    };
+    try {
+      const res = await apiClient.post('/stock-ledger/reconcile', body);
+      return res.data;
+    } catch (err) {
+      if (isNetworkError(err)) {
+        const mat = localMaterials.find((m) => String(m.id) === String(body.materialId));
+        const prevStock = Number(mat?.currentStock ?? 0);
+        const physical = Number(body.physicalQty);
+        const variance = physical - prevStock;
+        if (mat) {
+          mat.currentStock = physical;
+          mat.updatedAt = new Date().toISOString();
+        }
+        const adjEntry = {
+          id: localLedgerIdCounter++,
+          projectId: body.projectId,
+          siteId: body.siteId,
+          materialId: body.materialId,
+          transactionType: 'ADJUSTMENT',
+          quantity: Math.abs(variance),
+          unitPrice: mat?.standardRate || null,
+          referenceId: `AUDIT-${Date.now().toString().slice(-4)}`,
+          remarks: body.remarks || `Physical audit variance: ${variance >= 0 ? '+' : ''}${variance}`,
+          material: mat ? { id: mat.id, name: mat.name, materialCode: mat.materialCode } : null,
+          timestamp: new Date().toISOString(),
+        };
+        localLedger = [adjEntry, ...localLedger];
+        return {
+          materialId: body.materialId,
+          materialCode: mat?.materialCode || '',
+          materialName: mat?.name || 'Material',
+          systemStock: prevStock,
+          physicalStock: physical,
+          variance,
+          adjustmentTransactionId: adjEntry.id,
+          auditedBy: body.auditedBy,
+          reconciledAt: new Date().toISOString(),
+        };
       }
       throw err;
     }
@@ -408,6 +585,19 @@ export const stockLedgerApi = {
     } catch (err) {
       if (isNetworkError(err)) {
         return localLedger.filter((e) => String(e.projectId) === String(projectId)).map(normaliseLedger);
+      }
+      throw err;
+    }
+  },
+
+  /** GET /api/v1/stock-ledger/activity/:activityId */
+  async getLedgerByActivity(activityId) {
+    try {
+      const res = await apiClient.get(`/stock-ledger/activity/${activityId}`);
+      return extractList(res.data).map(normaliseLedger);
+    } catch (err) {
+      if (isNetworkError(err)) {
+        return localLedger.filter((e) => String(e.activityId) === String(activityId)).map(normaliseLedger);
       }
       throw err;
     }

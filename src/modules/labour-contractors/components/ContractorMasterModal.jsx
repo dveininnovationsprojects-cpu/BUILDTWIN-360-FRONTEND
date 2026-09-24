@@ -77,7 +77,7 @@ export function ContractorMasterModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={isEdit ? `Edit Contractor: ${initialData?.companyName}` : 'Register New Contractor Profile (FR-040)'}
+      title={isEdit ? `Edit Contractor: ${initialData?.companyName}` : 'Register New Contractor'}
       size="lg"
       footer={
         <div className="flex items-center justify-end gap-2">

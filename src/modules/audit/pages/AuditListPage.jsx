@@ -63,9 +63,6 @@ export function AuditListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-heading">Audit Trail & Logs</h1>
-          <p className="page-subheading">
-            History of system actions, approvals, and configuration changes (FR-005).
-          </p>
         </div>
         {canAddLog && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>

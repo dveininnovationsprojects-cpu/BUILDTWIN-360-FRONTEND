@@ -69,9 +69,6 @@ export function EquipmentListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-heading">Equipment & Machinery</h1>
-          <p className="page-subheading">
-            Equipment/asset register, site allocation, downtime and usage hours (FR-100..102).
-          </p>
         </div>
         {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>

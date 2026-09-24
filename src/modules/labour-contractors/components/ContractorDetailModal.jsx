@@ -18,7 +18,7 @@ export function ContractorDetailModal({ open, onClose, contractor, onEdit }) {
     <Modal
       open={open}
       onClose={onClose}
-      title="Contractor Master Profile (FR-040)"
+      title="Contractor Profile"
       size="md"
       footer={
         <div className="flex items-center justify-between w-full">

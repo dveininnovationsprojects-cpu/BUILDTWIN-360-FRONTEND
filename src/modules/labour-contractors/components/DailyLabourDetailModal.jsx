@@ -18,7 +18,7 @@ export function DailyLabourDetailModal({ open, onClose, record, onEdit }) {
     <Modal
       open={open}
       onClose={onClose}
-      title="Daily Labour Deployment Details (FR-041)"
+      title="Daily Labour Deployment Details"
       size="md"
       footer={
         <div className="flex items-center justify-between w-full">

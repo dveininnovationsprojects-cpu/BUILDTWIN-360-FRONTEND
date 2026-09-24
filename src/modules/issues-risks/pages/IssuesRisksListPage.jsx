@@ -69,9 +69,6 @@ export function IssuesRisksListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-heading">Issues & Risks</h1>
-          <p className="page-subheading">
-            Issue/blocker tracking, escalation and project risk register (FR-090..093).
-          </p>
         </div>
         {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>

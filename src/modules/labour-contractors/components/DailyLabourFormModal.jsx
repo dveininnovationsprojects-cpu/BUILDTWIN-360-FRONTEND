@@ -118,7 +118,7 @@ export function DailyLabourFormModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={isEdit ? 'Edit Daily Labour & Attendance' : 'Log Daily Labour Deployment (FR-041)'}
+      title={isEdit ? 'Edit Daily Labour & Attendance' : 'Log Daily Labour Deployment'}
       size="lg"
       footer={
         <div className="flex items-center justify-end gap-2">

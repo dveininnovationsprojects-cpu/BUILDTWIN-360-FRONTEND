@@ -282,15 +282,7 @@ export function ProgressDprListPage() {
       {/* Header Banner */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="page-heading flex items-center gap-2">
-            Daily Progress Report (DPR)
-            <span className="inline-flex items-center rounded-md bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand-700 border border-brand-200">
-              Site Intelligence
-            </span>
-          </h1>
-          <p className="page-subheading">
-            Submit daily site quantities, upload high-res photos (up to 100MB), tag work activities, and generate audit-ready PDF reports.
-          </p>
+          <h1 className="page-heading">Daily Progress Report (DPR)</h1>
         </div>
         {canCreateDpr && (
           <div className="flex items-center gap-2">

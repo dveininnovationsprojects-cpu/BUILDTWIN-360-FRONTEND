@@ -68,9 +68,6 @@ export function ProcurementListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-heading">Procurement & Suppliers</h1>
-          <p className="page-subheading">
-            Supplier profile, PO tracking, delivery status and supplier performance (FR-060..063).
-          </p>
         </div>
         {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>

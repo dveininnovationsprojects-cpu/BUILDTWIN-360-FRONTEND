@@ -73,9 +73,6 @@ export function QualityListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-heading">Quality & Inspections (NCR)</h1>
-          <p className="page-subheading">
-            Inspection checklists, NCR/snag workflow, evidence and closure (FR-080..084).
-          </p>
         </div>
         {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>

@@ -241,7 +241,6 @@ export function FloorsManager({ buildingId, buildingName, projectId, onSelectFlo
         data={floors}
         rowKey={(row) => row.id}
         isLoading={isLoading}
-        onRowClick={(row) => onSelectFloor?.(row)}
       />
 
       {/* Add/Edit Modal */}

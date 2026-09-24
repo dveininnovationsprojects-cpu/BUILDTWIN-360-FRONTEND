@@ -69,9 +69,6 @@ export function DocumentsListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-heading">Documents & Drawings</h1>
-          <p className="page-subheading">
-            Document/photo repository by project/category/version with search (FR-110..114).
-          </p>
         </div>
         {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>

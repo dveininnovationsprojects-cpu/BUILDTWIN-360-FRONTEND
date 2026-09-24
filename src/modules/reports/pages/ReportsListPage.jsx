@@ -69,9 +69,6 @@ export function ReportsListPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-heading">Reports & Exports</h1>
-          <p className="page-subheading">
-            Executive/project/site dashboards and scheduled/exportable reports (FR-130..135).
-          </p>
         </div>
         {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>

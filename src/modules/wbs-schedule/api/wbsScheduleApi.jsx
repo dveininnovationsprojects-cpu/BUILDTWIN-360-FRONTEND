@@ -1,186 +1,122 @@
 import { apiClient } from '@/lib/apiClient';
 
-const STORAGE_KEY = 'buildtwin_wbs_activities';
+const STORAGE_KEY = 'buildtwin_wbs_work_packages';
 
-const DEFAULT_ACTIVITIES = [
-  {
-    id: '1',
-    wbsCode: '1.0',
-    name: 'Site Preparation & Ground Excavation',
-    discipline: 'civil',
-    status: 'completed',
-    startDate: '2024-01-01',
-    endDate: '2024-01-15',
-    duration: 15,
-    description: 'Site clearing, leveling, shoring and bulk excavation',
-  },
-  {
-    id: '2',
-    wbsCode: '1.1',
-    name: 'Foundation & Footing Work',
-    discipline: 'structural',
-    status: 'in-progress',
-    startDate: '2024-01-16',
-    endDate: '2024-02-28',
-    duration: 44,
-    description: 'Raft foundation design, rebar binding and concrete pouring',
-  },
-  {
-    id: '3',
-    wbsCode: '1.2',
-    name: 'RCC Column & Beam Framing',
-    discipline: 'structural',
-    status: 'planned',
-    startDate: '2024-03-01',
-    endDate: '2024-04-30',
-    duration: 61,
-    description: 'Structural steel and RCC column erection with formwork',
-  },
-  {
-    id: '4',
-    wbsCode: '1.3',
-    name: 'Electrical Conduit & Wiring Rough-in',
-    discipline: 'electrical',
-    status: 'planned',
-    startDate: '2024-04-15',
-    endDate: '2024-05-15',
-    duration: 31,
-    description: 'Electrical conduit laying, DB box placement and cable trays',
-  },
-  {
-    id: '5',
-    wbsCode: '1.4',
-    name: 'Plumbing & Drainage Network',
-    discipline: 'plumbing',
-    status: 'planned',
-    startDate: '2024-04-20',
-    endDate: '2024-05-20',
-    duration: 31,
-    description: 'Piping network, wastewater risers and plumbing fixtures',
-  },
-  {
-    id: '6',
-    wbsCode: '1.5',
-    name: 'HVAC Ducting & Ventilation Lines',
-    discipline: 'hvac',
-    status: 'planned',
-    startDate: '2024-05-01',
-    endDate: '2024-06-15',
-    duration: 45,
-    description: 'Primary air handling ducting and chiller line installation',
-  },
-];
+export function normalizeWorkPackage(item) {
+  if (!item) return null;
+  return {
+    id: item.id != null ? String(item.id) : String(Date.now()),
+    numericId: item.id != null ? Number(item.id) : null,
+    projectId: item.projectId != null ? Number(item.projectId) : null,
+    projectName: item.projectName || '',
+    siteId: item.siteId != null ? Number(item.siteId) : null,
+    siteName: item.siteName || '',
+    code: item.code || item.wbsCode || '',
+    wbsCode: item.code || item.wbsCode || '',
+    name: item.name || '',
+    discipline: (item.discipline || 'CIVIL').toUpperCase(),
+    description: item.description || '',
+    status: (item.status || 'PLANNED').toUpperCase(),
+    plannedStartDate: item.plannedStartDate || item.startDate || '',
+    plannedEndDate: item.plannedEndDate || item.endDate || '',
+    actualStartDate: item.actualStartDate || '',
+    actualEndDate: item.actualEndDate || '',
+    startDate: item.plannedStartDate || item.startDate || '',
+    endDate: item.plannedEndDate || item.endDate || '',
+    budgetAmount: item.budgetAmount != null ? Number(item.budgetAmount) : 0,
+    assignedContractor: item.assignedContractor || '',
+    inchargeUserId: item.inchargeUserId != null ? Number(item.inchargeUserId) : null,
+    inchargeUserName: item.inchargeUserName || '',
+    createdAt: item.createdAt || '',
+    updatedAt: item.updatedAt || '',
+  };
+}
 
-function getStoredActivities() {
+function getStoredWorkPackages() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed;
+        return parsed.map(normalizeWorkPackage);
       }
     }
   } catch {
     // ignore
   }
-  return DEFAULT_ACTIVITIES;
+  return [];
 }
 
-function saveStoredActivities(activities) {
+function saveStoredWorkPackages(items) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(activities));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   } catch {
     // ignore
   }
 }
 
-function normalizeActivity(item) {
-  if (!item) return null;
-  return {
-    id: String(item.id || item.workPackageId || Date.now()),
-    wbsCode: item.code || item.wbsCode || item.workPackageCode || '1.0',
-    name: item.name || item.title || item.workPackageName || 'Unnamed Activity',
-    discipline: (item.discipline || item.tradeDiscipline || 'civil').toLowerCase(),
-    status: (item.status || 'planned').toLowerCase().replace('_', '-'),
-    startDate: item.plannedStartDate || item.startDate || '',
-    endDate: item.plannedEndDate || item.endDate || '',
-    duration: item.duration || (item.plannedDurationDays ? Number(item.plannedDurationDays) : 30),
-    description: item.description || '',
-  };
-}
-
 export const wbsScheduleApi = {
-  list: async (params = {}) => {
+  // GET /api/v1/projects/{projectId}/work-packages
+  list: async (projectId = 1, params = {}) => {
     try {
-      const response = await apiClient.get('/projects/1/work-packages', {
-        params: { size: 100, ...params }
+      const response = await apiClient.get(`/projects/${projectId}/work-packages`, {
+        params: { size: 100, ...params },
       });
       if (response && response.data) {
         const payload = response.data.data !== undefined ? response.data.data : response.data;
         const items = Array.isArray(payload) ? payload : (payload?.content || []);
         if (Array.isArray(items)) {
-          return items.map(normalizeActivity);
+          const normalized = items.map(normalizeWorkPackage);
+          saveStoredWorkPackages(normalized);
+          return normalized;
         }
       }
     } catch (err) {
-      console.warn('Backend /projects/1/work-packages list fetch failed, fallback to local:', err);
+      console.warn(`Backend /projects/${projectId}/work-packages fetch failed, fallback to local storage:`, err);
     }
 
-    try {
-      const res = await apiClient.get('/activities', { params });
-      if (res && res.data) {
-        const payload = res.data.data !== undefined ? res.data.data : res.data;
-        const items = Array.isArray(payload) ? payload : (payload?.content || []);
-        if (Array.isArray(items) && items.length > 0) {
-          return items.map(normalizeActivity);
-        }
-      }
-    } catch {
-      // ignore
-    }
-
-    return getStoredActivities();
+    return getStoredWorkPackages();
   },
 
+  // GET /api/v1/work-packages/{id}
   getById: async (id) => {
     try {
       const response = await apiClient.get(`/work-packages/${id}`);
       if (response && response.data) {
         const item = response.data.data !== undefined ? response.data.data : response.data;
-        return normalizeActivity(item);
+        return normalizeWorkPackage(item);
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      console.warn(`Backend /work-packages/${id} fetch failed:`, err);
     }
-    const list = await wbsScheduleApi.list();
-    return list.find((a) => String(a.id) === String(id)) || null;
+    const local = getStoredWorkPackages();
+    return local.find((w) => String(w.id) === String(id)) || null;
   },
 
-  create: async (payload) => {
-    let normalizedDiscipline = (payload.discipline || 'CIVIL').toUpperCase();
-    if (normalizedDiscipline === 'GENERAL') normalizedDiscipline = 'CIVIL';
-    if (normalizedDiscipline === 'MECHANICAL') normalizedDiscipline = 'MEP';
-
-    let normalizedStatus = (payload.status || 'PLANNED').toUpperCase().replace('-', '_');
-    if (!['PLANNED', 'IN_PROGRESS', 'ON_HOLD', 'COMPLETED', 'CANCELLED'].includes(normalizedStatus)) {
-      normalizedStatus = 'PLANNED';
-    }
+  // POST /api/v1/projects/{projectId}/work-packages
+  create: async (projectId, payload) => {
+    const targetProjectId = projectId || payload.projectId || 1;
 
     const requestBody = {
-      code: String(payload.wbsCode || '').trim(),
+      siteId: payload.siteId ? Number(payload.siteId) : null,
+      code: String(payload.code || payload.wbsCode || '').trim().toUpperCase(),
       name: String(payload.name || '').trim(),
-      discipline: normalizedDiscipline,
-      status: normalizedStatus,
-      plannedStartDate: payload.startDate || null,
-      plannedEndDate: payload.endDate || null,
+      discipline: (payload.discipline || 'CIVIL').toUpperCase(),
       description: payload.description || '',
+      status: (payload.status || 'PLANNED').toUpperCase(),
+      plannedStartDate: payload.plannedStartDate || payload.startDate || null,
+      plannedEndDate: payload.plannedEndDate || payload.endDate || null,
+      actualStartDate: payload.actualStartDate || null,
+      budgetAmount: payload.budgetAmount != null && payload.budgetAmount !== '' ? Number(payload.budgetAmount) : null,
+      assignedContractor: payload.assignedContractor || null,
+      inchargeUserId: payload.inchargeUserId ? Number(payload.inchargeUserId) : null,
     };
 
     try {
-      const response = await apiClient.post('/projects/1/work-packages', requestBody);
+      const response = await apiClient.post(`/projects/${targetProjectId}/work-packages`, requestBody);
       if (response && response.data) {
         const item = response.data.data !== undefined ? response.data.data : response.data;
-        return normalizeActivity(item);
+        return normalizeWorkPackage(item);
       }
     } catch (err) {
       console.error('API create work package failed:', err);
@@ -189,31 +125,29 @@ export const wbsScheduleApi = {
     }
   },
 
+  // PUT /api/v1/work-packages/{id}
   update: async (id, payload) => {
-    let normalizedDiscipline = (payload.discipline || 'CIVIL').toUpperCase();
-    if (normalizedDiscipline === 'GENERAL') normalizedDiscipline = 'CIVIL';
-    if (normalizedDiscipline === 'MECHANICAL') normalizedDiscipline = 'MEP';
-
-    let normalizedStatus = (payload.status || 'PLANNED').toUpperCase().replace('-', '_');
-    if (!['PLANNED', 'IN_PROGRESS', 'ON_HOLD', 'COMPLETED', 'CANCELLED'].includes(normalizedStatus)) {
-      normalizedStatus = 'PLANNED';
-    }
-
     const requestBody = {
-      code: String(payload.wbsCode || payload.code || '1.0').trim(),
+      siteId: payload.siteId ? Number(payload.siteId) : null,
+      code: String(payload.code || payload.wbsCode || '').trim().toUpperCase(),
       name: String(payload.name || '').trim(),
-      discipline: normalizedDiscipline,
-      status: normalizedStatus,
-      plannedStartDate: payload.startDate || null,
-      plannedEndDate: payload.endDate || null,
+      discipline: (payload.discipline || 'CIVIL').toUpperCase(),
       description: payload.description || '',
+      status: (payload.status || 'PLANNED').toUpperCase(),
+      plannedStartDate: payload.plannedStartDate || payload.startDate || null,
+      plannedEndDate: payload.plannedEndDate || payload.endDate || null,
+      actualStartDate: payload.actualStartDate || null,
+      actualEndDate: payload.actualEndDate || null,
+      budgetAmount: payload.budgetAmount != null && payload.budgetAmount !== '' ? Number(payload.budgetAmount) : null,
+      assignedContractor: payload.assignedContractor || null,
+      inchargeUserId: payload.inchargeUserId ? Number(payload.inchargeUserId) : null,
     };
 
     try {
       const response = await apiClient.put(`/work-packages/${id}`, requestBody);
       if (response && response.data) {
         const item = response.data.data !== undefined ? response.data.data : response.data;
-        return normalizeActivity(item);
+        return normalizeWorkPackage(item);
       }
     } catch (err) {
       console.error('API update work package failed:', err);
@@ -222,6 +156,24 @@ export const wbsScheduleApi = {
     }
   },
 
+  // PATCH /api/v1/work-packages/{id}/status
+  updateStatus: async (id, status) => {
+    try {
+      const response = await apiClient.patch(`/work-packages/${id}/status`, {
+        status: status.toUpperCase(),
+      });
+      if (response && response.data) {
+        const item = response.data.data !== undefined ? response.data.data : response.data;
+        return normalizeWorkPackage(item);
+      }
+    } catch (err) {
+      console.error('API update work package status failed:', err);
+      const msg = err.response?.data?.message || err.message || 'Failed to update status on server';
+      throw new Error(msg);
+    }
+  },
+
+  // DELETE /api/v1/work-packages/{id}
   delete: async (id) => {
     try {
       await apiClient.delete(`/work-packages/${id}`);
