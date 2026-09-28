@@ -24,6 +24,19 @@ export function DprDetailsModal({ open, onClose, dpr, onEdit, onDelete }) {
   const [activeTagFilter, setActiveTagFilter] = useState('ALL');
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    if (!dpr || isDownloadingPdf) return;
+    setIsDownloadingPdf(true);
+    try {
+      await generateDprPdf(dpr);
+    } catch (err) {
+      console.error('Failed to generate DPR PDF:', err);
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
 
   if (!dpr) return null;
 
@@ -44,11 +57,8 @@ export function DprDetailsModal({ open, onClose, dpr, onEdit, onDelete }) {
       ? photos
       : photos.filter((p) => (p.activityTag || 'General Progress') === activeTagFilter);
 
-  const handleOpenGallery = (index) => {
-    // Find index in unfiltered list
-    const selectedPhoto = filteredPhotos[index];
-    const originalIndex = photos.findIndex((p) => p.id === selectedPhoto?.id);
-    setGalleryIndex(originalIndex >= 0 ? originalIndex : 0);
+  const handleOpenGallery = (index = 0) => {
+    setGalleryIndex(typeof index === 'number' && index >= 0 ? index : 0);
     setGalleryOpen(true);
   };
 
@@ -102,10 +112,11 @@ export function DprDetailsModal({ open, onClose, dpr, onEdit, onDelete }) {
             <Button
               variant="outline"
               className="flex items-center gap-1.5 border-brand-500 text-brand-600 hover:bg-brand-50"
-              onClick={() => generateDprPdf(dpr)}
+              isLoading={isDownloadingPdf}
+              onClick={handleDownloadPdf}
             >
               <Download className="h-4 w-4" />
-              <span>Download PDF Report</span>
+              <span>{isDownloadingPdf ? 'Generating PDF...' : 'Download PDF Report'}</span>
             </Button>
           </div>
         }
@@ -313,9 +324,13 @@ export function DprDetailsModal({ open, onClose, dpr, onEdit, onDelete }) {
       <DprPhotoGalleryModal
         open={galleryOpen}
         onClose={() => setGalleryOpen(false)}
-        photos={photos}
+        photos={filteredPhotos.length > 0 ? filteredPhotos : photos}
         initialIndex={galleryIndex}
-        title={`Site Photos - ${dpr.siteName || dpr.id}`}
+        title={
+          activeTagFilter !== 'ALL'
+            ? `Site Photos (${activeTagFilter}) - ${dpr.siteName || dpr.id}`
+            : `Site Photos - ${dpr.siteName || dpr.id}`
+        }
       />
     </>
   );

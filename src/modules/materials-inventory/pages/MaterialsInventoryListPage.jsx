@@ -13,6 +13,7 @@ import {
   Edit2,
   ClipboardList,
   Scale,
+  ClipboardPen,
 } from 'lucide-react';
 import { Table, Button } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
@@ -22,12 +23,15 @@ import {
   materialsInventoryApi,
   UNIT_LABEL_MAP,
 } from '../api/materialsInventoryApi';
+import { materialRequestsApi } from '../api/materialRequestsApi';
 import { MaterialMetricsBar } from '../components/MaterialMetricsBar';
 import { MaterialFormModal } from '../components/MaterialFormModal';
 import { StockTransactionModal } from '../components/StockTransactionModal';
 import { StockReconciliationModal } from '../components/StockReconciliationModal';
 import { StockLedgerAuditView } from '../components/StockLedgerAuditView';
 import { MaterialDetailsModal } from '../components/MaterialDetailsModal';
+import { MaterialRequestModal } from '../components/MaterialRequestModal';
+import { MaterialRequestsTab } from '../components/MaterialRequestsTab';
 
 function StockBadge({ status }) {
   const isOut = status === 'OUT_OF_STOCK';
@@ -67,6 +71,9 @@ export function MaterialsInventoryListPage() {
   const [reconcileModalOpen, setReconcileModalOpen] = useState(false);
   const [reconcileTargetMaterial, setReconcileTargetMaterial] = useState(null);
 
+  const [requestModalOpen, setRequestModalOpen] = useState(false);
+  const [requestTargetMaterial, setRequestTargetMaterial] = useState(null);
+
   const canManage = useHasRole(
     ROLES.PROCUREMENT_STORE,
     ROLES.PROJECT_MANAGER,
@@ -103,6 +110,13 @@ export function MaterialsInventoryListPage() {
     staleTime: 30_000,
   });
 
+  const { data: allRequests = [] } = useQuery({
+    queryKey: ['material-requests'],
+    queryFn: () => materialRequestsApi.listByProject(1),
+    staleTime: 15_000,
+  });
+  const pendingRequestsCount = allRequests.filter((r) => r.status === 'PENDING').length;
+
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: (id) => materialsInventoryApi.delete(id),
@@ -133,6 +147,20 @@ export function MaterialsInventoryListPage() {
   const handleOpenReconcile = (mat = null) => {
     setReconcileTargetMaterial(mat);
     setReconcileModalOpen(true);
+  };
+
+  // Open material request modal shortcut
+  const handleOpenRequest = (mat = null) => {
+    setRequestTargetMaterial(mat);
+    setRequestModalOpen(true);
+  };
+
+  // Fulfill approved request via Stock Issue
+  const handleFulfillRequest = (req) => {
+    const mat = allMaterials.find((m) => String(m.id) === String(req.materialId));
+    setTxnTargetMaterial(mat || null);
+    setTxnInitialType('ISSUE');
+    setTxnModalOpen(true);
   };
 
   // Filter materials for catalog table
@@ -268,6 +296,16 @@ export function MaterialsInventoryListPage() {
               <Button
                 size="sm"
                 variant="ghost"
+                className="h-7 px-2 text-xs text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/30"
+                onClick={() => handleOpenRequest(row)}
+                title="Raise Material Request (Indent)"
+              >
+                <ClipboardPen className="h-3.5 w-3.5" />
+              </Button>
+
+              <Button
+                size="sm"
+                variant="ghost"
                 className="h-7 px-2 text-xs text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
                 onClick={() => handleOpenReconcile(row)}
                 title="Physical Stock Audit Reconcile"
@@ -370,17 +408,24 @@ export function MaterialsInventoryListPage() {
             key: 'actions',
             header: 'Quick Action',
             render: (row) => (
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 px-2.5 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleOpenTransaction(row, 'RECEIPT');
-                }}
-              >
-                <ArrowUpCircle className="h-3.5 w-3.5 mr-1" /> Quick Restock
-              </Button>
+              <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 px-2 text-xs border-brand-300 text-brand-700 hover:bg-brand-50"
+                  onClick={() => handleOpenRequest(row)}
+                >
+                  <ClipboardPen className="h-3.5 w-3.5 mr-1" /> Request
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 px-2 text-xs border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                  onClick={() => handleOpenTransaction(row, 'RECEIPT')}
+                >
+                  <ArrowUpCircle className="h-3.5 w-3.5 mr-1" /> Restock
+                </Button>
+              </div>
             ),
           },
         ]
@@ -432,6 +477,16 @@ export function MaterialsInventoryListPage() {
 
               <Button
                 size="sm"
+                variant="outline"
+                onClick={() => handleOpenRequest(null)}
+                className="h-8 px-3 text-xs border-brand-400 text-brand-700 hover:bg-brand-50 dark:hover:bg-brand-950/40"
+              >
+                <ClipboardPen className="h-3.5 w-3.5 mr-1" />
+                Raise Indent
+              </Button>
+
+              <Button
+                size="sm"
                 onClick={() => {
                   setEditingMaterial(null);
                   setFormModalOpen(true);
@@ -451,21 +506,29 @@ export function MaterialsInventoryListPage() {
         materials={allMaterials}
         lowStock={lowStock}
         reorderAlerts={reorderAlerts}
+        onSelectTab={setActiveTab}
       />
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-1 border-b border-surface-border">
+      <div className="flex items-center gap-0.5 sm:gap-1 border-b border-surface-border overflow-x-auto overflow-y-hidden scrollbar-hidden">
         {[
           { id: 'catalog', label: 'Master Catalog', icon: Package, badge: allMaterials.length, badgeVariant: 'neutral' },
-          { id: 'ledger', label: 'Stock Ledger (Audit Trail)', icon: ClipboardList },
+          {
+            id: 'requests',
+            label: 'Material Requests',
+            icon: ClipboardPen,
+            badge: pendingRequestsCount > 0 ? `${pendingRequestsCount} Pending` : null,
+            badgeVariant: 'warning',
+          },
+          { id: 'ledger', label: 'Stock Ledger', icon: ClipboardList },
           {
             id: 'low-stock',
-            label: 'Low Stock & Reorders',
+            label: 'Low Stock',
             icon: AlertTriangle,
             badge: lowStock.length > 0 ? lowStock.length : null,
             badgeVariant: 'warning',
           },
-          { id: 'reconciliation', label: 'Stock Audit (Reconcile)', icon: Scale },
+          { id: 'reconciliation', label: 'Stock Audit', icon: Scale },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -474,17 +537,17 @@ export function MaterialsInventoryListPage() {
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+              className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors border-b-2 -mb-px whitespace-nowrap shrink-0 ${
                 isActive
                   ? 'border-brand-500 text-brand-700 dark:text-brand-300 font-semibold'
                   : 'border-transparent text-ink-500 hover:text-ink-700 hover:border-surface-border'
               }`}
             >
-              <Icon className="h-4 w-4" />
-              <span>{tab.label}</span>
+              <Icon className="h-4 w-4 shrink-0" />
+              <span className="whitespace-nowrap">{tab.label}</span>
               {tab.badge != null && (
                 <span
-                  className={`ml-1.5 rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                  className={`ml-1.5 rounded-full px-2 py-0.5 text-[11px] font-bold whitespace-nowrap shrink-0 ${
                     tab.badgeVariant === 'warning'
                       ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300/40'
                       : 'bg-surface-subtle text-ink-600 dark:bg-neutral-800 dark:text-neutral-300 border border-surface-border'
@@ -556,6 +619,15 @@ export function MaterialsInventoryListPage() {
             }
           />
         </div>
+      )}
+
+      {/* Tab: Material Requests & Site Indents */}
+      {activeTab === 'requests' && (
+        <MaterialRequestsTab
+          materials={allMaterials}
+          onOpenIssueModal={handleFulfillRequest}
+          onRequestNew={(mat) => handleOpenRequest(mat)}
+        />
       )}
 
       {/* Tab 2: Stock Ledger Audit Trail */}
@@ -704,6 +776,20 @@ export function MaterialsInventoryListPage() {
         }}
         onTransaction={(mat, type) => handleOpenTransaction(mat, type)}
         onReconcile={(mat) => handleOpenReconcile(mat)}
+        onRequest={(mat) => handleOpenRequest(mat)}
+      />
+
+      <MaterialRequestModal
+        open={requestModalOpen}
+        onClose={() => {
+          setRequestModalOpen(false);
+          setRequestTargetMaterial(null);
+        }}
+        initialMaterial={requestTargetMaterial}
+        allMaterials={allMaterials}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['material-requests'] });
+        }}
       />
 
       <StockTransactionModal

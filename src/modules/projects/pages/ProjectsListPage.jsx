@@ -297,7 +297,7 @@ export function ProjectsListPage() {
       </div>
 
       {/* KPI Metrics Bar */}
-      <ProjectMetricsBar />
+      <ProjectMetricsBar onSelectStatus={setStatusFilter} />
 
       {/* Filters & Search */}
       <div className="flex flex-wrap items-center gap-3">

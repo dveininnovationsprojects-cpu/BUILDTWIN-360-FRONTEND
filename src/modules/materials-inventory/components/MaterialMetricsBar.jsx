@@ -1,7 +1,12 @@
 import React from 'react';
-import { Package, TrendingDown, AlertTriangle, BarChart2, DollarSign } from 'lucide-react';
+import { Package, TrendingDown, AlertTriangle, CheckCircle2, IndianRupee } from 'lucide-react';
 
-export function MaterialMetricsBar({ materials = [], lowStock = [], reorderAlerts = [] }) {
+export function MaterialMetricsBar({
+  materials = [],
+  lowStock = [],
+  reorderAlerts = [],
+  onSelectTab,
+}) {
   const totalItems = materials.length;
   const outOfStockCount = materials.filter((m) => Number(m.currentStock ?? 0) === 0).length;
   // Low stock count: items with stock at or below reorder level, but still above zero
@@ -25,73 +30,62 @@ export function MaterialMetricsBar({ materials = [], lowStock = [], reorderAlert
   const cards = [
     {
       label: 'Catalog Items',
-      value: totalItems,
-      sub: `${materials.reduce((acc, m) => acc + (m.category ? 1 : 0), 0)} tracked`,
+      value: `${totalItems} Items`,
       icon: Package,
-      border: 'border-brand-500/20',
-      bg: 'bg-brand-50/50 dark:bg-brand-950/20',
-      iconColor: 'text-brand-600 dark:text-brand-400',
+      color: 'text-brand-600 bg-brand-50 border-brand-200 dark:bg-brand-950/40 dark:border-brand-800',
+      onClick: onSelectTab ? () => onSelectTab('catalog') : undefined,
     },
     {
       label: 'Inventory Valuation',
       value: `₹${totalInventoryValuation.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`,
-      sub: 'Standard unit rates',
-      icon: DollarSign,
-      border: 'border-emerald-500/20',
-      bg: 'bg-emerald-50/50 dark:bg-emerald-950/20',
-      iconColor: 'text-emerald-600 dark:text-emerald-400',
+      icon: IndianRupee,
+      color: 'text-indigo-600 bg-indigo-50 border-indigo-200 dark:bg-indigo-950/40 dark:border-indigo-800',
     },
     {
       label: 'Healthy Stock',
-      value: healthyCount,
-      sub: 'Above reorder level',
-      icon: BarChart2,
-      border: 'border-status-success/30',
-      bg: 'bg-status-successBg',
-      iconColor: 'text-status-success',
+      value: `${healthyCount} Items`,
+      icon: CheckCircle2,
+      color: 'text-status-success bg-status-successBg border-status-success/30',
     },
     {
       label: 'Low Stock Warnings',
-      value: lowStockCount,
-      sub: 'At reorder threshold',
+      value: lowStockCount > 0 ? `${lowStockCount} Warnings` : 'Zero Warnings',
       icon: TrendingDown,
-      border: 'border-amber-500/30',
-      bg: 'bg-amber-50/50 dark:bg-amber-950/20',
-      iconColor: 'text-amber-600 dark:text-amber-400',
+      color:
+        lowStockCount > 0
+          ? 'text-status-warning bg-status-warningBg border-status-warning/30 cursor-pointer'
+          : 'text-status-success bg-status-successBg border-status-success/30 cursor-pointer',
+      onClick: onSelectTab ? () => onSelectTab('low-stock') : undefined,
     },
     {
       label: 'Critical / Out of Stock',
-      value: outOfStockCount,
-      sub: outOfStockCount > 0 ? `${outOfStockCount} zero stock` : 'Zero stockouts',
-      icon: AlertTriangle,
-      border: outOfStockCount > 0 ? 'border-status-danger/30' : 'border-surface-border',
-      bg: outOfStockCount > 0 ? 'bg-status-dangerBg' : 'bg-surface-subtle/50',
-      iconColor: outOfStockCount > 0 ? 'text-status-danger' : 'text-ink-400',
+      value: outOfStockCount > 0 ? `${outOfStockCount} Out of Stock` : 'Zero Stockouts',
+      icon: outOfStockCount > 0 ? AlertTriangle : CheckCircle2,
+      color:
+        outOfStockCount > 0
+          ? 'text-status-danger bg-status-dangerBg border-status-danger/30 cursor-pointer'
+          : 'text-status-success bg-status-successBg border-status-success/30',
+      onClick: onSelectTab ? () => onSelectTab('low-stock') : undefined,
     },
   ];
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-      {cards.map((c) => {
-        const Icon = c.icon;
-        return (
-          <div
-            key={c.label}
-            className={`flex flex-col justify-between rounded-xl border p-3.5 transition-all duration-150 hover:shadow-sm ${c.border} ${c.bg}`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-ink-600">{c.label}</span>
-              <div className={`rounded-lg p-1.5 ${c.bg}`}>
-                <Icon className={`h-4 w-4 ${c.iconColor}`} />
-              </div>
-            </div>
-            <div className="mt-2">
-              <div className="text-xl font-bold tracking-tight text-ink-900">{c.value}</div>
-              <p className="mt-0.5 text-[11px] text-ink-500">{c.sub}</p>
-            </div>
+      {cards.map(({ label, value, icon: Icon, color, onClick }) => (
+        <div
+          key={label}
+          onClick={onClick}
+          className={`flex items-center gap-3 rounded-xl border p-3 shadow-xs transition-all hover:shadow-md ${color}`}
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/75 dark:bg-black/20 shadow-xs">
+            <Icon className="h-5 w-5" />
           </div>
-        );
-      })}
+          <div className="min-w-0 flex-1">
+            <p className="text-lg font-bold leading-tight tracking-tight text-ink-900">{value}</p>
+            <p className="text-xs font-semibold opacity-90 truncate mt-0.5">{label}</p>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

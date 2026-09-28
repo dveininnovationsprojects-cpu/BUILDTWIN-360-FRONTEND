@@ -362,7 +362,7 @@ export function WbsScheduleListPage() {
       </div>
 
       {/* KPI Metrics Bar */}
-      <WbsMetricsBar workPackages={rawPackages} />
+      <WbsMetricsBar workPackages={rawPackages} onSelectStatus={setStatusFilter} />
 
       {/* Project Selector & Filter Bar */}
       <div className="flex flex-wrap items-center gap-3">

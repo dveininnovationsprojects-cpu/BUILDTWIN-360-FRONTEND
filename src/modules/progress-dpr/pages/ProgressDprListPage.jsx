@@ -2,18 +2,10 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Download,
-  Camera,
-  Tag,
-  Eye,
-  Pencil,
-  Trash2,
   Plus,
   Search,
-  Filter,
-  Calendar,
-  Building,
 } from 'lucide-react';
-import { Table, StatusPill, Button, Input, Modal } from '@/design-system';
+import { Button, Modal } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
 import { useAuthStore, useHasRole } from '@/context/authStore';
 import { ROLES } from '@/constants/roles';
@@ -21,11 +13,8 @@ import { progressDprApi } from '../api/progressDprApi';
 import { DprEntryFormModal } from '../components/DprEntryFormModal';
 import { DprDetailsModal } from '../components/DprDetailsModal';
 import { DprPhotoGalleryModal } from '../components/DprPhotoGalleryModal';
+import { DprCardGrid } from '../components/DprCardGrid';
 import { generateDprPdf } from '../utils/dprPdfGenerator';
-
-function displayQuantities(row) {
-  return row.qtyCompleted || '-';
-}
 
 export function ProgressDprListPage() {
   const [isEntryOpen, setEntryOpen] = useState(false);
@@ -34,6 +23,7 @@ export function ProgressDprListPage() {
   const [selectedDprForDetails, setSelectedDprForDetails] = useState(null);
   const [galleryModalData, setGalleryModalData] = useState({ open: false, photos: [], title: '' });
   const [searchQuery, setSearchQuery] = useState('');
+  const [downloadingId, setDownloadingId] = useState(null);
 
   const canCreateDpr = useHasRole(
     ROLES.SITE_ENGINEER,
@@ -61,8 +51,11 @@ export function ProgressDprListPage() {
   const queryClient = useQueryClient();
   const pushToast = useToastStore((state) => state.push);
   const user = useAuthStore((state) => state.user);
-  const { data, isLoading } = useQuery({ queryKey: ['progress-dpr'], queryFn: () => progressDprApi.list() });
-  
+  const { data, isLoading } = useQuery({
+    queryKey: ['progress-dpr'],
+    queryFn: () => progressDprApi.list(),
+  });
+
   const createMutation = useMutation({ mutationFn: progressDprApi.create });
   const updateMutation = useMutation({ mutationFn: ({ id, payload }) => progressDprApi.update(id, payload) });
   const deleteMutation = useMutation({ mutationFn: (id) => progressDprApi.delete(id) });
@@ -78,7 +71,7 @@ export function ProgressDprListPage() {
 
         const fullRecord = savedResult || payload;
         if (shouldDownload) {
-          generateDprPdf(fullRecord);
+          await generateDprPdf(fullRecord);
           pushToast('DPR updated and PDF report downloaded!', 'success');
         } else {
           pushToast('DPR updated successfully.', 'success');
@@ -89,10 +82,15 @@ export function ProgressDprListPage() {
 
         const fullRecord = savedResult || payload;
         if (shouldDownload) {
-          generateDprPdf(fullRecord);
+          await generateDprPdf(fullRecord);
           pushToast('DPR saved and PDF report downloaded!', 'success');
         } else {
-          pushToast(payload.status === 'DRAFT' ? 'DPR saved as a draft.' : 'DPR submitted successfully with photos.', 'success');
+          pushToast(
+            payload.status === 'DRAFT'
+              ? 'DPR saved as a draft.'
+              : 'DPR submitted successfully with photos.',
+            'success'
+          );
         }
       }
       setEntryOpen(false);
@@ -103,18 +101,22 @@ export function ProgressDprListPage() {
     }
   }
 
-  const handleDownloadReport = (row) => {
+  const handleDownloadReport = async (row) => {
+    if (downloadingId) return;
+    setDownloadingId(row.id);
     try {
-      generateDprPdf(row);
+      await generateDprPdf(row);
       pushToast(`Downloaded report for ${row.siteName || row.id || 'DPR'}`, 'success');
     } catch (err) {
       console.error('PDF generation error:', err);
       pushToast('Unable to generate PDF report. Please try again.', 'error');
+    } finally {
+      setDownloadingId(null);
     }
   };
 
   const handleOpenPhotoGallery = (row, e) => {
-    e.stopPropagation();
+    if (e && e.stopPropagation) e.stopPropagation();
     if (row.photos && row.photos.length > 0) {
       setGalleryModalData({
         open: true,
@@ -122,6 +124,49 @@ export function ProgressDprListPage() {
         title: `Site Photos: ${row.siteName} (${row.reportDate})`,
       });
     }
+  };
+
+  // Export filtered DPRs to CSV file
+  const handleExportCsv = () => {
+    if (!filteredData || filteredData.length === 0) {
+      pushToast('No DPR records to export.', 'warning');
+      return;
+    }
+    const headers = [
+      'DPR ID',
+      'Report Date',
+      'Project / Site',
+      'Work Summary',
+      'Quantities Completed',
+      'Status',
+      'Photos Attached',
+      'Submitted By',
+      'Remarks',
+    ];
+
+    const rows = filteredData.map((d) => [
+      `"${d.id || ''}"`,
+      `"${d.reportDate || ''}"`,
+      `"${(d.siteName || '').replace(/"/g, '""')}"`,
+      `"${(d.activity || '').replace(/"/g, '""')}"`,
+      `"${(d.qtyCompleted || '').replace(/"/g, '""')}"`,
+      `"${d.status || ''}"`,
+      `"${(d.photos || []).length}"`,
+      `"${(d.submittedBy || '').replace(/"/g, '""')}"`,
+      `"${(d.remarks || '').replace(/"/g, '""')}"`,
+    ]);
+
+    const csvContent =
+      'data:text/csv;charset=utf-8,\uFEFF' +
+      [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `BuildTwin360_DPR_Register_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    pushToast(`Exported ${filteredData.length} reports to CSV.`, 'success');
   };
 
   // Filter DPR data
@@ -134,149 +179,6 @@ export function ProgressDprListPage() {
     return matchesSite || matchesActivity || matchesTag;
   });
 
-  const columns = [
-    {
-      key: 'reportDate',
-      header: 'Date',
-      render: (row) => (
-        <span className="font-semibold text-ink-900">{row.reportDate}</span>
-      ),
-    },
-    {
-      key: 'siteName',
-      header: 'Site / Project',
-      render: (row) => (
-        <div className="flex flex-col">
-          <span className="font-medium text-ink-900">{row.siteName}</span>
-          <span className="text-[11px] text-ink-400">ID: {row.id}</span>
-        </div>
-      ),
-    },
-    { key: 'activity', header: 'Work Summary' },
-    { key: 'qtyCompleted', header: 'Quantities', render: displayQuantities },
-    {
-      key: 'photos',
-      header: 'Photo Evidence & Tags',
-      render: (row) => {
-        const photos = row.photos || [];
-        if (photos.length === 0) {
-          return <span className="text-xs text-ink-400 italic">No photos</span>;
-        }
-
-        // Get unique activity tags from attached photos
-        const tags = Array.from(new Set(photos.map((p) => p.activityTag).filter(Boolean)));
-
-        return (
-          <div
-            className="group/photo flex items-center gap-2 cursor-pointer"
-            onClick={(e) => handleOpenPhotoGallery(row, e)}
-            title="Click to view full photo gallery"
-          >
-            {/* Stacked Thumbnails */}
-            <div className="relative flex items-center -space-x-2">
-              {photos.slice(0, 3).map((photo, i) => (
-                <div
-                  key={i}
-                  className="relative h-8 w-8 overflow-hidden rounded-md border-2 border-white shadow-xs group-hover/photo:scale-105 transition-transform"
-                >
-                  <img
-                    src={photo.previewUrl || photo.url || photo.dataUrl}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              ))}
-            </div>
-
-            {/* Photo count and tags */}
-            <div className="flex flex-col gap-0.5">
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 group-hover/photo:text-brand-700">
-                <Camera className="h-3 w-3" />
-                {photos.length} {photos.length === 1 ? 'photo' : 'photos'}
-              </span>
-              {tags.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1 max-w-[180px]">
-                  {tags.slice(0, 2).map((tag, idx) => (
-                    <span
-                      key={idx}
-                      className="inline-flex items-center gap-0.5 rounded bg-brand-50 px-1.5 py-0.2 text-[10px] font-medium text-brand-700 border border-brand-200 truncate max-w-[120px]"
-                    >
-                      <Tag className="h-2 w-2 shrink-0" />
-                      <span className="truncate">{tag}</span>
-                    </span>
-                  ))}
-                  {tags.length > 2 && (
-                    <span className="text-[10px] text-ink-400">+{tags.length - 2}</span>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      },
-    },
-    { key: 'submittedBy', header: 'Submitted By' },
-    { key: 'status', header: 'Status', render: (row) => <StatusPill status={row.status} /> },
-    {
-      key: 'actions',
-      header: 'Actions',
-      render: (row) => (
-        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-8 w-8 p-0 text-ink-600 hover:text-brand-600"
-            onClick={() => setSelectedDprForDetails(row)}
-            title="View DPR Details & Attached Photos"
-            aria-label="View Details"
-          >
-            <Eye className="h-4 w-4" />
-          </Button>
-
-          {canManageDpr && (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-8 w-8 p-0 text-brand-600 hover:bg-brand-50"
-              onClick={() => {
-                setEditingDpr(row);
-                setEntryOpen(true);
-              }}
-              title="Update / Edit DPR"
-              aria-label="Update DPR"
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
-          )}
-
-          {canDeleteDpr && (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-8 w-8 p-0 text-status-danger hover:bg-status-dangerBg"
-              onClick={() => setDeletingDpr(row)}
-              title="Delete DPR"
-              aria-label="Delete DPR"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
-
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-8 px-2 flex items-center gap-1 border-brand-200 text-xs text-brand-600 hover:bg-brand-50 hover:text-brand-700"
-            onClick={() => handleDownloadReport(row)}
-            title="Download DPR PDF Document"
-          >
-            <Download className="h-3.5 w-3.5" />
-            <span>PDF</span>
-          </Button>
-        </div>
-      ),
-    },
-  ];
-
   return (
     <div className="flex flex-col gap-4">
       {/* Header Banner */}
@@ -284,8 +186,21 @@ export function ProgressDprListPage() {
         <div>
           <h1 className="page-heading">Daily Progress Report (DPR)</h1>
         </div>
-        {canCreateDpr && (
-          <div className="flex items-center gap-2">
+
+        <div className="flex items-center gap-2">
+          {/* Downloadable CSV Option */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportCsv}
+            className="flex items-center gap-1.5 border-surface-border text-ink-700 hover:bg-surface-subtle"
+            title="Download CSV register"
+          >
+            <Download className="h-4 w-4 text-emerald-600" />
+            <span>Export CSV</span>
+          </Button>
+
+          {canCreateDpr && (
             <Button
               size="sm"
               onClick={() => {
@@ -297,8 +212,8 @@ export function ProgressDprListPage() {
               <Plus className="h-4 w-4" />
               <span>New DPR Entry</span>
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Filter / Search Bar */}
@@ -315,23 +230,33 @@ export function ProgressDprListPage() {
         </div>
 
         <div className="flex items-center gap-2 text-xs text-ink-500">
-          <span>Showing <strong>{filteredData.length}</strong> reports</span>
+          <span>
+            Showing <strong>{filteredData.length}</strong> reports
+          </span>
         </div>
       </div>
 
-      {/* DPR Table */}
-      <Table
-        columns={columns}
-        data={filteredData}
-        rowKey={(row) => row.id}
-        isLoading={isLoading}
-        onRowClick={(row) => setSelectedDprForDetails(row)}
-        emptyMessage={
-          searchQuery
-            ? 'No DPR entries match your search.'
-            : 'No DPR entries yet. Click "New DPR Entry" to create your first report.'
-        }
-      />
+      {/* Visual Field Cards View Only */}
+      {isLoading ? (
+        <div className="flex items-center justify-center p-12 text-ink-500 text-sm">
+          Loading DPR reports...
+        </div>
+      ) : (
+        <DprCardGrid
+          data={filteredData}
+          onSelectDpr={(row) => setSelectedDprForDetails(row)}
+          onEditDpr={(row) => {
+            setEditingDpr(row);
+            setEntryOpen(true);
+          }}
+          onDeleteDpr={(row) => setDeletingDpr(row)}
+          onDownloadPdf={handleDownloadReport}
+          downloadingId={downloadingId}
+          onOpenPhotoGallery={handleOpenPhotoGallery}
+          canManage={canManageDpr}
+          canDelete={canDeleteDpr}
+        />
+      )}
 
       {/* DPR Entry Form Modal (Create & Update modes) */}
       <DprEntryFormModal

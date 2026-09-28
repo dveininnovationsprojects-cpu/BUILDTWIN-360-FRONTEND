@@ -635,3 +635,10 @@ export const suppliersApi = {
     }
   },
 };
+
+// ─── Re-export Material Requests API & Constants ─────────────────────────────
+export {
+  materialRequestsApi,
+  MATERIAL_REQUEST_STATUSES,
+  REQUEST_PRIORITIES,
+} from './materialRequestsApi';

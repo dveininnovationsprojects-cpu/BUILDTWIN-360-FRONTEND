@@ -13,6 +13,7 @@ import {
   Layers,
   DollarSign,
   Info,
+  ClipboardPen,
 } from 'lucide-react';
 import { Modal, Button } from '@/design-system';
 import { stockLedgerApi, UNIT_LABEL_MAP } from '../api/materialsInventoryApi';
@@ -33,6 +34,7 @@ export function MaterialDetailsModal({
   onEdit,
   onTransaction,
   onReconcile,
+  onRequest,
   canManage = false,
 }) {
   const { data: ledger = [], isLoading } = useQuery({
@@ -217,6 +219,18 @@ export function MaterialDetailsModal({
             >
               <Scale className="h-3.5 w-3.5 mr-1" />
               Audit Reconcile
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs border-brand-400 text-brand-700 hover:bg-brand-50 dark:hover:bg-brand-950/40"
+              onClick={() => {
+                onClose();
+                onRequest?.(material);
+              }}
+            >
+              <ClipboardPen className="h-3.5 w-3.5 mr-1" />
+              Raise Request (Indent)
             </Button>
           </div>
         )}
