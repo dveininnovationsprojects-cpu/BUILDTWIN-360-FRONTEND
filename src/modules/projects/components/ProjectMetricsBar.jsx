@@ -40,28 +40,28 @@ export function ProjectMetricsBar({ onSelectStatus }) {
   const cards = [
     {
       label: 'Total Projects',
-      value: `${m.totalProjects} Projects`,
+      value: m.totalProjects,
       icon: Building2,
-      color: 'text-brand-600 bg-brand-50 border-brand-200 dark:bg-brand-950/40 dark:border-brand-800',
+      color: 'text-brand-700 bg-brand-50/70 border-brand-200 dark:bg-brand-950/40 dark:border-brand-800 dark:text-brand-300',
       onClick: onSelectStatus ? () => onSelectStatus('ALL') : undefined,
     },
     {
-      label: 'Active Execution',
-      value: `${m.activeProjects} Active`,
+      label: 'Active',
+      value: m.activeProjects,
       icon: PlayCircle,
       color: 'text-status-success bg-status-successBg border-status-success/30',
       onClick: onSelectStatus ? () => onSelectStatus('ACTIVE') : undefined,
     },
     {
       label: 'Planned',
-      value: `${m.plannedProjects} Planned`,
+      value: m.plannedProjects,
       icon: Layers,
-      color: 'text-sky-600 bg-sky-50 border-sky-200 dark:bg-sky-950/40 dark:border-sky-800',
+      color: 'text-sky-700 bg-sky-50/70 border-sky-200 dark:bg-sky-950/40 dark:border-sky-800 dark:text-sky-300',
       onClick: onSelectStatus ? () => onSelectStatus('PLANNED') : undefined,
     },
     {
       label: 'On Hold',
-      value: `${m.onHoldProjects} On Hold`,
+      value: m.onHoldProjects,
       icon: PauseCircle,
       color:
         m.onHoldProjects > 0
@@ -71,41 +71,47 @@ export function ProjectMetricsBar({ onSelectStatus }) {
     },
     {
       label: 'Completed',
-      value: `${m.completedProjects} Delivered`,
+      value: m.completedProjects,
       icon: CheckCircle2,
-      color: 'text-indigo-600 bg-indigo-50 border-indigo-200 dark:bg-indigo-950/40 dark:border-indigo-800',
+      color: 'text-indigo-700 bg-indigo-50/70 border-indigo-200 dark:bg-indigo-950/40 dark:border-indigo-800 dark:text-indigo-300',
       onClick: onSelectStatus ? () => onSelectStatus('COMPLETED') : undefined,
     },
     {
       label: 'Total Budget',
       value: formatCurrency(m.totalEstimatedBudget),
       icon: IndianRupee,
-      color: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800',
+      color: 'text-emerald-700 bg-emerald-50/70 border-emerald-200 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300',
     },
     {
       label: 'Project Sites',
-      value: `${m.totalSites} Sites`,
+      value: m.totalSites,
       icon: MapPin,
-      color: 'text-purple-600 bg-purple-50 border-purple-200 dark:bg-purple-950/40 dark:border-purple-800',
+      color: 'text-purple-700 bg-purple-50/70 border-purple-200 dark:bg-purple-950/40 dark:border-purple-800 dark:text-purple-300',
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
+    <div className="grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
       {cards.map(({ label, value, icon: Icon, color, onClick }) => (
         <div
           key={label}
           onClick={onClick}
-          className={`flex items-center gap-3 rounded-xl border p-3 shadow-xs transition-all hover:shadow-md ${color} ${
+          className={`group flex flex-col justify-between rounded-xl border p-3 shadow-xs transition-all hover:shadow-md min-h-[82px] ${color} ${
             onClick ? 'cursor-pointer' : ''
           }`}
         >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/75 dark:bg-black/20 shadow-xs">
-            <Icon className="h-5 w-5" />
+          <div className="flex items-center justify-between gap-1">
+            <span className="text-xs font-semibold opacity-85 leading-tight">
+              {label}
+            </span>
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/80 dark:bg-black/25 shadow-xs">
+              <Icon className="h-3.5 w-3.5" />
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-lg font-bold leading-tight tracking-tight text-ink-900">{value}</p>
-            <p className="text-xs font-semibold opacity-90 truncate mt-0.5">{label}</p>
+          <div className="mt-2 flex items-baseline">
+            <span className="text-xl sm:text-2xl font-bold tracking-tight text-ink-900 leading-none">
+              {value}
+            </span>
           </div>
         </div>
       ))}

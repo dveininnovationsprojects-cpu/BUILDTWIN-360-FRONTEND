@@ -165,7 +165,7 @@ export function ProjectsListPage() {
         <div>
           <p className="font-semibold text-ink-900">{row.name}</p>
           {row.location && (
-            <p className="text-xs text-ink-400 truncate max-w-[200px]">{row.location}</p>
+            <p className="text-xs text-ink-400 leading-normal max-w-xs">{row.location}</p>
           )}
         </div>
       ),

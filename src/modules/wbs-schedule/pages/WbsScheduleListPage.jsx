@@ -205,7 +205,7 @@ export function WbsScheduleListPage() {
             <p className="text-xs text-ink-500 font-medium">{row.siteName}</p>
           )}
           {row.description && (
-            <p className="text-xs text-ink-400 truncate max-w-[280px]">{row.description}</p>
+            <p className="text-xs text-ink-400 leading-normal max-w-sm">{row.description}</p>
           )}
         </div>
       ),

@@ -196,7 +196,7 @@ export function MaterialsInventoryListPage() {
         <div className="flex flex-col">
           <span className="font-medium text-ink-900 text-sm">{row.name}</span>
           {row.description && (
-            <span className="text-[11px] text-ink-400 truncate max-w-[240px]">
+            <span className="text-[11px] text-ink-400 leading-normal max-w-sm" title={row.description}>
               {row.description}
             </span>
           )}

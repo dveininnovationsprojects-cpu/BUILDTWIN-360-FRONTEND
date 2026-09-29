@@ -255,23 +255,23 @@ export function MaterialRequestsTab({
   return (
     <div className="flex flex-col gap-4">
       {/* Top 4 KPI Metrics */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-4">
         {[
           {
             label: 'Total Requisitions',
-            value: `${totalCount} Requests`,
+            value: totalCount,
             icon: ClipboardPen,
-            color: 'text-brand-600 bg-brand-50 border-brand-200 dark:bg-brand-950/40 dark:border-brand-800',
+            color: 'text-brand-700 bg-brand-50/70 border-brand-200 dark:bg-brand-950/40 dark:border-brand-800 dark:text-brand-300',
           },
           {
             label: 'Pending Approvals',
-            value: `${pendingCount} Pending`,
+            value: pendingCount,
             icon: Clock,
             color: 'text-status-warning bg-status-warningBg border-status-warning/30',
           },
           {
             label: 'Approved & Ready',
-            value: `${approvedCount} Approved`,
+            value: approvedCount,
             icon: CheckCircle2,
             color: 'text-status-success bg-status-successBg border-status-success/30',
           },
@@ -279,19 +279,25 @@ export function MaterialRequestsTab({
             label: 'Demand Valuation',
             value: `₹${totalRequestedValue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`,
             icon: IndianRupee,
-            color: 'text-indigo-600 bg-indigo-50 border-indigo-200 dark:bg-indigo-950/40 dark:border-indigo-800',
+            color: 'text-indigo-700 bg-indigo-50/70 border-indigo-200 dark:bg-indigo-950/40 dark:border-indigo-800 dark:text-indigo-300',
           },
         ].map(({ label, value, icon: Icon, color }) => (
           <div
             key={label}
-            className={`flex items-center gap-3 rounded-xl border p-3 shadow-xs transition-all hover:shadow-md ${color}`}
+            className={`group flex flex-col justify-between rounded-xl border p-3 shadow-xs transition-all hover:shadow-md min-h-[82px] ${color}`}
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/75 dark:bg-black/20 shadow-xs">
-              <Icon className="h-5 w-5" />
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-xs font-semibold opacity-85 leading-tight">
+                {label}
+              </span>
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/80 dark:bg-black/25 shadow-xs">
+                <Icon className="h-3.5 w-3.5" />
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-lg font-bold leading-tight tracking-tight text-ink-900">{value}</p>
-              <p className="text-xs font-semibold opacity-90 truncate mt-0.5">{label}</p>
+            <div className="mt-2 flex items-baseline">
+              <span className="text-xl sm:text-2xl font-bold tracking-tight text-ink-900 leading-none">
+                {value}
+              </span>
             </div>
           </div>
         ))}

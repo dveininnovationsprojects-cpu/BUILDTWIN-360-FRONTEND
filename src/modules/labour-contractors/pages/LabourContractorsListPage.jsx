@@ -421,7 +421,7 @@ export function LabourContractorsListPage() {
         <div className="flex flex-col">
           <span className="font-bold text-ink-900 text-sm">{row.headcount} Workers</span>
           {row.remarks && (
-            <span className="text-[11px] text-ink-400 truncate max-w-[220px]">{row.remarks}</span>
+            <span className="text-[11px] text-ink-400 leading-normal max-w-sm" title={row.remarks}>{row.remarks}</span>
           )}
         </div>
       ),
@@ -679,24 +679,23 @@ export function LabourContractorsListPage() {
         )}
       </div>
 
-      {/* Dashboard KPI Summary Cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {[
           {
             label: 'Total Headcount',
-            value: `${stats.totalHeadcount} Workers`,
+            value: stats.totalHeadcount,
             icon: Users,
-            color: 'text-brand-600 bg-brand-50 border-brand-200 dark:bg-brand-950/40 dark:border-brand-800',
+            color: 'text-brand-700 bg-brand-50/70 border-brand-200 dark:bg-brand-950/40 dark:border-brand-800 dark:text-brand-300',
           },
           {
-            label: 'Active Contractors',
-            value: `${stats.activeContractorsCount} Firms`,
+            label: 'Contractors',
+            value: stats.activeContractorsCount,
             icon: Building2,
             color: 'text-status-success bg-status-successBg border-status-success/30',
           },
           {
             label: 'Active Trades',
-            value: `${stats.activeTradesCount} Specializations`,
+            value: stats.activeTradesCount,
             icon: Hammer,
             color: 'text-status-warning bg-status-warningBg border-status-warning/30',
           },
@@ -704,11 +703,11 @@ export function LabourContractorsListPage() {
             label: 'Total Hours Logged',
             value: `${stats.totalHours.toLocaleString()} hrs`,
             icon: Clock,
-            color: 'text-indigo-600 bg-indigo-50 border-indigo-200 dark:bg-indigo-950/40 dark:border-indigo-800',
+            color: 'text-indigo-700 bg-indigo-50/70 border-indigo-200 dark:bg-indigo-950/40 dark:border-indigo-800 dark:text-indigo-300',
           },
           {
             label: 'Benchmark Alerts',
-            value: benchmarkMetrics.activeAlertsCount > 0 ? `${benchmarkMetrics.activeAlertsCount} Alerts` : 'All Norms Met',
+            value: benchmarkMetrics.activeAlertsCount,
             icon: benchmarkMetrics.activeAlertsCount > 0 ? AlertTriangle : CheckCircle2,
             color:
               benchmarkMetrics.activeAlertsCount > 0
@@ -720,14 +719,22 @@ export function LabourContractorsListPage() {
           <div
             key={label}
             onClick={onClick}
-            className={`flex items-center gap-3 rounded-xl border p-3 shadow-xs transition-all hover:shadow-md ${color}`}
+            className={`group flex flex-col justify-between rounded-xl border p-3 shadow-xs transition-all hover:shadow-md min-h-[82px] ${color} ${
+              onClick ? 'cursor-pointer' : ''
+            }`}
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/75 dark:bg-black/20 shadow-xs">
-              <Icon className="h-5 w-5" />
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-xs font-semibold opacity-85 leading-tight">
+                {label}
+              </span>
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/80 dark:bg-black/25 shadow-xs">
+                <Icon className="h-3.5 w-3.5" />
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-lg font-bold leading-tight tracking-tight text-ink-900">{value}</p>
-              <p className="text-xs font-semibold opacity-90 truncate mt-0.5">{label}</p>
+            <div className="mt-2 flex items-baseline">
+              <span className="text-xl sm:text-2xl font-bold tracking-tight text-ink-900 leading-none">
+                {value}
+              </span>
             </div>
           </div>
         ))}

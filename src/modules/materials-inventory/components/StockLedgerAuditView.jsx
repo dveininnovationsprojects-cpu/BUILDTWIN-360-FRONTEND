@@ -13,6 +13,11 @@ import {
   Building,
   Layers,
   FileText,
+  Eye,
+  LayoutGrid,
+  List,
+  MapPin,
+  Package,
 } from 'lucide-react';
 import { Table, Button } from '@/design-system';
 import {
@@ -22,6 +27,7 @@ import {
 } from '../api/materialsInventoryApi';
 import { projectsApi } from '@/modules/projects/api/projectsApi';
 import { wbsScheduleApi } from '@/modules/wbs-schedule/api/wbsScheduleApi';
+import { StockLedgerDetailModal } from './StockLedgerDetailModal';
 
 const TYPE_CONFIG = {
   RECEIPT: {
@@ -73,6 +79,8 @@ export function StockLedgerAuditView({
   const [selectedActivityId, setSelectedActivityId] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedEntry, setSelectedEntry] = useState(null);
+  const [viewMode, setViewMode] = useState('table');
 
   // Fetch projects
   const { data: projects = [] } = useQuery({
@@ -292,6 +300,26 @@ export function StockLedgerAuditView({
         </div>
       ),
     },
+    {
+      key: 'actions',
+      header: 'Action',
+      className: 'text-center w-14',
+      render: (row) => (
+        <div className="flex items-center justify-center">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedEntry(row);
+            }}
+            className="flex h-7 w-7 items-center justify-center rounded-lg border border-surface-border/70 bg-surface-subtle text-ink-500 hover:text-brand-600 hover:border-brand-300 hover:bg-brand-50 dark:hover:bg-brand-950/50 transition-colors shadow-xs"
+            title="View Details"
+          >
+            <Eye className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      ),
+    },
   ];
 
   return (
@@ -381,6 +409,36 @@ export function StockLedgerAuditView({
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
+          {/* View Mode Switcher */}
+          <div className="flex items-center rounded-lg border border-surface-border bg-surface-subtle p-0.5">
+            <button
+              type="button"
+              onClick={() => setViewMode('table')}
+              className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-colors ${
+                viewMode === 'table'
+                  ? 'bg-surface-base text-ink-900 shadow-xs'
+                  : 'text-ink-500 hover:text-ink-900'
+              }`}
+              title="Table View"
+            >
+              <List className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Table</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('cards')}
+              className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-colors ${
+                viewMode === 'cards'
+                  ? 'bg-surface-base text-ink-900 shadow-xs'
+                  : 'text-ink-500 hover:text-ink-900'
+              }`}
+              title="Cards View"
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Cards</span>
+            </button>
+          </div>
+
           <Button
             size="sm"
             variant="ghost"
@@ -428,17 +486,179 @@ export function StockLedgerAuditView({
         </span>
       </div>
 
-      {/* Table */}
-      <Table
-        columns={columns}
-        data={entries}
-        rowKey={(row) => row.id}
-        isLoading={isLoading}
-        emptyMessage={
-          searchQuery || typeFilter || selectedMaterialId || selectedActivityId
-            ? 'No transactions found matching your criteria.'
-            : 'No stock ledger entries recorded yet. Record a Receipt or Issue to start tracking.'
-        }
+      {/* Main View: Table or Cards */}
+      {viewMode === 'table' ? (
+        <Table
+          columns={columns}
+          data={entries}
+          rowKey={(row) => row.id}
+          isLoading={isLoading}
+          onRowClick={(row) => setSelectedEntry(row)}
+          emptyMessage={
+            searchQuery || typeFilter || selectedMaterialId || selectedActivityId
+              ? 'No transactions found matching your criteria.'
+              : 'No stock ledger entries recorded yet. Record a Receipt or Issue to start tracking.'
+          }
+        />
+      ) : (
+        <div>
+          {isLoading ? (
+            <div className="rounded-xl border border-surface-border bg-surface-card p-12 text-center text-ink-500">
+              <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2 text-brand-500" />
+              <p className="text-xs">Loading ledger entries...</p>
+            </div>
+          ) : entries.length === 0 ? (
+            <div className="rounded-xl border border-surface-border bg-surface-card p-12 text-center text-ink-500">
+              <ClipboardList className="h-8 w-8 mx-auto mb-2 text-ink-400" />
+              <p className="text-sm font-semibold text-ink-800">No transactions found</p>
+              <p className="text-xs text-ink-500 mt-1">
+                {searchQuery || typeFilter || selectedMaterialId || selectedActivityId
+                  ? 'Try modifying your filters or search keywords.'
+                  : 'Record a material movement to begin viewing audit cards.'}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {entries.map((item) => {
+                const mat = item.material || materials.find((m) => String(m.id) === String(item.materialId));
+                const name = item.materialName || mat?.name || `Material #${item.materialId}`;
+                const code = item.materialCode || mat?.materialCode || '';
+                const unit = mat ? UNIT_LABEL_MAP[mat.unit] || mat.unit : 'Units';
+                const config = TYPE_CONFIG[item.transactionType] || {
+                  label: item.transactionType,
+                  badgeClass: 'bg-surface-subtle text-ink-700 border-surface-border',
+                  icon: ClipboardList,
+                  isPositive: null,
+                };
+                const Icon = config.icon;
+                const d = item.timestamp ? new Date(item.timestamp) : null;
+                const isValidDate = d && !isNaN(d.getTime());
+                const isPos = config.isPositive;
+                const prefix = isPos === true ? '+' : isPos === false ? '-' : '';
+                const qtyColor =
+                  isPos === true
+                    ? 'text-emerald-600'
+                    : isPos === false
+                    ? 'text-ink-900'
+                    : 'text-purple-600';
+                const rate = Number(item.unitPrice ?? 0);
+                const total = rate * Number(item.quantity ?? 0);
+                const act = wbsActivities.find((w) => String(w.id) === String(item.activityId));
+
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => setSelectedEntry(item)}
+                    className="group relative flex flex-col justify-between rounded-xl border border-surface-border bg-surface-card p-4 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-md cursor-pointer"
+                  >
+                    <div>
+                      {/* Top Bar: Badge, Date, Eye button */}
+                      <div className="flex items-center justify-between gap-2 border-b border-surface-border/70 pb-2.5 mb-3">
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${config.badgeClass}`}
+                        >
+                          <Icon className="h-3 w-3" />
+                          {config.label}
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[11px] text-ink-400">
+                            {isValidDate ? d.toLocaleDateString('en-GB') : '-'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedEntry(item);
+                            }}
+                            className="flex h-7 w-7 items-center justify-center rounded-lg border border-surface-border/70 bg-surface-subtle text-ink-500 hover:text-brand-600 hover:border-brand-300 hover:bg-brand-50 dark:hover:bg-brand-950/50 transition-colors shadow-xs"
+                            title="View Stock Ledger Details"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Material info */}
+                      <div className="mb-3">
+                        <h4 className="text-sm font-bold text-ink-900 group-hover:text-brand-600 transition-colors line-clamp-1">
+                          {name}
+                        </h4>
+                        <span className="font-mono text-xs text-ink-400">{code || 'SKU N/A'}</span>
+                      </div>
+
+                      {/* Quantity & Valuation pill */}
+                      <div className="grid grid-cols-2 gap-2 rounded-lg bg-surface-subtle p-2.5 mb-3 border border-surface-border/60">
+                        <div>
+                          <span className="text-[10px] uppercase font-bold text-ink-400 block tracking-wider">
+                            Quantity
+                          </span>
+                          <span className={`font-mono text-base font-black ${qtyColor}`}>
+                            {prefix}{Number(item.quantity).toLocaleString()}
+                          </span>
+                          <span className="text-[10px] text-ink-400 ml-1">{unit}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[10px] uppercase font-bold text-ink-400 block tracking-wider">
+                            Value
+                          </span>
+                          <span className="font-mono text-xs font-semibold text-ink-800 block">
+                            {rate > 0 ? `₹${rate.toLocaleString()}` : '—'}
+                          </span>
+                          {total > 0 && (
+                            <span className="font-mono text-xs font-bold text-emerald-600">
+                              ₹{total.toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Site / WBS location */}
+                      <div className="space-y-1 text-xs text-ink-600 mb-3">
+                        <div className="flex items-center gap-1.5 truncate">
+                          <Building className="h-3.5 w-3.5 text-ink-400 shrink-0" />
+                          {act ? (
+                            <span className="truncate font-medium text-brand-700">
+                              [{act.code || act.wbsCode}] {act.name}
+                            </span>
+                          ) : (
+                            <span className="text-ink-500 truncate">Central Warehouse</span>
+                          )}
+                        </div>
+                        {item.zone && (
+                          <div className="flex items-center gap-1.5 truncate text-[11px] text-ink-500">
+                            <MapPin className="h-3 w-3 text-rose-500 shrink-0" />
+                            <span className="truncate">Zone: {item.zone}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between border-t border-surface-border/70 pt-2.5 text-[11px]">
+                      <span className="font-mono font-medium text-ink-500 truncate max-w-[140px]">
+                        {item.referenceId || `Entry #${item.id}`}
+                      </span>
+                      <span className="inline-flex items-center gap-1 font-semibold text-brand-600 group-hover:underline">
+                        <Eye className="h-3 w-3" />
+                        View Details
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Transaction Details Modal Organized as Structured Cards */}
+      <StockLedgerDetailModal
+        open={Boolean(selectedEntry)}
+        onClose={() => setSelectedEntry(null)}
+        entry={selectedEntry}
+        materials={materials}
+        projects={projects}
+        wbsActivities={wbsActivities}
       />
     </div>
   );

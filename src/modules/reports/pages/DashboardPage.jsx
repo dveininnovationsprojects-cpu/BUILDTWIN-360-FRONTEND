@@ -701,9 +701,9 @@ export function DashboardPage() {
           {top4Kpis.map((kpi, idx) => (
             <div
               key={idx}
-              className="bg-slate-50/90 p-2 rounded-xl border border-slate-200/90 flex flex-col items-center justify-center text-center h-16 hover:bg-white hover:shadow-xs transition-all space-y-0.5"
+              className="bg-slate-50/90 p-2 rounded-xl border border-slate-200/90 flex flex-col items-center justify-center text-center min-h-[64px] hover:bg-white hover:shadow-xs transition-all space-y-0.5"
             >
-              <span className="text-[11px] font-bold text-slate-600 line-clamp-1">{kpi.label}</span>
+              <span className="text-[11px] font-bold text-slate-600 leading-tight text-center whitespace-normal">{kpi.label}</span>
               <span className="text-xl font-black text-slate-900 tracking-tight">{kpi.value}</span>
             </div>
           ))}
