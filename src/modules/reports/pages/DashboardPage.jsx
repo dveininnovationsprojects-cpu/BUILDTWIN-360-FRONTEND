@@ -21,7 +21,7 @@ import { useAuthStore } from '@/context/authStore';
 import { ROLES } from '@/constants/roles';
 import { ROLE_DASHBOARDS_DATA } from '../components/RoleDashboardsData';
 
-// 10 Completely Unique Color Themes for each of the 10 domain role dashboards
+// 10 Completely Unique Color Themes & Chart Configurations for each of the 10 domain role dashboards
 const ROLE_THEMES = {
   [ROLES.DIRECTOR]: {
     donut: ['#8b5cf6', '#a855f7', '#c084fc', '#d8b4fe', '#e9d5ff'],
@@ -32,7 +32,7 @@ const ROLE_THEMES = {
     composedLine: '#4f46e5',
     badgeBg: 'bg-purple-50 text-purple-700 border-purple-200',
     tabActive: 'bg-purple-600 text-white',
-    chartStyle: { card1: 'AREA_GRADIENT', card2: 'DONUT', card3: 'DUAL_BAR', card6: 'COMPOSED_BAR_LINE' },
+    chartStyle: { card1: 'AREA_GRADIENT', card2: 'DONUT', card3: 'DUAL_BAR', card4: 'STACKED_HORIZONTAL_BAR', card6: 'COMPOSED_BAR_LINE' },
     titles: {
       card1: 'Portfolio Cumulative Trend',
       card2: 'Cost Breakdown Donut',
@@ -51,7 +51,7 @@ const ROLE_THEMES = {
     composedLine: '#047857',
     badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     tabActive: 'bg-emerald-600 text-white',
-    chartStyle: { card1: 'DUAL_LINE_DOTS', card2: 'SOLID_PIE', card3: 'ROUNDED_BAR', card6: 'STEP_LINE' },
+    chartStyle: { card1: 'DUAL_LINE_DOTS', card2: 'SOLID_PIE', card3: 'ROUNDED_BAR', card4: 'GROUPED_VERTICAL_BAR', card6: 'STEP_LINE' },
     titles: {
       card1: 'Schedule Variance & Milestone Drift',
       card2: 'Category Distribution Pie',
@@ -70,7 +70,7 @@ const ROLE_THEMES = {
     composedLine: '#b45309',
     badgeBg: 'bg-amber-50 text-amber-800 border-amber-200',
     tabActive: 'bg-amber-600 text-white',
-    chartStyle: { card1: 'STACKED_COLUMN_BAR', card2: 'HALF_GAUGE_PIE', card3: 'AREA_SMOOTH', card6: 'COMPOSED_DUAL_AXIS' },
+    chartStyle: { card1: 'STACKED_COLUMN_BAR', card2: 'HALF_GAUGE_PIE', card3: 'AREA_SMOOTH', card4: 'GROUPED_VERTICAL_BAR', card6: 'COMPOSED_DUAL_AXIS' },
     titles: {
       card1: 'Structural Pour Progress by Zone',
       card2: 'Material Mix Share Gauge',
@@ -89,7 +89,7 @@ const ROLE_THEMES = {
     composedLine: '#9f1239',
     badgeBg: 'bg-rose-50 text-rose-700 border-rose-200',
     tabActive: 'bg-rose-600 text-white',
-    chartStyle: { card1: 'GROUPED_COLUMN_BAR', card2: 'DONUT', card3: 'HORIZONTAL_BAR', card6: 'COMPOSED_BAR_DOT' },
+    chartStyle: { card1: 'GROUPED_COLUMN_BAR', card2: 'DONUT', card3: 'ROUNDED_BAR', card4: 'GROUPED_VERTICAL_BAR', card6: 'COMPOSED_BAR_LINE' },
     titles: {
       card1: 'Gang Daily Output vs Shift Capacity',
       card2: 'Labor Trade Allocation (Masons/Steel)',
@@ -108,7 +108,7 @@ const ROLE_THEMES = {
     composedLine: '#1e3a8a',
     badgeBg: 'bg-blue-50 text-blue-700 border-blue-200',
     tabActive: 'bg-blue-600 text-white',
-    chartStyle: { card1: 'AREA_STEEP', card2: 'MULTI_DONUT', card3: 'SINGLE_BAR', card6: 'LINE_BIG_DOTS' },
+    chartStyle: { card1: 'AREA_STEEP', card2: 'DONUT', card3: 'ROUNDED_BAR', card4: 'AREA_FLOW', card6: 'LINE_BIG_DOTS' },
     titles: {
       card1: 'Material Inward vs Consumption Flow',
       card2: 'Inventory Category Share',
@@ -127,7 +127,7 @@ const ROLE_THEMES = {
     composedLine: '#451a03',
     badgeBg: 'bg-amber-100 text-amber-900 border-amber-300',
     tabActive: 'bg-amber-700 text-white',
-    chartStyle: { card1: 'SPLINE_LINE_DUAL', card2: 'SOLID_PIE', card3: 'DUAL_COLUMN_BAR', card6: 'COMPOSED_AREA_LINE' },
+    chartStyle: { card1: 'SPLINE_LINE_DUAL', card2: 'SOLID_PIE', card3: 'DUAL_BAR', card4: 'STACKED_HORIZONTAL_BAR', card6: 'COMPOSED_AREA_LINE' },
     titles: {
       card1: 'Cumulative Budget vs Actual Cost',
       card2: 'Budget Head Distribution',
@@ -146,7 +146,7 @@ const ROLE_THEMES = {
     composedLine: '#86198f',
     badgeBg: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200',
     tabActive: 'bg-fuchsia-600 text-white',
-    chartStyle: { card1: 'STACKED_COLUMN_BAR', card2: 'DONUT', card3: 'CURVED_LINE_DOTS', card6: 'COMPOSED_BAR_LINE' },
+    chartStyle: { card1: 'STACKED_COLUMN_BAR', card2: 'DONUT', card3: 'CURVED_LINE_DOTS', card4: 'GROUPED_VERTICAL_BAR', card6: 'COMPOSED_BAR_LINE' },
     titles: {
       card1: 'Inspections Passed vs Failed by Zone',
       card2: 'Defect Category Breakdown',
@@ -165,7 +165,7 @@ const ROLE_THEMES = {
     composedLine: '#164e63',
     badgeBg: 'bg-cyan-50 text-cyan-700 border-cyan-200',
     tabActive: 'bg-cyan-600 text-white',
-    chartStyle: { card1: 'DUAL_AREA_SMOOTH', card2: 'HALF_GAUGE_PIE', card3: 'DUAL_LINE', card6: 'COMPOSED_AREA_LINE' },
+    chartStyle: { card1: 'DUAL_AREA_SMOOTH', card2: 'HALF_GAUGE_PIE', card3: 'DUAL_LINE', card4: 'AREA_FLOW', card6: 'COMPOSED_AREA_LINE' },
     titles: {
       card1: 'SPI & CPI Performance Index Curves',
       card2: 'Project Health Meter (PHI)',
@@ -184,7 +184,7 @@ const ROLE_THEMES = {
     composedLine: '#020617',
     badgeBg: 'bg-slate-100 text-slate-800 border-slate-300',
     tabActive: 'bg-slate-800 text-white',
-    chartStyle: { card1: 'AREA_GRADIENT', card2: 'SOLID_PIE', card3: 'SINGLE_BAR', card6: 'STEP_LINE' },
+    chartStyle: { card1: 'AREA_GRADIENT', card2: 'SOLID_PIE', card3: 'ROUNDED_BAR', card4: 'GROUPED_VERTICAL_BAR', card6: 'STEP_LINE' },
     titles: {
       card1: 'API Latency & Server CPU Load Curve',
       card2: 'System Resource Allocation',
@@ -203,7 +203,7 @@ const ROLE_THEMES = {
     composedLine: '#059669',
     badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     tabActive: 'bg-emerald-500 text-white',
-    chartStyle: { card1: 'STEP_LINE', card2: 'DONUT', card3: 'DUAL_BAR', card6: 'COMPOSED_BAR_LINE' },
+    chartStyle: { card1: 'STEP_LINE', card2: 'DONUT', card3: 'DUAL_BAR', card4: 'STACKED_HORIZONTAL_BAR', card6: 'COMPOSED_BAR_LINE' },
     titles: {
       card1: 'Audit Trail & Baseline Lock History',
       card2: 'Audit Evidence Coverage Donut',
@@ -937,32 +937,51 @@ export function DashboardPage() {
             </div>
           </div>
 
-          {/* Card 4 (Bottom Left): Workload Stacked Bar Chart */}
+          {/* Card 4 (Bottom Left): Role-Specific Workload Chart Variations */}
           <div className="bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/90 flex flex-col justify-between overflow-hidden">
             <h3 className="text-[11px] font-bold text-slate-900">
               {theme.titles?.card4 ?? 'Workload - Top 5 Projects'}
             </h3>
             <div className="flex-1 min-h-0 w-full pt-1">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  layout="vertical"
-                  data={roleSpec.workload}
-                  margin={{ top: 5, right: 10, left: 5, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
-                  <XAxis type="number" tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                  <YAxis dataKey="project" type="category" tick={{ fontSize: 9, fill: '#334155', fontWeight: 600 }} axisLine={false} tickLine={false} width={65} />
-                  <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
-                  <Bar dataKey="completed" stackId="a" fill={theme.workload.completed}>
-                    <LabelList dataKey="completed" position="center" fill="#ffffff" fontSize={9} fontWeight={700} />
-                  </Bar>
-                  <Bar dataKey="remaining" stackId="a" fill={theme.workload.remaining}>
-                    <LabelList dataKey="remaining" position="center" fill="#0f172a" fontSize={8} fontWeight={700} />
-                  </Bar>
-                  <Bar dataKey="overdue" stackId="a" fill={theme.workload.overdue}>
-                    <LabelList dataKey="overdue" position="center" fill="#0f172a" fontSize={8} fontWeight={700} />
-                  </Bar>
-                </BarChart>
+                {theme.chartStyle?.card4 === 'GROUPED_VERTICAL_BAR' ? (
+                  <BarChart data={roleSpec.workload} margin={{ top: 5, right: 10, left: -22, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                    <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
+                    <Bar dataKey="completed" fill={theme.workload.completed} radius={[3, 3, 0, 0]} name="Completed" />
+                    <Bar dataKey="remaining" fill={theme.workload.remaining} radius={[3, 3, 0, 0]} name="Remaining" />
+                  </BarChart>
+                ) : theme.chartStyle?.card4 === 'AREA_FLOW' ? (
+                  <AreaChart data={roleSpec.workload} margin={{ top: 5, right: 10, left: -22, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                    <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
+                    <Area type="monotone" dataKey="completed" fill={theme.workload.completed} fillOpacity={0.5} stroke={theme.workload.completed} name="Throughput" />
+                  </AreaChart>
+                ) : (
+                  <BarChart
+                    layout="vertical"
+                    data={roleSpec.workload}
+                    margin={{ top: 5, right: 10, left: 5, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                    <XAxis type="number" tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <YAxis dataKey="project" type="category" tick={{ fontSize: 9, fill: '#334155', fontWeight: 600 }} axisLine={false} tickLine={false} width={65} />
+                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
+                    <Bar dataKey="completed" stackId="a" fill={theme.workload.completed}>
+                      <LabelList dataKey="completed" position="center" fill="#ffffff" fontSize={9} fontWeight={700} />
+                    </Bar>
+                    <Bar dataKey="remaining" stackId="a" fill={theme.workload.remaining}>
+                      <LabelList dataKey="remaining" position="center" fill="#0f172a" fontSize={8} fontWeight={700} />
+                    </Bar>
+                    <Bar dataKey="overdue" stackId="a" fill={theme.workload.overdue}>
+                      <LabelList dataKey="overdue" position="center" fill="#0f172a" fontSize={8} fontWeight={700} />
+                    </Bar>
+                  </BarChart>
+                )}
               </ResponsiveContainer>
             </div>
             <div className="flex items-center justify-center gap-3 text-[9px] text-slate-600 font-bold pt-1">
