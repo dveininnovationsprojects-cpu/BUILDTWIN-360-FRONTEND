@@ -8,7 +8,6 @@ export function UsersPage() {
     <div className="flex flex-col gap-4">
       <div>
         <h1 className="page-heading">Users & Access</h1>
-        <p className="page-subheading">Manage accounts, roles and project-level permissions.</p>
       </div>
       <UserManagementPanel />
     </div>

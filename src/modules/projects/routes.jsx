@@ -1,5 +1,6 @@
-import { jsx as _jsx } from "react/jsx-runtime";
 import { ProjectsListPage } from './pages/ProjectsListPage';
+
 export const projectsRoutes = [
-    { path: 'projects', element: _jsx(ProjectsListPage, {}) },
+  // /projects → main projects list + hierarchy workspace (handled inline via state)
+  { path: 'projects', element: <ProjectsListPage /> },
 ];

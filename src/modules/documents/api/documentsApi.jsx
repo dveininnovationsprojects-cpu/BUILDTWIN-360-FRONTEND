@@ -8,8 +8,8 @@ const MOCK_DOCUMENTS = [
 
 // Maps to /documents (spec section 14 - API Requirements).
 export const documentsApi = {
-  list: (params) =>
-    apiClient.get('/documents', { params }).then((r) => r.data).catch(() => MOCK_DOCUMENTS),
+  list: (params = {}) =>
+    apiClient.get(params.projectId ? `/documents/project/${params.projectId}` : '/documents', { params: params.projectId ? undefined : params }).then((r) => r.data).catch(() => MOCK_DOCUMENTS),
   getById: (id) => apiClient.get(`/documents/${id}`).then((r) => r.data).catch(() => MOCK_DOCUMENTS[0]),
   create: (payload) =>
     apiClient.post('/documents', payload).then((r) => r.data).catch(() => ({ id: `doc-${Date.now()}`, ...payload })),

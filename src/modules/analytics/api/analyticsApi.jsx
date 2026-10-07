@@ -5,18 +5,20 @@ const MOCK_ANALYTICS = [
   { id: 'an-002', project: 'PRJ-002 OMR Commercial Block', healthIndex: '86.2 / 100 (Green)', delayRisk: '34.0 (Low Risk)', forecastCompletion: 'Sep 30, 2026 (On Schedule)' },
 ];
 
-// Maps to /analytics/project-health (spec section 14 - API Requirements).
+let currentAnalytics = [...MOCK_ANALYTICS];
+
+// Simulated client-side store for analytics KPIs (FR-130..135)
 export const analyticsApi = {
-  list: (params) =>
-    apiClient
-      .get('/analytics/project-health', { params })
-      .then((r) => r.data)
-      .catch(() => MOCK_ANALYTICS),
-  getById: (id) =>
-    apiClient
-      .get(`/analytics/project-health/${id}`)
-      .then((r) => r.data)
-      .catch(() => MOCK_ANALYTICS[0]),
-  create: (payload) => apiClient.post('/analytics/project-health', payload).then((r) => r.data),
-  update: (id, payload) => apiClient.put(`/analytics/project-health/${id}`, payload).then((r) => r.data),
+  list: async () => [...currentAnalytics],
+  getById: async (id) => currentAnalytics.find((a) => a.id === id) || currentAnalytics[0],
+  create: async (payload) => {
+    const record = { id: `an-${Date.now()}`, ...payload };
+    currentAnalytics = [record, ...currentAnalytics];
+    return record;
+  },
+  update: async (id, payload) => {
+    currentAnalytics = currentAnalytics.map((a) => (a.id === id ? { ...a, ...payload } : a));
+    return { id, ...payload };
+  },
 };
+
