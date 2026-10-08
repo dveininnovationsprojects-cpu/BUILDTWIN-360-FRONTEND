@@ -5,7 +5,7 @@ import {
   Plus,
   Search,
 } from 'lucide-react';
-import { Button, Modal } from '@/design-system';
+import { Button, Modal, CardSkeleton } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
 import { useAuthStore, useHasRole } from '@/context/authStore';
 import { ROLES } from '@/constants/roles';
@@ -238,8 +238,10 @@ export function ProgressDprListPage() {
 
       {/* Visual Field Cards View Only */}
       {isLoading ? (
-        <div className="flex items-center justify-center p-12 text-ink-500 text-sm">
-          Loading DPR reports...
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <CardSkeleton key={i} className="min-h-[220px]" />
+          ))}
         </div>
       ) : (
         <DprCardGrid

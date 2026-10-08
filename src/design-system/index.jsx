@@ -16,6 +16,7 @@ export * from './components/Pagination/Pagination';
 export * from './components/ProgressBar/ProgressBar';
 export * from './components/StatCard/StatCard';
 export * from './components/Spinner/Spinner';
+export * from './components/Skeleton/Skeleton';
 export * from './components/Breadcrumbs/Breadcrumbs';
 export * from './components/Toast/Toast';
 export * from './components/FileUpload/FileUpload';

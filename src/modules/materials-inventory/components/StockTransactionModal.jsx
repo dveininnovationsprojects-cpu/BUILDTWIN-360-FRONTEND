@@ -16,6 +16,7 @@ import {
 } from '../api/materialsInventoryApi';
 import { projectsApi } from '@/modules/projects/api/projectsApi';
 import { wbsScheduleApi } from '@/modules/wbs-schedule/api/wbsScheduleApi';
+import { labourContractorsApi } from '@/modules/labour-contractors/api/labourContractorsApi';
 
 export function StockTransactionModal({
   open,
@@ -95,6 +96,14 @@ export function StockTransactionModal({
     staleTime: 30_000,
   });
 
+  // Fetch contractors for allocation dropdown
+  const { data: contractors = [] } = useQuery({
+    queryKey: ['contractors-dropdown-list'],
+    queryFn: () => labourContractorsApi.listContractors(),
+    enabled: open,
+    staleTime: 60_000,
+  });
+
   // Dispatch to the matching backend controller endpoint
   const mutation = useMutation({
     mutationFn: async (values) => {
@@ -128,14 +137,11 @@ export function StockTransactionModal({
       queryClient.invalidateQueries({ queryKey: ['materials-low-stock'] });
       queryClient.invalidateQueries({ queryKey: ['materials-reorder-alerts'] });
       queryClient.invalidateQueries({ queryKey: ['stock-ledger-all'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-ledger-project'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-ledger-material'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-ledger-activity'] });
       if (values.materialId) {
-        queryClient.invalidateQueries({ queryKey: ['stock-ledger-material', Number(values.materialId)] });
-      }
-      if (values.projectId) {
-        queryClient.invalidateQueries({ queryKey: ['stock-ledger-project', Number(values.projectId)] });
-      }
-      if (values.activityId) {
-        queryClient.invalidateQueries({ queryKey: ['stock-ledger-activity', Number(values.activityId)] });
+        queryClient.invalidateQueries({ queryKey: ['material-detail', Number(values.materialId)] });
       }
 
       const typeLabel =
@@ -204,9 +210,8 @@ export function StockTransactionModal({
           <Button
             onClick={form.handleSubmit(onSubmit)}
             isLoading={mutation.isPending}
-            className={`flex items-center gap-1.5 ${
-              isDeduction ? 'bg-amber-600 hover:bg-amber-700 text-white' : ''
-            }`}
+            className={`flex items-center gap-1.5 ${isDeduction ? 'bg-amber-600 hover:bg-amber-700 text-white' : ''
+              }`}
           >
             {isDeduction ? <ArrowDownCircle className="h-4 w-4" /> : <ArrowUpCircle className="h-4 w-4" />}
             Confirm {watchedType}
@@ -366,13 +371,23 @@ export function StockTransactionModal({
             {...form.register('zone')}
           />
 
-          <Input
-            label="Contractor ID"
-            type="number"
-            placeholder="e.g. 42"
-            hint="For contractor allocations or subcontracts"
-            {...form.register('contractorId')}
-          />
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-ink-700">Contractor / Subcontractor</label>
+            <select
+              {...form.register('contractorId')}
+              className="w-full rounded-lg border border-surface-border bg-surface-subtle px-3 py-2 text-sm text-ink-900 focus:border-brand-500 focus:outline-none"
+            >
+              <option value="">None / Central Store</option>
+              {contractors.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.contractorName || c.name || c.companyName} {c.contractorType ? `(${c.contractorType})` : ''}
+                </option>
+              ))}
+            </select>
+            <span className="mt-1 block text-[11px] text-ink-500">
+              Allocates material issuance or site work to contractor
+            </span>
+          </div>
         </div>
 
         {/* Unit Price & Reference ID */}

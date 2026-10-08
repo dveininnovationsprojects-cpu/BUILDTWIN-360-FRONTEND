@@ -488,7 +488,7 @@ export function WbsScheduleListPage() {
         open={isAddModalOpen}
         onClose={() => !isSubmitting && setAddModalOpen(false)}
         title="Create Construction Work Package"
-        size="lg"
+        size="xl"
         footer={null}
       >
         <WbsScheduleForm
@@ -505,7 +505,7 @@ export function WbsScheduleListPage() {
         open={!!editingPackage}
         onClose={() => !isSubmitting && setEditingPackage(null)}
         title="Edit Construction Work Package"
-        size="lg"
+        size="xl"
         footer={null}
       >
         {editingPackage && (

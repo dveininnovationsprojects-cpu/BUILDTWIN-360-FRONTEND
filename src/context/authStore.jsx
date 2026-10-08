@@ -78,28 +78,6 @@ export const useAuthStore = create()(
 
           return normalizedUser;
         } catch (error) {
-          // If offline or network error or backend unavailable, gracefully provide fallback session
-          const isNetworkOrOffline = !error.response || error.code === 'ERR_NETWORK' || error.response?.status >= 500;
-          if (isNetworkOrOffline) {
-            const inputId = usernameOrEmail.trim();
-            const fallbackUser = {
-              id: 'usr-admin-01',
-              name: inputId === 'admin' ? 'System Administrator' : inputId,
-              username: inputId,
-              email: `${inputId}@buildtwin360.internal`,
-              roles: [ROLES.ADMIN, ROLES.SITE_ENGINEER, ROLES.PROJECT_MANAGER],
-              status: 'ACTIVE',
-              createdAt: new Date().toISOString(),
-            };
-            set({
-              user: fallbackUser,
-              accessToken: 'mock-jwt-token-buildtwin-360',
-              refreshToken: 'mock-refresh-token-buildtwin-360',
-              isAuthenticated: true,
-              isLoading: false,
-            });
-            return fallbackUser;
-          }
           set({ isLoading: false });
           throw error;
         }
@@ -135,8 +113,8 @@ export const useAuthStore = create()(
        */
       refresh: async () => {
         const { refreshToken } = get();
-        if (!refreshToken) {
-          throw new Error('No refresh token available');
+        if (!refreshToken || refreshToken.startsWith('mock-refresh-token')) {
+          throw new Error('No valid refresh token available');
         }
 
         const res = await apiClient.post('/auth/refresh', { refreshToken });
@@ -167,8 +145,8 @@ export const useAuthStore = create()(
           set({ user: normalized });
           return normalized;
         } catch (error) {
-          // If token expired or invalid, clear session
-          if (error.response?.status === 401) {
+          // If token expired, invalid, or forbidden, clear broken session
+          if (error.response?.status === 401 || error.response?.status === 403) {
             get().logout();
           }
           return null;

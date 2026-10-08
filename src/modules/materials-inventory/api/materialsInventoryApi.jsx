@@ -130,6 +130,26 @@ function isNetworkError(err) {
   return !err?.response || err?.code === 'ERR_NETWORK' || err?.response?.status === 503 || err?.response?.status === 404;
 }
 
+export function extractList(data) {
+  if (Array.isArray(data)) return data;
+  if (data && typeof data === 'object') {
+    if (Array.isArray(data.data)) return data.data;
+    if (Array.isArray(data.content)) return data.content;
+    if (Array.isArray(data.items)) return data.items;
+    if (Array.isArray(data.list)) return data.list;
+  }
+  return [];
+}
+
+export function extractSingle(data) {
+  if (data && typeof data === 'object' && !Array.isArray(data)) {
+    if (data.data !== undefined && typeof data.data === 'object' && !Array.isArray(data.data)) {
+      return data.data;
+    }
+  }
+  return data;
+}
+
 function getStatus(mat) {
   const stock = Number(mat.currentStock ?? 0);
   const reorder = Number(mat.reorderLevel ?? 0);
@@ -139,53 +159,60 @@ function getStatus(mat) {
 }
 
 function normaliseMaterial(m) {
+  if (!m) return null;
+  const raw = extractSingle(m);
   return {
-    ...m,
-    id: m.id,
-    materialCode: m.materialCode || m.code || '',
-    code: m.materialCode || m.code || '',
-    name: m.name || '',
-    category: m.category || '',
-    unit: m.unit || 'UNITS',
-    unitLabel: UNIT_LABEL_MAP[m.unit] || m.unit || '',
-    standardRate: Number(m.standardRate ?? 0),
-    reorderLevel: Number(m.reorderLevel ?? 0),
-    currentStock: Number(m.currentStock ?? 0),
-    description: m.description || '',
-    status: getStatus(m),
-    stockBalance: `${Number(m.currentStock ?? 0)} ${UNIT_LABEL_MAP[m.unit] || m.unit || ''}`,
-    createdAt: m.createdAt || null,
-    updatedAt: m.updatedAt || null,
+    ...raw,
+    id: raw.id,
+    materialCode: raw.materialCode || raw.code || '',
+    code: raw.materialCode || raw.code || '',
+    name: raw.name || '',
+    category: raw.category || '',
+    unit: raw.unit || 'UNITS',
+    unitLabel: UNIT_LABEL_MAP[raw.unit] || raw.unit || '',
+    standardRate: Number(raw.standardRate ?? 0),
+    reorderLevel: Number(raw.reorderLevel ?? 0),
+    currentStock: Number(raw.currentStock ?? 0),
+    description: raw.description || '',
+    status: getStatus(raw),
+    stockBalance: `${Number(raw.currentStock ?? 0)} ${UNIT_LABEL_MAP[raw.unit] || raw.unit || ''}`,
+    createdAt: raw.createdAt || null,
+    updatedAt: raw.updatedAt || null,
   };
 }
 
 function normaliseLedger(entry) {
+  if (!entry) return null;
+  const raw = extractSingle(entry);
+  const mat = raw.material || {};
   return {
-    ...entry,
-    id: entry.id,
-    materialId: entry.material?.id ?? entry.materialId,
-    materialName: entry.material?.name ?? entry.materialName ?? 'Unknown',
-    materialCode: entry.material?.materialCode ?? entry.materialCode ?? '',
-    transactionType: entry.transactionType,
-    quantity: Number(entry.quantity ?? 0),
-    unitPrice: Number(entry.unitPrice ?? 0),
-    projectId: entry.projectId,
-    zone: entry.zone || '',
-    referenceId: entry.referenceId || '',
-    remarks: entry.remarks || '',
-    timestamp: entry.timestamp || entry.createdAt || new Date().toISOString(),
+    ...raw,
+    id: raw.id,
+    materialId: raw.materialId ?? mat.id,
+    materialName: raw.materialName ?? mat.name ?? (mat.id ? `Material #${mat.id}` : 'Unknown Material'),
+    materialCode: raw.materialCode ?? mat.materialCode ?? '',
+    materialCategory: mat.category || '',
+    materialUnit: mat.unit || 'UNITS',
+    unitLabel: UNIT_LABEL_MAP[mat.unit] || mat.unit || 'Units',
+    transactionType: raw.transactionType,
+    quantity: Number(raw.quantity ?? 0),
+    unitPrice: Number(raw.unitPrice ?? mat.standardRate ?? 0),
+    projectId: raw.projectId ? Number(raw.projectId) : 1,
+    siteId: raw.siteId ? Number(raw.siteId) : null,
+    activityId: raw.activityId ? Number(raw.activityId) : null,
+    zone: raw.zone || '',
+    contractorId: raw.contractorId ? Number(raw.contractorId) : null,
+    referenceId: raw.referenceId || '',
+    remarks: raw.remarks || '',
+    timestamp: raw.timestamp || raw.createdAt || new Date().toISOString(),
+    material: mat.id ? mat : (raw.material || null),
   };
 }
 
 function normaliseSupplier(s) {
-  return { ...s, id: s.id, status: s.status || 'ACTIVE' };
-}
-
-function extractList(data) {
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.content)) return data.content;
-  if (Array.isArray(data?.items)) return data.items;
-  return [];
+  if (!s) return null;
+  const raw = extractSingle(s);
+  return { ...raw, id: raw.id, status: raw.status || 'ACTIVE' };
 }
 
 // ─── Materials Catalog API ────────────────────────────────────────────────────
@@ -195,6 +222,9 @@ export const materialsInventoryApi = {
     try {
       const res = await apiClient.get('/materials', { params });
       const records = extractList(res.data);
+      if (records.length > 0) {
+        return records.map(normaliseMaterial);
+      }
       return records.map(normaliseMaterial);
     } catch (err) {
       if (isNetworkError(err)) return localMaterials.map(normaliseMaterial);
@@ -474,6 +504,11 @@ export const stockLedgerApi = {
     }
   },
 
+  /** Alias for recordConsumption */
+  async consume(payload) {
+    return this.recordConsumption(payload);
+  },
+
   /**
    * POST /api/v1/stock-ledger/wastage
    * Tracks material wastage on site and updates stock balance transactionally
@@ -520,7 +555,7 @@ export const stockLedgerApi = {
     };
     try {
       const res = await apiClient.post('/stock-ledger/reconcile', body);
-      return res.data;
+      return extractSingle(res.data);
     } catch (err) {
       if (isNetworkError(err)) {
         const mat = localMaterials.find((m) => String(m.id) === String(body.materialId));
@@ -630,6 +665,51 @@ export const suppliersApi = {
         const newSup = { id: Date.now(), ...payload, createdAt: new Date().toISOString() };
         localSuppliers = [newSup, ...localSuppliers];
         return normaliseSupplier(newSup);
+      }
+      throw err;
+    }
+  },
+
+  /** GET /api/v1/suppliers/:id */
+  async getById(id) {
+    try {
+      const res = await apiClient.get(`/suppliers/${id}`);
+      return normaliseSupplier(res.data);
+    } catch (err) {
+      if (isNetworkError(err)) {
+        const found = localSuppliers.find((s) => String(s.id) === String(id));
+        return found ? normaliseSupplier(found) : null;
+      }
+      throw err;
+    }
+  },
+
+  /** PUT /api/v1/suppliers/:id */
+  async update(id, payload) {
+    try {
+      const res = await apiClient.put(`/suppliers/${id}`, payload);
+      return normaliseSupplier(res.data);
+    } catch (err) {
+      if (isNetworkError(err)) {
+        localSuppliers = localSuppliers.map((s) =>
+          String(s.id) === String(id) ? { ...s, ...payload, updatedAt: new Date().toISOString() } : s
+        );
+        const updated = localSuppliers.find((s) => String(s.id) === String(id));
+        return updated ? normaliseSupplier(updated) : null;
+      }
+      throw err;
+    }
+  },
+
+  /** DELETE /api/v1/suppliers/:id */
+  async delete(id) {
+    try {
+      await apiClient.delete(`/suppliers/${id}`);
+      return true;
+    } catch (err) {
+      if (isNetworkError(err)) {
+        localSuppliers = localSuppliers.filter((s) => String(s.id) !== String(id));
+        return true;
       }
       throw err;
     }

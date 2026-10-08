@@ -15,7 +15,7 @@ import {
   Info,
   ClipboardPen,
 } from 'lucide-react';
-import { Modal, Button } from '@/design-system';
+import { Modal, Button, Skeleton } from '@/design-system';
 import { stockLedgerApi, UNIT_LABEL_MAP } from '../api/materialsInventoryApi';
 
 const TYPE_BADGES = {
@@ -246,8 +246,31 @@ export function MaterialDetailsModal({
           </div>
 
           {isLoading ? (
-            <div className="flex items-center justify-center py-8 text-xs text-ink-400">
-              Loading ledger audit records...
+            <div className="max-h-64 overflow-hidden rounded-lg border border-surface-border">
+              <table className="w-full table-fixed text-left text-xs">
+                <thead className="bg-surface-subtle text-ink-500 font-semibold sticky top-0 z-10">
+                  <tr>
+                    <th className="w-[15%] px-3 py-2 text-ink-600">Date</th>
+                    <th className="w-[18%] px-3 py-2 text-ink-600">Movement Type</th>
+                    <th className="w-[14%] px-3 py-2 text-right text-ink-600">Quantity</th>
+                    <th className="w-[13%] px-3 py-2 text-right text-ink-600">Unit Rate</th>
+                    <th className="w-[20%] px-3 py-2 text-ink-600">Ref / Zone</th>
+                    <th className="w-[20%] px-3 py-2 text-ink-600">Remarks</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-surface-border">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <tr key={i} className="px-3 py-2">
+                      <td className="px-3 py-2.5"><Skeleton className="h-3 w-16" /></td>
+                      <td className="px-3 py-2.5"><Skeleton className="h-4 w-20 rounded-full" /></td>
+                      <td className="px-3 py-2.5 text-right"><Skeleton className="h-3 w-12 ml-auto" /></td>
+                      <td className="px-3 py-2.5 text-right"><Skeleton className="h-3 w-14 ml-auto" /></td>
+                      <td className="px-3 py-2.5"><Skeleton className="h-3 w-20" /></td>
+                      <td className="px-3 py-2.5"><Skeleton className="h-3 w-24" /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           ) : ledger.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-surface-border py-8 text-xs text-ink-400">

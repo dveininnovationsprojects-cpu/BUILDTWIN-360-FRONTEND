@@ -85,8 +85,11 @@ export function StockReconciliationModal({
       queryClient.invalidateQueries({ queryKey: ['materials-low-stock'] });
       queryClient.invalidateQueries({ queryKey: ['materials-reorder-alerts'] });
       queryClient.invalidateQueries({ queryKey: ['stock-ledger-all'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-ledger-project'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-ledger-material'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-ledger-activity'] });
       if (activeMaterial?.id) {
-        queryClient.invalidateQueries({ queryKey: ['stock-ledger-material', activeMaterial.id] });
+        queryClient.invalidateQueries({ queryKey: ['material-detail', activeMaterial.id] });
       }
       setAuditResult(result);
       pushToast('Stock reconciliation audit recorded successfully.', 'success');
@@ -183,13 +186,12 @@ export function StockReconciliationModal({
             <div>
               <p className="text-ink-500 uppercase tracking-wider text-[10px] font-semibold">Calculated Variance</p>
               <p
-                className={`font-bold ${
-                  Number(auditResult.variance) === 0
+                className={`font-bold ${Number(auditResult.variance) === 0
                     ? 'text-status-success'
                     : Number(auditResult.variance) > 0
-                    ? 'text-brand-600'
-                    : 'text-status-danger'
-                }`}
+                      ? 'text-brand-600'
+                      : 'text-status-danger'
+                  }`}
               >
                 {Number(auditResult.variance) > 0 ? `+${auditResult.variance}` : auditResult.variance} {unitLabel}
               </p>
@@ -281,13 +283,12 @@ export function StockReconciliationModal({
           {/* Variance Preview Banner */}
           {variance !== null && (
             <div
-              className={`flex items-center justify-between rounded-xl border p-3.5 text-xs ${
-                variance === 0
+              className={`flex items-center justify-between rounded-xl border p-3.5 text-xs ${variance === 0
                   ? 'border-status-success/30 bg-status-successBg text-status-success'
                   : variance > 0
-                  ? 'border-brand-500/30 bg-brand-50/50 text-brand-800 dark:bg-brand-950/20 dark:text-brand-300'
-                  : 'border-status-danger/30 bg-status-dangerBg text-status-danger'
-              }`}
+                    ? 'border-brand-500/30 bg-brand-50/50 text-brand-800 dark:bg-brand-950/20 dark:text-brand-300'
+                    : 'border-status-danger/30 bg-status-dangerBg text-status-danger'
+                }`}
             >
               <div className="flex items-center gap-2 font-medium">
                 {variance === 0 ? (
@@ -301,8 +302,8 @@ export function StockReconciliationModal({
                   {variance === 0
                     ? 'Perfect Balance: Physical count matches system ledger exactly.'
                     : variance > 0
-                    ? `Surplus Detected: Physical count is higher by +${variance} ${unitLabel}.`
-                    : `Shortage / Deficit: Physical count is lower by ${variance} ${unitLabel}.`}
+                      ? `Surplus Detected: Physical count is higher by +${variance} ${unitLabel}.`
+                      : `Shortage / Deficit: Physical count is lower by ${variance} ${unitLabel}.`}
                 </span>
               </div>
               <div className="text-right font-bold text-sm">

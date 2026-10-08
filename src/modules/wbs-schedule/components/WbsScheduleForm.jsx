@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { Calendar } from 'lucide-react';
 import { Button, Input, Select, Textarea } from '@/design-system';
 import { WBS_DISCIPLINES, WBS_STATUSES } from '../constants/wbsConstants';
 
@@ -106,8 +107,8 @@ export function WbsScheduleForm({
   ];
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col gap-4 max-h-[80vh] overflow-y-auto pr-1">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="flex flex-col gap-2.5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
         {/* Work Package Code */}
         <Input
           label="Work Package Code *"
@@ -153,15 +154,13 @@ export function WbsScheduleForm({
           {...register('status', { required: 'Status is required' })}
         />
 
-        {/* Site / Tower (optional) */}
-        {sites.length > 0 && (
-          <Select
-            label="Assigned Site / Tower (Optional)"
-            options={siteOptions}
-            disabled={isSubmitting}
-            {...register('siteId')}
-          />
-        )}
+        {/* Site / Tower */}
+        <Select
+          label="Assigned Site / Tower (Optional)"
+          options={siteOptions}
+          disabled={isSubmitting}
+          {...register('siteId')}
+        />
 
         {/* Budget Allocation */}
         <Input
@@ -191,20 +190,31 @@ export function WbsScheduleForm({
           disabled={isSubmitting}
           {...register('inchargeUserId')}
         />
+      </div>
 
-        {/* Planned Start Date */}
-        <Input
-          label="Planned Start Date *"
-          type="date"
-          error={errors.plannedStartDate?.message}
-          disabled={isSubmitting}
-          {...register('plannedStartDate', {
-            required: 'Planned start date is required',
-          })}
-        />
-
-        {/* Planned End Date */}
-        <div className="flex flex-col gap-1">
+      {/* Schedule & Timeline */}
+      <div className="rounded-xl border border-surface-border/80 bg-surface-subtle/50 p-2.5 flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-ink-600">
+            <Calendar className="h-3.5 w-3.5 text-brand-500" />
+            <span>Schedule & Timeline</span>
+          </div>
+          {durationDays != null && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-brand-50 text-brand-700 border border-brand-200">
+              Planned Duration: {durationDays} day{durationDays !== 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+          <Input
+            label="Planned Start Date *"
+            type="date"
+            error={errors.plannedStartDate?.message}
+            disabled={isSubmitting}
+            {...register('plannedStartDate', {
+              required: 'Planned start date is required',
+            })}
+          />
           <Input
             label="Planned End Date *"
             type="date"
@@ -214,41 +224,33 @@ export function WbsScheduleForm({
               required: 'Planned end date is required',
             })}
           />
-          {durationDays != null && (
-            <span className="text-xs text-brand-600 font-medium ml-1">
-              Planned Duration: {durationDays} day{durationDays !== 1 ? 's' : ''}
-            </span>
-          )}
+          <Input
+            label="Actual Start Date"
+            type="date"
+            disabled={isSubmitting}
+            {...register('actualStartDate')}
+          />
+          <Input
+            label="Actual Completion"
+            type="date"
+            disabled={isSubmitting}
+            {...register('actualEndDate')}
+          />
         </div>
-
-        {/* Actual Start Date (Optional) */}
-        <Input
-          label="Actual Start Date (Optional)"
-          type="date"
-          disabled={isSubmitting}
-          {...register('actualStartDate')}
-        />
-
-        {/* Actual End Date (Optional) */}
-        <Input
-          label="Actual Completion Date (Optional)"
-          type="date"
-          disabled={isSubmitting}
-          {...register('actualEndDate')}
-        />
       </div>
 
       {/* Description / Scope */}
       <Textarea
         label="Detailed Scope Description"
         placeholder="Enter technical work package scope, specifications, milestone dependencies..."
-        rows={3}
+        rows={2}
+        className="min-h-[48px] h-[48px] resize-y"
         disabled={isSubmitting}
         {...register('description')}
       />
 
       {/* Form Actions */}
-      <div className="flex items-center justify-end gap-3 pt-3 border-t border-surface-border">
+      <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-surface-border">
         <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
           Cancel
         </Button>

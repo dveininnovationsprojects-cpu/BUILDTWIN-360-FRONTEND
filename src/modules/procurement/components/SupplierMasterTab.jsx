@@ -51,7 +51,7 @@ export function SupplierMasterTab({ suppliers = [], isLoading, canManage, onAdd,
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-ink-400" />
           <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search supplier, code, contact, GSTIN..." className="h-9 w-full rounded border border-surface-border bg-surface-base pl-9 pr-3 text-xs text-ink-900 focus:outline-none focus:ring-2 focus:ring-brand-400" />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">&
           <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="h-9 rounded border border-surface-border bg-surface-base px-2.5 text-xs text-ink-900">
             <option value="ALL">All statuses</option>
             <option value="ACTIVE">Active</option>

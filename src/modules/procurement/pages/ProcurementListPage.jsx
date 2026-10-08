@@ -11,6 +11,7 @@ import { GrnListTab } from '../components/GrnListTab';
 import { RecordGrnModal } from '../components/RecordGrnModal';
 import { SupplierMasterTab } from '../components/SupplierMasterTab';
 import { PurchaseOrderTrackingTab } from '../components/PurchaseOrderTrackingTab';
+import { SupplierPerformanceTab } from '../components/SupplierPerformanceTab';
 import {
   Truck,
   PackageCheck,
@@ -20,7 +21,8 @@ import {
   Boxes,
   DollarSign,
   ClipboardList,
-  Building2
+  Building2,
+  Award
 } from 'lucide-react';
 
 export function ProcurementListPage() {
@@ -328,11 +330,28 @@ export function ProcurementListPage() {
       ),
     },
     {
+      key: 'performance',
+      label: (
+        <span className="flex items-center gap-1.5">
+          <Award className="h-4 w-4" />
+          Supplier Performance
+        </span>
+      ),
+      content: (
+        <SupplierPerformanceTab
+          suppliers={suppliers}
+          purchaseOrders={purchaseOrders}
+          grns={grns}
+          isLoading={isLoadingSuppliers || isLoadingPos || isLoadingGrns}
+        />
+      ),
+    },
+    {
       key: 'shortages',
       label: (
         <span className="flex items-center gap-1.5">
           <AlertTriangle className="w-4 h-4 text-status-warning" />
-          Projected Shortages (FR-056)
+          Projected Shortages
         </span>
       ),
       content: (
@@ -363,11 +382,8 @@ export function ProcurementListPage() {
         <div>
           <h1 className="page-heading flex items-center gap-2">
             <Truck className="w-6 h-6 text-brand-600" />
-            Procurement & Goods Receipt (GRN)
+            Procurement & Suppliers
           </h1>
-          <p className="text-xs text-ink-500 mt-1">
-            Supplier management, PO tracking, delivery verification, and automated stock ledger inwarding (FR-051 to FR-056, FR-061).
-          </p>
         </div>
 
         {canManage && (

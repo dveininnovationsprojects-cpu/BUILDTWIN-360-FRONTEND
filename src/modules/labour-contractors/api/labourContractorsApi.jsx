@@ -266,6 +266,7 @@ export function toContractorRecord(row) {
     address: row.address || row.activeSites || 'Ashok Grandeur Site',
     activeSites: row.address || row.activeSites || 'Ashok Grandeur Site',
     contractorType: row.contractorType || 'MAIN_CONTRACTOR',
+    parentContractorId: row.parentContractorId ? Number(row.parentContractorId) : null,
     status: row.status || 'ACTIVE',
     deployedWorkers: Number(row.deployedWorkers) || 15,
   };
@@ -328,14 +329,15 @@ export const labourContractorsApi = {
       const res = await apiClient.get(`/contractors/${id}`);
       const data = res.data?.data !== undefined ? res.data.data : res.data;
       if (data) return toContractorRecord(data);
-    } catch {
-      // fallback
+    } catch (err) {
+      console.warn(`Could not fetch contractor ${id} from backend:`, err);
     }
     const current = getLocalContractors();
     return toContractorRecord(current.find((c) => String(c.id) === String(id)) || current[0]);
   },
 
   createContractor: async (payload) => {
+    const isSub = payload.contractorType === 'SUBCONTRACTOR';
     const backendDto = {
       contractorCode: payload.contractorCode || `CTR-00${Date.now().toString().slice(-3)}`,
       name: payload.name || payload.contactPerson || payload.companyName,
@@ -344,8 +346,8 @@ export const labourContractorsApi = {
       contactNumber: payload.contactNumber || payload.phone || '+91 98000 00000',
       email: payload.email || `${payload.companyName?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'contractor'}@buildtwin.in`,
       address: payload.address || payload.activeSites || 'Ashok Grandeur Site, Padur',
-      contractorType: payload.contractorType || 'MAIN_CONTRACTOR',
-      parentContractorId: payload.parentContractorId ? Number(payload.parentContractorId) : null,
+      contractorType: isSub ? 'SUBCONTRACTOR' : 'MAIN_CONTRACTOR',
+      parentContractorId: isSub && payload.parentContractorId ? Number(payload.parentContractorId) : null,
       status: payload.status || 'ACTIVE',
     };
 
@@ -362,6 +364,7 @@ export const labourContractorsApi = {
       }
     } catch (err) {
       console.warn('Backend create contractor failed, saving locally:', err);
+      throw err;
     }
 
     if (!createdRecord) {
@@ -379,6 +382,7 @@ export const labourContractorsApi = {
   },
 
   updateContractor: async (id, payload) => {
+    const isSub = payload.contractorType === 'SUBCONTRACTOR';
     const backendDto = {
       contractorCode: payload.contractorCode,
       name: payload.name || payload.contactPerson || payload.companyName,
@@ -387,8 +391,8 @@ export const labourContractorsApi = {
       contactNumber: payload.contactNumber || payload.phone,
       email: payload.email,
       address: payload.address || payload.activeSites,
-      contractorType: payload.contractorType || 'MAIN_CONTRACTOR',
-      parentContractorId: payload.parentContractorId ? Number(payload.parentContractorId) : null,
+      contractorType: isSub ? 'SUBCONTRACTOR' : 'MAIN_CONTRACTOR',
+      parentContractorId: isSub && payload.parentContractorId ? Number(payload.parentContractorId) : null,
       status: payload.status || 'ACTIVE',
     };
 
@@ -404,7 +408,8 @@ export const labourContractorsApi = {
         });
       }
     } catch (err) {
-      console.warn('Backend update contractor failed, updating locally:', err);
+      console.warn('Backend update contractor failed:', err);
+      throw err;
     }
 
     if (!updatedRecord) {
@@ -424,7 +429,8 @@ export const labourContractorsApi = {
     try {
       await apiClient.delete(`/contractors/${id}`);
     } catch (err) {
-      console.warn('Backend delete contractor failed, updating locally:', err);
+      console.warn('Backend delete contractor failed:', err);
+      throw err;
     }
 
     const current = getLocalContractors();
@@ -433,13 +439,67 @@ export const labourContractorsApi = {
     return true;
   },
 
+  getSubcontractors: async () => {
+    try {
+      const res = await apiClient.get('/contractors/subcontractors');
+      const data = res.data?.data !== undefined ? res.data.data : res.data;
+      if (Array.isArray(data)) {
+        return data.map(toContractorRecord);
+      }
+    } catch (err) {
+      console.warn('Backend getSubcontractors failed:', err);
+    }
+    return getLocalContractors().filter((c) => c.contractorType === 'SUBCONTRACTOR');
+  },
+
+  getSubcontractorsByParent: async (parentId) => {
+    try {
+      const res = await apiClient.get(`/contractors/${parentId}/subcontractors`);
+      const data = res.data?.data !== undefined ? res.data.data : res.data;
+      if (Array.isArray(data)) {
+        return data.map(toContractorRecord);
+      }
+    } catch (err) {
+      console.warn(`Backend getSubcontractorsByParent for ${parentId} failed:`, err);
+    }
+    return getLocalContractors().filter(
+      (c) => c.contractorType === 'SUBCONTRACTOR' && String(c.parentContractorId) === String(parentId)
+    );
+  },
+
+  getContractorsByTrade: async (trade) => {
+    try {
+      const res = await apiClient.get(`/contractors/trade/${trade}`);
+      const data = res.data?.data !== undefined ? res.data.data : res.data;
+      if (Array.isArray(data)) {
+        return data.map(toContractorRecord);
+      }
+    } catch (err) {
+      console.warn(`Backend getContractorsByTrade for ${trade} failed:`, err);
+    }
+    return getLocalContractors().filter((c) => c.tradeSpecialization === trade);
+  },
+
+  getTradeCategories: async () => {
+    try {
+      const res = await apiClient.get('/contractors/trades');
+      const data = res.data?.data !== undefined ? res.data.data : res.data;
+      if (Array.isArray(data) && data.length > 0) {
+        return data;
+      }
+    } catch (err) {
+      console.warn('Backend getTradeCategories failed:', err);
+    }
+    return TRADE_OPTIONS;
+  },
+
   getContractorPerformance: async (id) => {
     try {
-      const res = await apiClient.get(`/contractors/${id}/performance`);
+      const res = await apiClient.get(`/contractors/${id}/performance-summary`);
       const data = res.data?.data !== undefined ? res.data.data : res.data;
       if (data) return data;
-    } catch {
-      // fallback
+    } catch (err) {
+      console.warn(`Could not fetch performance summary for contractor ${id}:`, err);
     }
     return null;
   },
@@ -450,21 +510,7 @@ export const labourContractorsApi = {
   list: async (params = {}) => {
     try {
       const projId = params.projectId || 1;
-      const res = await apiClient.get(`/labour/daily/project/${projId}`, {
-        params: params.projectId ? undefined : params,
-      });
-      const data = res.data?.data !== undefined ? res.data.data : res.data;
-      if (Array.isArray(data) && data.length > 0) {
-        const formatted = data.map(toLabourRecord);
-        saveLocalLabour(formatted);
-        return formatted;
-      }
-    } catch {
-      // try unparameterized
-    }
-
-    try {
-      const res = await apiClient.get('/labour/daily');
+      const res = await apiClient.get(`/labour/daily/project/${projId}`);
       const data = res.data?.data !== undefined ? res.data.data : res.data;
       if (Array.isArray(data) && data.length > 0) {
         const formatted = data.map(toLabourRecord);
@@ -472,7 +518,7 @@ export const labourContractorsApi = {
         return formatted;
       }
     } catch (err) {
-      console.warn('Could not fetch daily labour from backend, using local fallback:', err);
+      console.warn('Could not fetch daily labour for project, trying all/local:', err);
     }
 
     return getLocalLabour().map(toLabourRecord);
@@ -483,8 +529,8 @@ export const labourContractorsApi = {
       const res = await apiClient.get(`/labour/daily/${id}`);
       const data = res.data?.data !== undefined ? res.data.data : res.data;
       if (data) return toLabourRecord(data);
-    } catch {
-      // fallback
+    } catch (err) {
+      console.warn(`Could not fetch labour record ${id}:`, err);
     }
     const current = getLocalLabour();
     return toLabourRecord(current.find((r) => String(r.id) === String(id)) || current[0]);
@@ -494,6 +540,14 @@ export const labourContractorsApi = {
     const rawHeadcount = typeof payload.headcount === 'number' ? payload.headcount : parseInt(payload.headcount || '0', 10);
     const headcount = isNaN(rawHeadcount) ? 1 : rawHeadcount;
     const recordDate = payload.date || payload.recordDate || new Date().toISOString().slice(0, 10);
+
+    const allocations = Array.isArray(payload.allocations)
+      ? payload.allocations.map((a) => ({
+          activityId: Number(a.activityId) || 1,
+          hoursAllocated: Number(a.hoursAllocated || a.hours || payload.standardHours || 8),
+          activityDescription: a.activityDescription || a.taskDescription || 'General site execution',
+        }))
+      : [];
 
     const backendDto = {
       recordDate,
@@ -505,7 +559,7 @@ export const labourContractorsApi = {
       standardHours: Number(payload.standardHours ?? 8),
       overtimeHours: Number(payload.overtimeHours ?? 0),
       remarks: payload.remarks || '',
-      allocations: Array.isArray(payload.allocations) ? payload.allocations : [],
+      allocations,
     };
 
     let createdRecord = null;
@@ -516,7 +570,8 @@ export const labourContractorsApi = {
         createdRecord = toLabourRecord(data);
       }
     } catch (err) {
-      console.warn('Backend create daily labour failed, saving locally:', err);
+      console.warn('Backend create daily labour failed:', err);
+      throw err;
     }
 
     if (!createdRecord) {
@@ -538,6 +593,14 @@ export const labourContractorsApi = {
     const headcount = isNaN(rawHeadcount) ? 1 : rawHeadcount;
     const recordDate = payload.date || payload.recordDate || new Date().toISOString().slice(0, 10);
 
+    const allocations = Array.isArray(payload.allocations)
+      ? payload.allocations.map((a) => ({
+          activityId: Number(a.activityId) || 1,
+          hoursAllocated: Number(a.hoursAllocated || a.hours || payload.standardHours || 8),
+          activityDescription: a.activityDescription || a.taskDescription || 'General site execution',
+        }))
+      : [];
+
     const backendDto = {
       recordDate,
       projectId: Number(payload.projectId) || 1,
@@ -548,7 +611,7 @@ export const labourContractorsApi = {
       standardHours: Number(payload.standardHours ?? 8),
       overtimeHours: Number(payload.overtimeHours ?? 0),
       remarks: payload.remarks || '',
-      allocations: Array.isArray(payload.allocations) ? payload.allocations : [],
+      allocations,
     };
 
     let updatedRecord = null;
@@ -559,7 +622,8 @@ export const labourContractorsApi = {
         updatedRecord = toLabourRecord(data);
       }
     } catch (err) {
-      console.warn('Backend update daily labour failed, updating locally:', err);
+      console.warn('Backend update daily labour failed:', err);
+      throw err;
     }
 
     if (!updatedRecord) {
@@ -579,7 +643,8 @@ export const labourContractorsApi = {
     try {
       await apiClient.delete(`/labour/daily/${id}`);
     } catch (err) {
-      console.warn('Backend delete daily labour failed, removing locally:', err);
+      console.warn('Backend delete daily labour failed:', err);
+      throw err;
     }
 
     const current = getLocalLabour();
@@ -587,4 +652,80 @@ export const labourContractorsApi = {
     saveLocalLabour(filtered);
     return true;
   },
+
+  getLabourByContractor: async (contractorId) => {
+    try {
+      const res = await apiClient.get(`/labour/daily/contractor/${contractorId}`);
+      const data = res.data?.data !== undefined ? res.data.data : res.data;
+      if (Array.isArray(data)) {
+        return data.map(toLabourRecord);
+      }
+    } catch (err) {
+      console.warn(`Backend getLabourByContractor ${contractorId} failed:`, err);
+    }
+    return getLocalLabour().filter((r) => String(r.contractorId) === String(contractorId));
+  },
+
+  getAllocationsByActivity: async (activityId) => {
+    try {
+      const res = await apiClient.get(`/labour/allocations/activity/${activityId}`);
+      const data = res.data?.data !== undefined ? res.data.data : res.data;
+      if (Array.isArray(data)) {
+        return data;
+      }
+    } catch (err) {
+      console.warn(`Backend getAllocationsByActivity ${activityId} failed:`, err);
+    }
+    return [];
+  },
+
+  getHoursSummary: async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (params.projectId) queryParams.append('projectId', params.projectId);
+      if (params.contractorId) queryParams.append('contractorId', params.contractorId);
+      if (params.startDate) queryParams.append('startDate', params.startDate);
+      if (params.endDate) queryParams.append('endDate', params.endDate);
+
+      const qs = queryParams.toString();
+      const url = qs ? `/labour/hours-summary?${qs}` : '/labour/hours-summary';
+      const res = await apiClient.get(url);
+      const data = res.data?.data !== undefined ? res.data.data : res.data;
+      if (data) return data;
+    } catch (err) {
+      console.warn('Backend getHoursSummary failed:', err);
+    }
+    return null;
+  },
+
+  getProductivityForActivity: async (activityId, completedQty) => {
+    try {
+      const qs = completedQty ? `?completedQty=${completedQty}` : '';
+      const res = await apiClient.get(`/labour/productivity/activity/${activityId}${qs}`);
+      const data = res.data?.data !== undefined ? res.data.data : res.data;
+      if (data) return data;
+    } catch (err) {
+      console.warn(`Backend getProductivityForActivity ${activityId} failed:`, err);
+    }
+    return null;
+  },
+
+  calculateCustomProductivity: async (payload) => {
+    try {
+      const body = {
+        activityId: payload.activityId ? Number(payload.activityId) : 1,
+        unit: payload.unit || 'm3',
+        completedQuantity: Number(payload.completedQuantity),
+        labourHours: Number(payload.labourHours),
+      };
+      const res = await apiClient.post('/labour/productivity/calculate', body);
+      const data = res.data?.data !== undefined ? res.data.data : res.data;
+      if (data) return data;
+    } catch (err) {
+      console.warn('Backend calculateCustomProductivity failed:', err);
+      throw err;
+    }
+    return null;
+  },
 };
+

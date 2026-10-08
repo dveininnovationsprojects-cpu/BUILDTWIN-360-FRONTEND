@@ -77,6 +77,7 @@ export function WbsTimelineView({ workPackages = [], onEdit, onUpdateStatus }) {
 
             {/* Metadata pills */}
             <div className="flex flex-wrap items-center gap-4 text-xs text-ink-600 pt-1">
+              
               {wp.siteName && (
                 <span className="flex items-center gap-1">
                   <Building className="h-3.5 w-3.5 text-brand-500" />
