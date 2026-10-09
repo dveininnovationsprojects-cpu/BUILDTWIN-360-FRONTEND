@@ -735,10 +735,9 @@ function getFilteredData(baseSpec, baseKpis, filter) {
 export function DashboardPage() {
   const user = useAuthStore((s) => s.user);
   const [statusFilter, setStatusFilter] = useState('All');
-  const [selectedRole, setSelectedRole] = useState(null);
   
-  // Dynamic role automatically derived from logged-in user context or manual dropdown selection
-  const userRole = selectedRole ?? (user?.roles?.[0] ?? ROLES.DIRECTOR);
+  // Dynamic role strictly derived from logged-in user context
+  const userRole = user?.roles?.[0] ?? ROLES.DIRECTOR;
 
   const rawConfig = ROLE_DASHBOARDS_DATA[userRole] ?? ROLE_DASHBOARDS_DATA[ROLES.DIRECTOR];
   const rawRoleSpec = ROLE_DATA_SPEC[userRole] ?? ROLE_DATA_SPEC[ROLES.DIRECTOR];
@@ -767,17 +766,9 @@ export function DashboardPage() {
             <h1 className="text-base md:text-lg font-bold text-slate-900 tracking-tight">
               Construction Project Monitoring Dashboard
             </h1>
-            <select
-              value={userRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
-              className={`hidden sm:inline-block text-[11px] px-2.5 py-0.5 rounded-full font-bold border ${theme.badgeBg} cursor-pointer outline-none shadow-xs transition-all`}
-            >
-              {Object.keys(ROLE_DASHBOARDS_DATA).map((roleKey) => (
-                <option key={roleKey} value={roleKey}>
-                  Role: {ROLE_DASHBOARDS_DATA[roleKey].title}
-                </option>
-              ))}
-            </select>
+            <span className={`hidden sm:inline-block text-[11px] px-2.5 py-0.5 rounded-full font-semibold border ${theme.badgeBg}`}>
+              Role: {rawConfig.title}
+            </span>
           </div>
 
           {/* Interactive Filter Pills: All | In Progress | Pending | Completed */}
