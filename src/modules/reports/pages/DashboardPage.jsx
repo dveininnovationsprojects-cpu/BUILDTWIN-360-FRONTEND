@@ -32,6 +32,7 @@ const ROLE_THEMES = {
     composedLine: '#4f46e5',
     badgeBg: 'bg-purple-50 text-purple-700 border-purple-200',
     tabActive: 'bg-purple-600 text-white',
+    cardOrder: ['card1', 'card2', 'card3', 'card4', 'card5', 'card6'],
     chartStyle: { card1: 'AREA_GRADIENT', card2: 'DONUT', card3: 'DUAL_BAR', card4: 'STACKED_HORIZONTAL_BAR', card6: 'COMPOSED_BAR_LINE' },
     titles: {
       card1: 'Portfolio Cumulative Trend',
@@ -51,6 +52,7 @@ const ROLE_THEMES = {
     composedLine: '#047857',
     badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     tabActive: 'bg-emerald-600 text-white',
+    cardOrder: ['card2', 'card1', 'card4', 'card3', 'card6', 'card5'],
     chartStyle: { card1: 'DUAL_LINE_DOTS', card2: 'SOLID_PIE', card3: 'ROUNDED_BAR', card4: 'GROUPED_VERTICAL_BAR', card6: 'STEP_LINE' },
     titles: {
       card1: 'Schedule Variance & Milestone Drift',
@@ -70,6 +72,7 @@ const ROLE_THEMES = {
     composedLine: '#b45309',
     badgeBg: 'bg-amber-50 text-amber-800 border-amber-200',
     tabActive: 'bg-amber-600 text-white',
+    cardOrder: ['card4', 'card3', 'card1', 'card5', 'card2', 'card6'],
     chartStyle: { card1: 'STACKED_COLUMN_BAR', card2: 'HALF_GAUGE_PIE', card3: 'AREA_SMOOTH', card4: 'GROUPED_VERTICAL_BAR', card6: 'COMPOSED_DUAL_AXIS' },
     titles: {
       card1: 'Structural Pour Progress by Zone',
@@ -89,6 +92,7 @@ const ROLE_THEMES = {
     composedLine: '#9f1239',
     badgeBg: 'bg-rose-50 text-rose-700 border-rose-200',
     tabActive: 'bg-rose-600 text-white',
+    cardOrder: ['card3', 'card4', 'card2', 'card6', 'card1', 'card5'],
     chartStyle: { card1: 'GROUPED_COLUMN_BAR', card2: 'DONUT', card3: 'ROUNDED_BAR', card4: 'GROUPED_VERTICAL_BAR', card6: 'COMPOSED_BAR_LINE' },
     titles: {
       card1: 'Gang Daily Output vs Shift Capacity',
@@ -108,6 +112,7 @@ const ROLE_THEMES = {
     composedLine: '#1e3a8a',
     badgeBg: 'bg-blue-50 text-blue-700 border-blue-200',
     tabActive: 'bg-blue-600 text-white',
+    cardOrder: ['card5', 'card2', 'card1', 'card6', 'card4', 'card3'],
     chartStyle: { card1: 'AREA_STEEP', card2: 'DONUT', card3: 'ROUNDED_BAR', card4: 'AREA_FLOW', card6: 'LINE_BIG_DOTS' },
     titles: {
       card1: 'Material Inward vs Consumption Flow',
@@ -127,6 +132,7 @@ const ROLE_THEMES = {
     composedLine: '#451a03',
     badgeBg: 'bg-amber-100 text-amber-900 border-amber-300',
     tabActive: 'bg-amber-700 text-white',
+    cardOrder: ['card3', 'card1', 'card5', 'card2', 'card6', 'card4'],
     chartStyle: { card1: 'SPLINE_LINE_DUAL', card2: 'SOLID_PIE', card3: 'DUAL_BAR', card4: 'STACKED_HORIZONTAL_BAR', card6: 'COMPOSED_AREA_LINE' },
     titles: {
       card1: 'Cumulative Budget vs Actual Cost',
@@ -146,6 +152,7 @@ const ROLE_THEMES = {
     composedLine: '#86198f',
     badgeBg: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200',
     tabActive: 'bg-fuchsia-600 text-white',
+    cardOrder: ['card2', 'card3', 'card6', 'card1', 'card4', 'card5'],
     chartStyle: { card1: 'STACKED_COLUMN_BAR', card2: 'DONUT', card3: 'CURVED_LINE_DOTS', card4: 'GROUPED_VERTICAL_BAR', card6: 'COMPOSED_BAR_LINE' },
     titles: {
       card1: 'Inspections Passed vs Failed by Zone',
@@ -165,6 +172,7 @@ const ROLE_THEMES = {
     composedLine: '#164e63',
     badgeBg: 'bg-cyan-50 text-cyan-700 border-cyan-200',
     tabActive: 'bg-cyan-600 text-white',
+    cardOrder: ['card1', 'card6', 'card2', 'card3', 'card4', 'card5'],
     chartStyle: { card1: 'DUAL_AREA_SMOOTH', card2: 'HALF_GAUGE_PIE', card3: 'DUAL_LINE', card4: 'AREA_FLOW', card6: 'COMPOSED_AREA_LINE' },
     titles: {
       card1: 'SPI & CPI Performance Index Curves',
@@ -184,6 +192,7 @@ const ROLE_THEMES = {
     composedLine: '#020617',
     badgeBg: 'bg-slate-100 text-slate-800 border-slate-300',
     tabActive: 'bg-slate-800 text-white',
+    cardOrder: ['card6', 'card1', 'card3', 'card2', 'card4', 'card5'],
     chartStyle: { card1: 'AREA_GRADIENT', card2: 'SOLID_PIE', card3: 'ROUNDED_BAR', card4: 'GROUPED_VERTICAL_BAR', card6: 'STEP_LINE' },
     titles: {
       card1: 'API Latency & Server CPU Load Curve',
@@ -203,6 +212,7 @@ const ROLE_THEMES = {
     composedLine: '#059669',
     badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     tabActive: 'bg-emerald-500 text-white',
+    cardOrder: ['card5', 'card1', 'card4', 'card2', 'card3', 'card6'],
     chartStyle: { card1: 'STEP_LINE', card2: 'DONUT', card3: 'DUAL_BAR', card4: 'STACKED_HORIZONTAL_BAR', card6: 'COMPOSED_BAR_LINE' },
     titles: {
       card1: 'Audit Trail & Baseline Lock History',
@@ -795,271 +805,288 @@ export function DashboardPage() {
           ))}
         </div>
 
-        {/* MAIN BODY: 6 ROLE-SPECIFIC CHART CARDS IN A 3-COLUMN x 2-ROW GRID */}
+        {/* MAIN BODY: 6 ROLE-SPECIFIC CHART CARDS IN A UNIQUE 3-COLUMN x 2-ROW GRID ORDER FOR EACH ROLE */}
         <div className="flex-1 min-h-0 grid grid-cols-3 grid-rows-2 gap-2.5 overflow-hidden">
-          
-          {/* Card 1 (Top Left): Role-Specific Main Trend */}
-          <div className="bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/90 flex flex-col justify-between overflow-hidden">
-            <h3 className="text-[11px] font-bold text-slate-900">
-              {theme.titles?.card1 ?? 'Portfolio Cumulative Trend'}
-            </h3>
-            <div className="flex-1 min-h-0 w-full pt-1">
-              <ResponsiveContainer width="100%" height="100%">
-                {theme.chartStyle?.card1 === 'STEP_LINE' ? (
-                  <LineChart data={roleSpec.budgetVariance} margin={{ top: 8, right: 10, left: -22, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
-                    <Line type="step" dataKey="actualBudget" stroke={theme.primary} strokeWidth={2.5} dot={{ r: 4, fill: theme.primary }} name="Actual" />
-                    <Line type="step" dataKey="plannedBudget" stroke={theme.secondary} strokeWidth={2} strokeDasharray="4 4" name="Target" />
-                  </LineChart>
-                ) : theme.chartStyle?.card1 === 'DUAL_LINE_DOTS' || theme.chartStyle?.card1 === 'SPLINE_LINE_DUAL' ? (
-                  <LineChart data={roleSpec.budgetVariance} margin={{ top: 8, right: 10, left: -22, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
-                    <Line type="monotone" dataKey="plannedBudget" name="Planned" stroke={theme.secondary} strokeWidth={2.5} dot={{ r: 3.5, fill: theme.secondary }} />
-                    <Line type="monotone" dataKey="actualBudget" name="Actual" stroke={theme.primary} strokeWidth={2.5} dot={{ r: 3.5, fill: theme.primary }} />
-                  </LineChart>
-                ) : theme.chartStyle?.card1 === 'STACKED_COLUMN_BAR' || theme.chartStyle?.card1 === 'GROUPED_COLUMN_BAR' ? (
-                  <BarChart data={roleSpec.budgetVariance} margin={{ top: 8, right: 10, left: -22, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
-                    <Bar dataKey="actualBudget" fill={theme.primary} radius={[3, 3, 0, 0]} name="Actual" />
-                    <Bar dataKey="plannedBudget" fill={theme.secondary} radius={[3, 3, 0, 0]} name="Planned" />
-                  </BarChart>
-                ) : (
-                  <AreaChart data={roleSpec.budgetVariance} margin={{ top: 8, right: 10, left: -22, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id={`areaColorActual-${userRole}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={theme.primary} stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor={theme.primary} stopOpacity={0}/>
-                      </linearGradient>
-                      <linearGradient id={`areaColorPlanned-${userRole}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={theme.secondary} stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor={theme.secondary} stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
-                    <Area type="monotone" dataKey="actualBudget" stroke={theme.primary} fillOpacity={1} fill={`url(#areaColorActual-${userRole})`} name="Actual" />
-                    <Area type="monotone" dataKey="plannedBudget" stroke={theme.secondary} fillOpacity={1} fill={`url(#areaColorPlanned-${userRole})`} name="Planned" />
-                  </AreaChart>
-                )}
-              </ResponsiveContainer>
-            </div>
-            <div className="flex items-center justify-center gap-3 text-[9px] text-slate-600 font-bold pt-1">
-              <span className="flex items-center gap-1"><span className="w-2.5 h-0.5 rounded-xs" style={{ backgroundColor: theme.primary }} /> ~ Actual Metric</span>
-              <span className="flex items-center gap-1"><span className="w-2.5 h-0.5 rounded-xs" style={{ backgroundColor: theme.secondary }} /> ~ Planned Target</span>
-            </div>
-          </div>
+          {(theme.cardOrder ?? ['card1', 'card2', 'card3', 'card4', 'card5', 'card6']).map((cardId) => {
+            if (cardId === 'card1') {
+              return (
+                <div key="card1" className="bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/90 flex flex-col justify-between overflow-hidden">
+                  <h3 className="text-[11px] font-bold text-slate-900">
+                    {theme.titles?.card1 ?? 'Portfolio Cumulative Trend'}
+                  </h3>
+                  <div className="flex-1 min-h-0 w-full pt-1">
+                    <ResponsiveContainer width="100%" height="100%">
+                      {theme.chartStyle?.card1 === 'STEP_LINE' ? (
+                        <LineChart data={roleSpec.budgetVariance} margin={{ top: 8, right: 10, left: -22, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                          <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                          <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
+                          <Line type="step" dataKey="actualBudget" stroke={theme.primary} strokeWidth={2.5} dot={{ r: 4, fill: theme.primary }} name="Actual" />
+                          <Line type="step" dataKey="plannedBudget" stroke={theme.secondary} strokeWidth={2} strokeDasharray="4 4" name="Target" />
+                        </LineChart>
+                      ) : theme.chartStyle?.card1 === 'DUAL_LINE_DOTS' || theme.chartStyle?.card1 === 'SPLINE_LINE_DUAL' ? (
+                        <LineChart data={roleSpec.budgetVariance} margin={{ top: 8, right: 10, left: -22, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                          <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                          <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
+                          <Line type="monotone" dataKey="plannedBudget" name="Planned" stroke={theme.secondary} strokeWidth={2.5} dot={{ r: 3.5, fill: theme.secondary }} />
+                          <Line type="monotone" dataKey="actualBudget" name="Actual" stroke={theme.primary} strokeWidth={2.5} dot={{ r: 3.5, fill: theme.primary }} />
+                        </LineChart>
+                      ) : theme.chartStyle?.card1 === 'STACKED_COLUMN_BAR' || theme.chartStyle?.card1 === 'GROUPED_COLUMN_BAR' ? (
+                        <BarChart data={roleSpec.budgetVariance} margin={{ top: 8, right: 10, left: -22, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                          <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                          <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
+                          <Bar dataKey="actualBudget" fill={theme.primary} radius={[3, 3, 0, 0]} name="Actual" />
+                          <Bar dataKey="plannedBudget" fill={theme.secondary} radius={[3, 3, 0, 0]} name="Planned" />
+                        </BarChart>
+                      ) : (
+                        <AreaChart data={roleSpec.budgetVariance} margin={{ top: 8, right: 10, left: -22, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id={`areaColorActual-${userRole}`} x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor={theme.primary} stopOpacity={0.8}/>
+                              <stop offset="95%" stopColor={theme.primary} stopOpacity={0}/>
+                            </linearGradient>
+                            <linearGradient id={`areaColorPlanned-${userRole}`} x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor={theme.secondary} stopOpacity={0.8}/>
+                              <stop offset="95%" stopColor={theme.secondary} stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                          <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                          <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
+                          <Area type="monotone" dataKey="actualBudget" stroke={theme.primary} fillOpacity={1} fill={`url(#areaColorActual-${userRole})`} name="Actual" />
+                          <Area type="monotone" dataKey="plannedBudget" stroke={theme.secondary} fillOpacity={1} fill={`url(#areaColorPlanned-${userRole})`} name="Planned" />
+                        </AreaChart>
+                      )}
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex items-center justify-center gap-3 text-[9px] text-slate-600 font-bold pt-1">
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-0.5 rounded-xs" style={{ backgroundColor: theme.primary }} /> ~ Actual Metric</span>
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-0.5 rounded-xs" style={{ backgroundColor: theme.secondary }} /> ~ Planned Target</span>
+                  </div>
+                </div>
+              );
+            }
 
-          {/* Card 2 (Top Middle): Role-Specific Distribution Chart */}
-          <div className="bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/90 flex flex-col justify-between overflow-hidden">
-            <h3 className="text-[11px] font-bold text-slate-900">
-              {theme.titles?.card2 ?? 'Cost Breakdown Donut'}
-            </h3>
-            <div className="flex-1 min-h-0 w-full relative flex items-center justify-center py-0.5">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={roleSpec.costBreakdown.donut}
-                    cx="50%"
-                    cy="50%"
-                    startAngle={theme.chartStyle?.card2 === 'HALF_GAUGE_PIE' ? 180 : 0}
-                    endAngle={theme.chartStyle?.card2 === 'HALF_GAUGE_PIE' ? 0 : 360}
-                    innerRadius={theme.chartStyle?.card2 === 'SOLID_PIE' ? 0 : theme.chartStyle?.card2 === 'HALF_GAUGE_PIE' ? 24 : 28}
-                    outerRadius={42}
-                    paddingAngle={theme.chartStyle?.card2 === 'SOLID_PIE' ? 0 : 2}
-                    dataKey="value"
-                    label={renderCustomizedPieLabel}
-                    labelLine={false}
-                  >
-                    {roleSpec.costBreakdown.donut.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={theme.donut[index % theme.donut.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} formatter={(v) => [`${v}%`, '']} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+            if (cardId === 'card2') {
+              return (
+                <div key="card2" className="bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/90 flex flex-col justify-between overflow-hidden">
+                  <h3 className="text-[11px] font-bold text-slate-900">
+                    {theme.titles?.card2 ?? 'Cost Breakdown Donut'}
+                  </h3>
+                  <div className="flex-1 min-h-0 w-full relative flex items-center justify-center py-0.5">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={roleSpec.costBreakdown.donut}
+                          cx="50%"
+                          cy="50%"
+                          startAngle={theme.chartStyle?.card2 === 'HALF_GAUGE_PIE' ? 180 : 0}
+                          endAngle={theme.chartStyle?.card2 === 'HALF_GAUGE_PIE' ? 0 : 360}
+                          innerRadius={theme.chartStyle?.card2 === 'SOLID_PIE' ? 0 : theme.chartStyle?.card2 === 'HALF_GAUGE_PIE' ? 24 : 28}
+                          outerRadius={42}
+                          paddingAngle={theme.chartStyle?.card2 === 'SOLID_PIE' ? 0 : 2}
+                          dataKey="value"
+                          label={renderCustomizedPieLabel}
+                          labelLine={false}
+                        >
+                          {roleSpec.costBreakdown.donut.map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={theme.donut[index % theme.donut.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} formatter={(v) => [`${v}%`, '']} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              );
+            }
 
-          {/* Card 3 (Top Right): Monthly Performance / Target Bar & Line Variations */}
-          <div className="bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/90 flex flex-col justify-between overflow-hidden">
-            <h3 className="text-[11px] font-bold text-slate-900">
-              {theme.titles?.card3 ?? 'Monthly Performance Target'}
-            </h3>
-            <div className="flex-1 min-h-0 w-full pt-1">
-              <ResponsiveContainer width="100%" height="100%">
-                {theme.chartStyle?.card3 === 'CURVED_LINE_DOTS' || theme.chartStyle?.card3 === 'DUAL_LINE' ? (
-                  <LineChart data={roleSpec.budgetVariance} margin={{ top: 5, right: 10, left: -22, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
-                    <Line type="monotone" dataKey="actualBudget" stroke={theme.secondary} strokeWidth={2.5} dot={{ r: 4, fill: theme.secondary }} name="Actual Rate" />
-                    <Line type="monotone" dataKey="plannedBudget" stroke={theme.primary} strokeWidth={2} strokeDasharray="3 3" name="Baseline" />
-                  </LineChart>
-                ) : theme.chartStyle?.card3 === 'AREA_SMOOTH' ? (
-                  <AreaChart data={roleSpec.budgetVariance} margin={{ top: 5, right: 10, left: -22, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
-                    <Area type="monotone" dataKey="actualBudget" stroke={theme.secondary} fill={theme.secondary} fillOpacity={0.4} name="Target Curve" />
-                  </AreaChart>
-                ) : theme.chartStyle?.card3 === 'ROUNDED_BAR' || theme.chartStyle?.card3 === 'SINGLE_BAR' ? (
-                  <BarChart data={roleSpec.budgetVariance} margin={{ top: 5, right: 10, left: -22, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
-                    <Bar dataKey="actualBudget" fill={theme.secondary} radius={[6, 6, 0, 0]} barSize={22} name="Metric Target" />
-                  </BarChart>
-                ) : (
-                  <BarChart data={roleSpec.budgetVariance} margin={{ top: 5, right: 10, left: -22, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
-                    <Bar dataKey="actualBudget" fill={theme.secondary} radius={[3, 3, 0, 0]} name="Actual" />
-                    <Bar dataKey="plannedBudget" fill={theme.primary} radius={[3, 3, 0, 0]} name="Planned" />
-                  </BarChart>
-                )}
-              </ResponsiveContainer>
-            </div>
-          </div>
+            if (cardId === 'card3') {
+              return (
+                <div key="card3" className="bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/90 flex flex-col justify-between overflow-hidden">
+                  <h3 className="text-[11px] font-bold text-slate-900">
+                    {theme.titles?.card3 ?? 'Monthly Performance Target'}
+                  </h3>
+                  <div className="flex-1 min-h-0 w-full pt-1">
+                    <ResponsiveContainer width="100%" height="100%">
+                      {theme.chartStyle?.card3 === 'CURVED_LINE_DOTS' || theme.chartStyle?.card3 === 'DUAL_LINE' ? (
+                        <LineChart data={roleSpec.budgetVariance} margin={{ top: 5, right: 10, left: -22, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                          <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                          <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
+                          <Line type="monotone" dataKey="actualBudget" stroke={theme.secondary} strokeWidth={2.5} dot={{ r: 4, fill: theme.secondary }} name="Actual Rate" />
+                          <Line type="monotone" dataKey="plannedBudget" stroke={theme.primary} strokeWidth={2} strokeDasharray="3 3" name="Baseline" />
+                        </LineChart>
+                      ) : theme.chartStyle?.card3 === 'AREA_SMOOTH' ? (
+                        <AreaChart data={roleSpec.budgetVariance} margin={{ top: 5, right: 10, left: -22, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                          <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                          <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
+                          <Area type="monotone" dataKey="actualBudget" stroke={theme.secondary} fill={theme.secondary} fillOpacity={0.4} name="Target Curve" />
+                        </AreaChart>
+                      ) : theme.chartStyle?.card3 === 'ROUNDED_BAR' || theme.chartStyle?.card3 === 'SINGLE_BAR' ? (
+                        <BarChart data={roleSpec.budgetVariance} margin={{ top: 5, right: 10, left: -22, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                          <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                          <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
+                          <Bar dataKey="actualBudget" fill={theme.secondary} radius={[6, 6, 0, 0]} barSize={22} name="Metric Target" />
+                        </BarChart>
+                      ) : (
+                        <BarChart data={roleSpec.budgetVariance} margin={{ top: 5, right: 10, left: -22, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                          <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                          <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
+                          <Bar dataKey="actualBudget" fill={theme.secondary} radius={[3, 3, 0, 0]} name="Actual" />
+                          <Bar dataKey="plannedBudget" fill={theme.primary} radius={[3, 3, 0, 0]} name="Planned" />
+                        </BarChart>
+                      )}
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              );
+            }
 
-          {/* Card 4 (Bottom Left): Role-Specific Workload Chart Variations */}
-          <div className="bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/90 flex flex-col justify-between overflow-hidden">
-            <h3 className="text-[11px] font-bold text-slate-900">
-              {theme.titles?.card4 ?? 'Workload - Top 5 Projects'}
-            </h3>
-            <div className="flex-1 min-h-0 w-full pt-1">
-              <ResponsiveContainer width="100%" height="100%">
-                {theme.chartStyle?.card4 === 'GROUPED_VERTICAL_BAR' ? (
-                  <BarChart data={roleSpec.workload} margin={{ top: 5, right: 10, left: -22, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
-                    <Bar dataKey="completed" fill={theme.workload.completed} radius={[3, 3, 0, 0]} name="Completed" />
-                    <Bar dataKey="remaining" fill={theme.workload.remaining} radius={[3, 3, 0, 0]} name="Remaining" />
-                  </BarChart>
-                ) : theme.chartStyle?.card4 === 'AREA_FLOW' ? (
-                  <AreaChart data={roleSpec.workload} margin={{ top: 5, right: 10, left: -22, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
-                    <Area type="monotone" dataKey="completed" fill={theme.workload.completed} fillOpacity={0.5} stroke={theme.workload.completed} name="Throughput" />
-                  </AreaChart>
-                ) : (
-                  <BarChart
-                    layout="vertical"
-                    data={roleSpec.workload}
-                    margin={{ top: 5, right: 10, left: 5, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
-                    <XAxis type="number" tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <YAxis dataKey="project" type="category" tick={{ fontSize: 9, fill: '#334155', fontWeight: 600 }} axisLine={false} tickLine={false} width={65} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
-                    <Bar dataKey="completed" stackId="a" fill={theme.workload.completed}>
-                      <LabelList dataKey="completed" position="center" fill="#ffffff" fontSize={9} fontWeight={700} />
-                    </Bar>
-                    <Bar dataKey="remaining" stackId="a" fill={theme.workload.remaining}>
-                      <LabelList dataKey="remaining" position="center" fill="#0f172a" fontSize={8} fontWeight={700} />
-                    </Bar>
-                    <Bar dataKey="overdue" stackId="a" fill={theme.workload.overdue}>
-                      <LabelList dataKey="overdue" position="center" fill="#0f172a" fontSize={8} fontWeight={700} />
-                    </Bar>
-                  </BarChart>
-                )}
-              </ResponsiveContainer>
-            </div>
-            <div className="flex items-center justify-center gap-3 text-[9px] text-slate-600 font-bold pt-1">
-              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs" style={{ backgroundColor: theme.workload.completed }} /> Completed</span>
-              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs" style={{ backgroundColor: theme.workload.remaining }} /> Remaining</span>
-              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs" style={{ backgroundColor: theme.workload.overdue }} /> OverDue</span>
-            </div>
-          </div>
+            if (cardId === 'card4') {
+              return (
+                <div key="card4" className="bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/90 flex flex-col justify-between overflow-hidden">
+                  <h3 className="text-[11px] font-bold text-slate-900">
+                    {theme.titles?.card4 ?? 'Workload - Top 5 Projects'}
+                  </h3>
+                  <div className="flex-1 min-h-0 w-full pt-1">
+                    <ResponsiveContainer width="100%" height="100%">
+                      {theme.chartStyle?.card4 === 'GROUPED_VERTICAL_BAR' ? (
+                        <BarChart data={roleSpec.workload} margin={{ top: 5, right: 10, left: -22, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                          <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                          <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
+                          <Bar dataKey="completed" fill={theme.workload.completed} radius={[3, 3, 0, 0]} name="Completed" />
+                          <Bar dataKey="remaining" fill={theme.workload.remaining} radius={[3, 3, 0, 0]} name="Remaining" />
+                        </BarChart>
+                      ) : theme.chartStyle?.card4 === 'AREA_FLOW' ? (
+                        <AreaChart data={roleSpec.workload} margin={{ top: 5, right: 10, left: -22, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                          <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                          <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
+                          <Area type="monotone" dataKey="completed" fill={theme.workload.completed} fillOpacity={0.5} stroke={theme.workload.completed} name="Throughput" />
+                        </AreaChart>
+                      ) : (
+                        <BarChart
+                          layout="vertical"
+                          data={roleSpec.workload}
+                          margin={{ top: 5, right: 10, left: 5, bottom: 5 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
+                          <XAxis type="number" tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                          <YAxis dataKey="project" type="category" tick={{ fontSize: 9, fill: '#334155', fontWeight: 600 }} axisLine={false} tickLine={false} width={65} />
+                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
+                          <Bar dataKey="completed" stackId="a" fill={theme.workload.completed}>
+                            <LabelList dataKey="completed" position="center" fill="#ffffff" fontSize={9} fontWeight={700} />
+                          </Bar>
+                          <Bar dataKey="remaining" stackId="a" fill={theme.workload.remaining}>
+                            <LabelList dataKey="remaining" position="center" fill="#0f172a" fontSize={8} fontWeight={700} />
+                          </Bar>
+                          <Bar dataKey="overdue" stackId="a" fill={theme.workload.overdue}>
+                            <LabelList dataKey="overdue" position="center" fill="#0f172a" fontSize={8} fontWeight={700} />
+                          </Bar>
+                        </BarChart>
+                      )}
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex items-center justify-center gap-3 text-[9px] text-slate-600 font-bold pt-1">
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs" style={{ backgroundColor: theme.workload.completed }} /> Completed</span>
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs" style={{ backgroundColor: theme.workload.remaining }} /> Remaining</span>
+                    <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs" style={{ backgroundColor: theme.workload.overdue }} /> OverDue</span>
+                  </div>
+                </div>
+              );
+            }
 
-          {/* Card 5 (Bottom Middle): Cost Breakdown Shaded Table */}
-          <div className="bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/90 flex flex-col justify-between overflow-hidden">
-            <h3 className="text-[11px] font-bold text-slate-900">
-              {theme.titles?.card5 ?? 'Cost Breakdown Summary Table'}
-            </h3>
-            <div className="flex-1 min-h-0 border border-slate-200 rounded-lg overflow-hidden text-[10px] my-auto">
-              <table className="w-full text-left">
-                <tbody className="divide-y divide-slate-100">
-                  {roleSpec.costBreakdown.table.map((row, idx) => (
-                    <tr key={idx} className={`${row.color} transition-colors`}>
-                      <td className="px-2.5 py-1.5 font-semibold">{row.category}</td>
-                      <td className="px-2.5 py-1.5 font-mono font-bold text-right">{row.amount}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+            if (cardId === 'card5') {
+              return (
+                <div key="card5" className="bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/90 flex flex-col justify-between overflow-hidden">
+                  <h3 className="text-[11px] font-bold text-slate-900">
+                    {theme.titles?.card5 ?? 'Cost Breakdown Summary Table'}
+                  </h3>
+                  <div className="flex-1 min-h-0 border border-slate-200 rounded-lg overflow-hidden text-[10px] my-auto">
+                    <table className="w-full text-left">
+                      <tbody className="divide-y divide-slate-100">
+                        {roleSpec.costBreakdown.table.map((row, idx) => (
+                          <tr key={idx} className={`${row.color} transition-colors`}>
+                            <td className="px-2.5 py-1.5 font-semibold">{row.category}</td>
+                            <td className="px-2.5 py-1.5 font-mono font-bold text-right">{row.amount}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            }
 
-          {/* Card 6 (Bottom Right): Actual vs Planned Resources / Custom Dynamic Composed Chart */}
-          <div className="bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/90 flex flex-col justify-between overflow-hidden">
-            <h3 className="text-[11px] font-bold text-slate-900">
-              {theme.titles?.card6 ?? 'Actual vs. Planned Resources'}
-            </h3>
-            <div className="flex-1 min-h-0 w-full pt-1">
-              <ResponsiveContainer width="100%" height="100%">
-                {theme.chartStyle?.card6 === 'STEP_LINE' ? (
-                  <LineChart data={roleSpec.resources} margin={{ top: 8, right: 10, left: -22, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
-                    <Line type="stepAfter" dataKey="actualResources" stroke={theme.composedLine} strokeWidth={2.5} dot={{ r: 4, fill: theme.composedLine }} name="Step Graph" />
-                  </LineChart>
-                ) : theme.chartStyle?.card6 === 'COMPOSED_AREA_LINE' || theme.chartStyle?.card6 === 'COMPOSED_DUAL_AXIS' ? (
-                  <ComposedChart data={roleSpec.resources} margin={{ top: 8, right: 10, left: -22, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
-                    <Area type="monotone" dataKey="plannedResources" fill={theme.composedBar} fillOpacity={0.3} stroke={theme.composedBar} name="Planned Area" />
-                    <Line type="monotone" dataKey="actualResources" stroke={theme.composedLine} strokeWidth={2.5} dot={{ r: 4, fill: theme.composedLine }} name="Actual Line" />
-                  </ComposedChart>
-                ) : theme.chartStyle?.card6 === 'LINE_BIG_DOTS' ? (
-                  <LineChart data={roleSpec.resources} margin={{ top: 8, right: 10, left: -22, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
-                    <Line type="monotone" dataKey="actualResources" stroke={theme.composedLine} strokeWidth={3} dot={{ r: 6, fill: theme.composedLine }} name="Deliveries" />
-                  </LineChart>
-                ) : (
-                  <ComposedChart data={roleSpec.resources} margin={{ top: 8, right: 10, left: -22, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
-                    <Bar dataKey="plannedResources" fill={theme.composedBar} radius={[3, 3, 0, 0]} barSize={16} name="Planned Resources" />
-                    <Line type="monotone" dataKey="actualResources" stroke={theme.composedLine} strokeWidth={2.5} dot={{ r: 3.5, fill: theme.composedLine }} name="Actual Resources" />
-                  </ComposedChart>
-                )}
-              </ResponsiveContainer>
-            </div>
-            <div className="flex items-center justify-center gap-3 text-[9px] text-slate-600 font-bold pt-1">
-              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs" style={{ backgroundColor: theme.composedBar }} /> Planned Target</span>
-              <span className="flex items-center gap-1"><span className="w-2.5 h-0.5" style={{ backgroundColor: theme.composedLine }} /> ~ Actual Metric</span>
-            </div>
-          </div>
-
+            // Default card6
+            return (
+              <div key="card6" className="bg-slate-50/90 p-2.5 rounded-xl border border-slate-200/90 flex flex-col justify-between overflow-hidden">
+                <h3 className="text-[11px] font-bold text-slate-900">
+                  {theme.titles?.card6 ?? 'Actual vs. Planned Resources'}
+                </h3>
+                <div className="flex-1 min-h-0 w-full pt-1">
+                  <ResponsiveContainer width="100%" height="100%">
+                    {theme.chartStyle?.card6 === 'STEP_LINE' ? (
+                      <LineChart data={roleSpec.resources} margin={{ top: 8, right: 10, left: -22, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                        <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
+                        <Line type="stepAfter" dataKey="actualResources" stroke={theme.composedLine} strokeWidth={2.5} dot={{ r: 4, fill: theme.composedLine }} name="Step Graph" />
+                      </LineChart>
+                    ) : theme.chartStyle?.card6 === 'COMPOSED_AREA_LINE' || theme.chartStyle?.card6 === 'COMPOSED_DUAL_AXIS' ? (
+                      <ComposedChart data={roleSpec.resources} margin={{ top: 8, right: 10, left: -22, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                        <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
+                        <Area type="monotone" dataKey="plannedResources" fill={theme.composedBar} fillOpacity={0.3} stroke={theme.composedBar} name="Planned Area" />
+                        <Line type="monotone" dataKey="actualResources" stroke={theme.composedLine} strokeWidth={2.5} dot={{ r: 4, fill: theme.composedLine }} name="Actual Line" />
+                      </ComposedChart>
+                    ) : theme.chartStyle?.card6 === 'LINE_BIG_DOTS' ? (
+                      <LineChart data={roleSpec.resources} margin={{ top: 8, right: 10, left: -22, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                        <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
+                        <Line type="monotone" dataKey="actualResources" stroke={theme.composedLine} strokeWidth={3} dot={{ r: 6, fill: theme.composedLine }} name="Deliveries" />
+                      </LineChart>
+                    ) : (
+                      <ComposedChart data={roleSpec.resources} margin={{ top: 8, right: 10, left: -22, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                        <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderRadius: '6px', color: '#fff', fontSize: '11px' }} />
+                        <Bar dataKey="plannedResources" fill={theme.composedBar} radius={[3, 3, 0, 0]} barSize={16} name="Planned Resources" />
+                        <Line type="monotone" dataKey="actualResources" stroke={theme.composedLine} strokeWidth={2.5} dot={{ r: 3.5, fill: theme.composedLine }} name="Actual Resources" />
+                      </ComposedChart>
+                    )}
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex items-center justify-center gap-3 text-[9px] text-slate-600 font-bold pt-1">
+                  <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-xs" style={{ backgroundColor: theme.composedBar }} /> Planned Target</span>
+                  <span className="flex items-center gap-1"><span className="w-2.5 h-0.5" style={{ backgroundColor: theme.composedLine }} /> ~ Actual Metric</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
