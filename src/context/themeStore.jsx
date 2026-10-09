@@ -132,7 +132,7 @@ export const THEMES = [
   {
     id: 'lime',
     label: 'Lime',
-    gradient: 'linear-gradient(135deg, #243b19, #6b9f28 58%, #c8e889)',
+    gradient: 'linear-gradient(135deg, #243b19, #6b9f28 58%, #bde36fff)',
     vars: {
       brand950: '#182a12',
       brand900: '#243b19',

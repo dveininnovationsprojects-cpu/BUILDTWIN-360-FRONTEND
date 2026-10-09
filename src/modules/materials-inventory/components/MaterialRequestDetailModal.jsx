@@ -31,6 +31,7 @@ export function MaterialRequestDetailModal({
   onClose,
   request,
   material = null,
+  contractors = [],
   onIssueMaterial,
 }) {
   const queryClient = useQueryClient();
@@ -361,7 +362,10 @@ export function MaterialRequestDetailModal({
             <div>
               <span className="text-ink-400 block">Executing Contractor</span>
               <span className="font-medium text-ink-800">
-                {request.contractorName || 'Internal Site Force'}
+                {(() => {
+                  const c = contractors.find((con) => String(con.id) === String(request.contractorId));
+                  return request.contractorName || (c ? (c.contractorName || c.name || c.companyName) : request.contractorId ? `Contractor #${request.contractorId}` : 'Internal Site Force');
+                })()}
               </span>
             </div>
 

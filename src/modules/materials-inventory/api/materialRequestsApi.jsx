@@ -165,18 +165,51 @@ export const materialRequestsApi = {
     try {
       const res = await apiClient.get(`/procurement/requests/project/${projectId}`);
       const list = extractList(res.data);
-      if (list && list.length > 0) {
-        return list.map(normaliseRequest);
-      }
-      // If backend returns empty list for this project, fall back to our local records
-      return localMaterialRequests
-        .filter((r) => !projectId || String(r.projectId) === String(projectId))
-        .map(normaliseRequest);
+      return list.map(normaliseRequest);
     } catch (err) {
       if (isNetworkError(err) || err.response?.status === 404 || err.response?.status === 401) {
         return localMaterialRequests
           .filter((r) => !projectId || String(r.projectId) === String(projectId))
           .map(normaliseRequest);
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * GET /api/v1/procurement/requests/project/:projectId/status/:status
+   * Retrieves material requests filtered by project and approval status (PENDING, APPROVED, REJECTED)
+   */
+  async listByStatus(projectId = 1, status = 'PENDING') {
+    try {
+      const res = await apiClient.get(`/procurement/requests/project/${projectId}/status/${status}`);
+      const list = extractList(res.data);
+      return list.map(normaliseRequest);
+    } catch (err) {
+      if (isNetworkError(err) || err.response?.status === 404 || err.response?.status === 401) {
+        return localMaterialRequests
+          .filter(
+            (r) =>
+              (!projectId || String(r.projectId) === String(projectId)) &&
+              String(r.status).toUpperCase() === String(status).toUpperCase()
+          )
+          .map(normaliseRequest);
+      }
+      throw err;
+    }
+  },
+
+  /**
+   * GET /api/v1/procurement/requests/project/:projectId/projected-shortage
+   * FR-056: Detect projected inventory shortages
+   */
+  async getProjectedShortage(projectId = 1) {
+    try {
+      const res = await apiClient.get(`/procurement/requests/project/${projectId}/projected-shortage`);
+      return extractList(res.data);
+    } catch (err) {
+      if (isNetworkError(err) || err.response?.status === 404 || err.response?.status === 401) {
+        return [];
       }
       throw err;
     }

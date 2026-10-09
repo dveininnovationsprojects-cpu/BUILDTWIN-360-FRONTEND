@@ -11,7 +11,7 @@ import {
   RefreshCw,
   AlertCircle,
 } from 'lucide-react';
-import { StatusPill, Spinner } from '@/design-system';
+import { StatusPill, Spinner, Skeleton } from '@/design-system';
 import { hierarchyApi } from '../api/projectsApi';
 import { ZONE_TYPE_LABELS } from '../constants';
 
@@ -156,9 +156,33 @@ export function HierarchyTreeViewer({ projectId, projectName }) {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-16 text-ink-500">
-        <Spinner className="h-8 w-8" />
-        <p className="text-sm">Loading hierarchy tree…</p>
+      <div className="space-y-3 p-4">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-5 w-5 rounded" />
+          <Skeleton className="h-5 w-48 rounded" />
+          <Skeleton className="h-5 w-16 rounded-full ml-auto" />
+        </div>
+        <div className="ml-6 space-y-2.5 border-l-2 border-surface-border pl-4">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-4 w-4 rounded" />
+            <Skeleton className="h-4 w-36 rounded" />
+            <Skeleton className="h-4 w-14 rounded-full ml-auto" />
+          </div>
+          <div className="ml-6 space-y-2 border-l-2 border-surface-border pl-4">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-3.5 w-3.5 rounded" />
+              <Skeleton className="h-3.5 w-28 rounded" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-3.5 w-3.5 rounded" />
+              <Skeleton className="h-3.5 w-32 rounded" />
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-4 w-4 rounded" />
+            <Skeleton className="h-4 w-40 rounded" />
+          </div>
+        </div>
       </div>
     );
   }

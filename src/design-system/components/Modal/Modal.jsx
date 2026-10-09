@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { cn } from '@/design-system/utils/cn';
 
-export function Modal({ open, onClose, title, children, footer, size = 'md' }) {
+export function Modal({ open, onClose, title, children, footer, size = 'md', className, bodyClassName }) {
   useEffect(() => {
     if (!open) return;
     const handleKeyDown = (e) => {
@@ -26,6 +26,7 @@ export function Modal({ open, onClose, title, children, footer, size = 'md' }) {
     md: 'max-w-lg',
     lg: 'max-w-2xl',
     xl: 'max-w-4xl',
+    '2xl': 'max-w-5xl',
   };
 
   const handleClose = (e) => {
@@ -40,7 +41,7 @@ export function Modal({ open, onClose, title, children, footer, size = 'md' }) {
 
   return createPortal(
     <div
-      className="liquid-glass-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs"
+      className="liquid-glass-overlay fixed inset-0 z-50 flex items-center justify-center p-4 pt-12 sm:pt-14 bg-black/40"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           handleClose(e);
@@ -49,13 +50,14 @@ export function Modal({ open, onClose, title, children, footer, size = 'md' }) {
     >
       <div
         className={cn(
-          'liquid-glass relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl bg-surface-card border border-surface-border shadow-2xl z-10',
-          widths[size] || widths.md
+          'liquid-glass relative flex max-h-[calc(92vh-3rem)] w-full flex-col overflow-hidden rounded-2xl bg-surface-card border border-surface-border shadow-2xl z-10 transform-gpu',
+          widths[size] || widths.md,
+          className
         )}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-surface-border/60 bg-surface-subtle/50 px-5 py-4">
+        <div className="flex shrink-0 items-center justify-between border-b border-surface-border/60 bg-surface-subtle/50 px-5 py-3.5">
           <div className="min-w-0 flex-1 pr-4">
             {typeof title === 'string' ? (
               <h3 className="text-lg font-bold text-ink-900 tracking-tight truncate">{title}</h3>
@@ -75,7 +77,7 @@ export function Modal({ open, onClose, title, children, footer, size = 'md' }) {
         </div>
 
         {/* Modal Body */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 text-ink-700">
+        <div className={cn("min-h-0 flex-1 overflow-y-auto px-5 py-3.5 text-ink-700 overscroll-contain transform-gpu", bodyClassName)}>
           {children}
         </div>
 

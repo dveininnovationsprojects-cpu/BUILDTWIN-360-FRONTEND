@@ -26,6 +26,7 @@ import {
   REQUEST_PRIORITIES,
 } from '../api/materialRequestsApi';
 import { UNIT_LABEL_MAP } from '../api/materialsInventoryApi';
+import { labourContractorsApi } from '@/modules/labour-contractors/api/labourContractorsApi';
 import { MaterialRequestModal } from './MaterialRequestModal';
 import { MaterialRequestDetailModal } from './MaterialRequestDetailModal';
 
@@ -65,6 +66,13 @@ export function MaterialRequestsTab({
     queryKey: ['material-requests'],
     queryFn: () => materialRequestsApi.listByProject(1),
     staleTime: 15_000,
+  });
+
+  // Fetch contractors for allocation resolution
+  const { data: contractors = [] } = useQuery({
+    queryKey: ['contractors-dropdown-list'],
+    queryFn: () => labourContractorsApi.listContractors(),
+    staleTime: 60_000,
   });
 
   // Fast quick-approve mutation directly from table
@@ -190,12 +198,24 @@ export function MaterialRequestsTab({
     },
     {
       key: 'location',
-      header: 'Zone / Location',
-      render: (row) => (
-        <span className="text-xs text-ink-600 block truncate max-w-[140px]" title={row.zone || row.siteName}>
-          {row.zone || row.siteName || 'Site Store'}
-        </span>
-      ),
+      header: 'Zone / Contractor',
+      render: (row) => {
+        const c = contractors.find((con) => String(con.id) === String(row.contractorId));
+        return (
+          <div className="flex flex-col max-w-[150px]">
+            <span className="text-xs text-ink-700 font-medium truncate" title={row.zone || row.siteName}>
+              {row.zone || row.siteName || 'Site Store'}
+            </span>
+            {c ? (
+              <span className="text-[10px] text-brand-600 font-medium truncate">
+                {c.contractorName || c.name || c.companyName}
+              </span>
+            ) : row.contractorName ? (
+              <span className="text-[10px] text-ink-400 truncate">{row.contractorName}</span>
+            ) : null}
+          </div>
+        );
+      },
     },
     {
       key: 'requestedBy',
@@ -386,6 +406,7 @@ export function MaterialRequestsTab({
         onClose={() => setSelectedRequest(null)}
         request={selectedRequest}
         material={materials.find((m) => String(m.id) === String(selectedRequest?.materialId))}
+        contractors={contractors}
         onIssueMaterial={(req) => onOpenIssueModal?.(req)}
       />
     </div>

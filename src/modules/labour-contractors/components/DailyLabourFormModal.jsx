@@ -13,10 +13,13 @@ export function DailyLabourFormModal({
 }) {
   const isEdit = Boolean(initialData && initialData.id);
 
-  const contractorSelectOptions = contractors.map((c) => ({
-    value: c.id,
-    label: `${c.companyName || c.name} (${c.tradeSpecialization || 'Specialist'})`,
-  }));
+  const contractorSelectOptions = contractors.map((c) => {
+    const typeLabel = c.contractorType === 'SUBCONTRACTOR' ? 'Subcontractor' : 'Main';
+    return {
+      value: c.id,
+      label: `${c.companyName || c.name} [${typeLabel}] (${c.tradeSpecialization || 'Specialist'})`,
+    };
+  });
 
   const {
     register,

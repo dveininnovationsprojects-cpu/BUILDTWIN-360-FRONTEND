@@ -759,10 +759,7 @@ export function DashboardPage() {
   const isPieRole = [ROLES.PROJECT_MANAGER, ROLES.COST_COORDINATOR, ROLES.QUALITY_ENGINEER].includes(userRole);
 
   return (
-    /* Fits 100% inside AppShell main container without triggering window scrollbar */
-    <div className="-mx-4 -my-4 sm:-mx-6 sm:-my-6 h-[calc(100vh-3.75rem)] p-2 md:p-3 bg-[#e5e7eb] flex flex-col box-border overflow-hidden">
-      {/* Outer Bordered Template Frame (Matching Image Border & Single Screen Fit) */}
-      <div className="h-full w-full max-w-[1650px] mx-auto bg-white rounded-2xl p-2.5 md:p-3 border border-slate-300 shadow-xl flex flex-col gap-2 overflow-hidden">
+    <div className="h-[calc(100vh-6.5rem)] w-full bg-white rounded-2xl p-2.5 md:p-3 border border-slate-200/90 shadow-sm flex flex-col gap-2 overflow-hidden">
         
         {/* Template Header Bar with Interactive Status Filters */}
         <div className="h-8 flex-shrink-0 flex items-center justify-between pb-1 gap-2 border-b border-slate-200">
@@ -1098,6 +1095,5 @@ export function DashboardPage() {
           })}
         </div>
       </div>
-    </div>
   );
 }

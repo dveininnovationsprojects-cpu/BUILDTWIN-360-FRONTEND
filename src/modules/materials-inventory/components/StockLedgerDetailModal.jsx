@@ -79,6 +79,7 @@ export function StockLedgerDetailModal({
   materials = [],
   projects = [],
   wbsActivities = [],
+  contractors = [],
 }) {
   if (!entry) return null;
 
@@ -94,10 +95,13 @@ export function StockLedgerDetailModal({
 
   // Resolve associated project
   const project = projects.find((p) => String(p.id) === String(entry.projectId));
-  const projectName = project ? `${project.code} - ${project.name}` : `Project #${entry.projectId || '1'}`;
+  const projectName = project ? `${project.code || `PROJ-${project.id}`} - ${project.name}` : `Project #${entry.projectId || '1'}`;
 
   // Resolve associated WBS Activity
   const activity = wbsActivities.find((w) => String(w.id) === String(entry.activityId));
+
+  // Resolve associated contractor
+  const contractor = contractors.find((c) => String(c.id) === String(entry.contractorId));
 
   // Movement config
   const typeCfg = TYPE_CONFIG[entry.transactionType] || {
@@ -343,7 +347,7 @@ export function StockLedgerDetailModal({
                     <span className="text-ink-500">Issued To Contractor</span>
                     <span className="inline-flex items-center text-ink-800 font-medium">
                       <HardHat className="h-3 w-3 mr-1 text-ink-400" />
-                      Contractor #{entry.contractorId}
+                      {contractor ? (contractor.contractorName || contractor.name || contractor.companyName) : `Contractor #${entry.contractorId}`}
                     </span>
                   </div>
                 )}

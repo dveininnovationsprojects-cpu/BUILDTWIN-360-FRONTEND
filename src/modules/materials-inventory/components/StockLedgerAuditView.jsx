@@ -19,7 +19,7 @@ import {
   MapPin,
   Package,
 } from 'lucide-react';
-import { Table, Button } from '@/design-system';
+import { Table, Button, CardSkeleton } from '@/design-system';
 import {
   stockLedgerApi,
   STOCK_TRANSACTION_TYPES,
@@ -27,6 +27,7 @@ import {
 } from '../api/materialsInventoryApi';
 import { projectsApi } from '@/modules/projects/api/projectsApi';
 import { wbsScheduleApi } from '@/modules/wbs-schedule/api/wbsScheduleApi';
+import { labourContractorsApi } from '@/modules/labour-contractors/api/labourContractorsApi';
 import { StockLedgerDetailModal } from './StockLedgerDetailModal';
 
 const TYPE_CONFIG = {
@@ -104,6 +105,13 @@ export function StockLedgerAuditView({
     queryFn: () => wbsScheduleApi.list(Number(projectId)),
     enabled: Boolean(projectId),
     staleTime: 30_000,
+  });
+
+  // Fetch Contractors for contractor name resolution
+  const { data: contractors = [] } = useQuery({
+    queryKey: ['contractors-dropdown-list'],
+    queryFn: () => labourContractorsApi.listContractors(),
+    staleTime: 60_000,
   });
 
   // Fetch stock ledger based on filters:
@@ -261,6 +269,7 @@ export function StockLedgerAuditView({
       header: 'Site / WBS / Zone',
       render: (row) => {
         const act = wbsActivities.find((w) => String(w.id) === String(row.activityId));
+        const contractor = contractors.find((c) => String(c.id) === String(row.contractorId));
         return (
           <div className="flex flex-col max-w-[200px]">
             {act ? (
@@ -271,9 +280,13 @@ export function StockLedgerAuditView({
               <span className="font-medium text-xs text-ink-700">WBS #{row.activityId}</span>
             ) : null}
             {row.zone && <span className="text-[11px] text-ink-500 truncate">{row.zone}</span>}
-            {row.contractorId && (
+            {contractor ? (
+              <span className="text-[10px] text-brand-600 font-medium truncate" title={contractor.contractorName || contractor.name}>
+                {contractor.contractorName || contractor.name || contractor.companyName}
+              </span>
+            ) : row.contractorId ? (
               <span className="text-[10px] text-ink-400">Contractor #{row.contractorId}</span>
-            )}
+            ) : null}
             {!act && !row.zone && !row.contractorId && (
               <span className="text-[11px] text-ink-400">Central Warehouse</span>
             )}
@@ -503,9 +516,10 @@ export function StockLedgerAuditView({
       ) : (
         <div>
           {isLoading ? (
-            <div className="rounded-xl border border-surface-border bg-surface-card p-12 text-center text-ink-500">
-              <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2 text-brand-500" />
-              <p className="text-xs">Loading ledger entries...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <CardSkeleton key={i} className="min-h-[160px]" />
+              ))}
             </div>
           ) : entries.length === 0 ? (
             <div className="rounded-xl border border-surface-border bg-surface-card p-12 text-center text-ink-500">
@@ -630,6 +644,14 @@ export function StockLedgerAuditView({
                             <span className="truncate">Zone: {item.zone}</span>
                           </div>
                         )}
+                        {item.contractorId && (() => {
+                          const c = contractors.find((con) => String(con.id) === String(item.contractorId));
+                          return (
+                            <div className="flex items-center gap-1.5 truncate text-[11px] text-brand-600 font-medium">
+                              <span className="truncate">Contractor: {c ? (c.contractorName || c.name || c.companyName) : `#${item.contractorId}`}</span>
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
 
@@ -659,6 +681,7 @@ export function StockLedgerAuditView({
         materials={materials}
         projects={projects}
         wbsActivities={wbsActivities}
+        contractors={contractors}
       />
     </div>
   );

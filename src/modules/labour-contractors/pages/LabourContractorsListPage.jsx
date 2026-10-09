@@ -20,6 +20,8 @@ import {
   HardHat,
   XCircle,
   AlertTriangle,
+  Network,
+  Calculator,
 } from 'lucide-react';
 import { Table, Button } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
@@ -31,6 +33,7 @@ import { DailyLabourFormModal } from '../components/DailyLabourFormModal';
 import { ContractorDetailModal } from '../components/ContractorDetailModal';
 import { DailyLabourDetailModal } from '../components/DailyLabourDetailModal';
 import { DeleteConfirmModal } from '../components/DeleteConfirmModal';
+import { ProductivityCalculatorModal } from '../components/ProductivityCalculatorModal';
 
 const TRADE_COLOR_MAP = {
   MASON: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300',
@@ -67,6 +70,7 @@ export function LabourContractorsListPage() {
   // Modals state
   const [isContractorModalOpen, setContractorModalOpen] = useState(false);
   const [isLabourModalOpen, setLabourModalOpen] = useState(false);
+  const [isCalculatorModalOpen, setCalculatorModalOpen] = useState(false);
   const [editingContractor, setEditingContractor] = useState(null);
   const [editingLabour, setEditingLabour] = useState(null);
   const [viewingContractor, setViewingContractor] = useState(null);
@@ -79,6 +83,7 @@ export function LabourContractorsListPage() {
   const [tradeFilter, setTradeFilter] = useState('');
   const [contractorFilter, setContractorFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [contractorTypeFilter, setContractorTypeFilter] = useState('');
 
   const queryClient = useQueryClient();
   const pushToast = useToastStore((state) => state.push);
@@ -109,6 +114,12 @@ export function LabourContractorsListPage() {
     queryKey: ['contractors-list'],
     queryFn: () => labourContractorsApi.listContractors(),
   });
+
+  const { data: hoursSummary } = useQuery({
+    queryKey: ['labour-hours-summary'],
+    queryFn: () => labourContractorsApi.getHoursSummary({ projectId: 1 }),
+  });
+
 
   // -------------------------------------------------------------
   // MUTATIONS (CONTRACTOR MASTER)
@@ -196,23 +207,37 @@ export function LabourContractorsListPage() {
   // KPI STATS & ANALYTICS
   // -------------------------------------------------------------
   const stats = useMemo(() => {
-    const totalHeadcount = labourList.reduce((acc, r) => acc + (Number(r.headcount) || 0), 0);
+    const totalHeadcount = hoursSummary?.totalHeadcount !== undefined && hoursSummary?.totalHeadcount !== null
+      ? Number(hoursSummary.totalHeadcount)
+      : labourList.reduce((acc, r) => acc + (Number(r.headcount) || 0), 0);
+
     const activeContractors = contractorsList.filter((c) => c.status === 'ACTIVE');
+    const mainContractors = contractorsList.filter((c) => c.contractorType !== 'SUBCONTRACTOR');
+    const subContractors = contractorsList.filter((c) => c.contractorType === 'SUBCONTRACTOR');
+
     const uniqueTrades = new Set(
       [...labourList.map((r) => r.trade || r.tradeCategory), ...contractorsList.map((c) => c.tradeSpecialization)].filter(Boolean)
     );
+
     const totalStdHours = labourList.reduce((acc, r) => acc + (Number(r.standardHours) || 8) * (Number(r.headcount) || 1), 0);
-    const totalOTHours = labourList.reduce((acc, r) => acc + (Number(r.overtimeHours) || 0) * (Number(r.headcount) || 1), 0);
-    const totalHours = totalStdHours + totalOTHours;
+    const totalOTHours = hoursSummary?.totalOvertimeHours !== undefined && hoursSummary?.totalOvertimeHours !== null
+      ? Number(hoursSummary.totalOvertimeHours)
+      : labourList.reduce((acc, r) => acc + (Number(r.overtimeHours) || 0) * (Number(r.headcount) || 1), 0);
+
+    const totalHours = hoursSummary?.totalLabourHours !== undefined && hoursSummary?.totalLabourHours !== null
+      ? Number(hoursSummary.totalLabourHours)
+      : (totalStdHours + totalOTHours);
 
     return {
       totalHeadcount,
       activeContractorsCount: activeContractors.length || contractorsList.length || 5,
+      mainContractorsCount: mainContractors.length,
+      subContractorsCount: subContractors.length,
       activeTradesCount: uniqueTrades.size || 5,
       totalHours: Math.round(totalHours),
       totalOvertimeHours: Math.round(totalOTHours),
     };
-  }, [labourList, contractorsList]);
+  }, [labourList, contractorsList, hoursSummary]);
 
   const tradeBreakdown = useMemo(() => {
     const map = {};
@@ -378,9 +403,10 @@ export function LabourContractorsListPage() {
 
       const matchesTrade = !tradeFilter || c.tradeSpecialization === tradeFilter;
       const matchesStatus = !statusFilter || c.status === statusFilter;
-      return matchesSearch && matchesTrade && matchesStatus;
+      const matchesType = !contractorTypeFilter || c.contractorType === contractorTypeFilter;
+      return matchesSearch && matchesTrade && matchesStatus && matchesType;
     });
-  }, [contractorsList, searchQuery, tradeFilter, statusFilter]);
+  }, [contractorsList, searchQuery, tradeFilter, statusFilter, contractorTypeFilter]);
 
   // -------------------------------------------------------------
   // TABLE COLUMNS
@@ -529,6 +555,47 @@ export function LabourContractorsListPage() {
       ),
     },
     {
+      key: 'tierHierarchy',
+      header: 'Tier & Parent Hierarchy',
+      render: (row) => {
+        const isSub = row.contractorType === 'SUBCONTRACTOR';
+        const parent = isSub && row.parentContractorId
+          ? contractorsList.find((c) => String(c.id) === String(row.parentContractorId))
+          : null;
+        const subCount = !isSub
+          ? contractorsList.filter((c) => String(c.parentContractorId) === String(row.id)).length
+          : 0;
+
+        return (
+          <div className="flex flex-col gap-1">
+            <span
+              className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold w-fit ${
+                isSub
+                  ? 'border-purple-300 bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:border-purple-800 dark:text-purple-300'
+                  : 'border-brand-300 bg-brand-50 text-brand-800 dark:bg-brand-950/40 dark:border-brand-800 dark:text-brand-300'
+              }`}
+            >
+              <Network className="h-3 w-3" />
+              {isSub ? 'Subcontractor' : 'Main Contractor'}
+            </span>
+            {isSub ? (
+              <span className="text-[11px] text-ink-500 flex items-center gap-1">
+                Parent: <strong className="text-ink-800">{parent ? parent.companyName : (row.parentContractorId ? `ID #${row.parentContractorId}` : 'Direct Agency')}</strong>
+              </span>
+            ) : (
+              <span className="text-[11px] text-ink-500">
+                {subCount > 0 ? (
+                  <strong className="text-brand-700 font-semibold">{subCount} Subcontractor{subCount > 1 ? 's' : ''}</strong>
+                ) : (
+                  <span className="text-ink-400 italic">0 Subcontractors</span>
+                )}
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
       key: 'tradeSpecialization',
       header: 'Trade Specialization',
       render: (row) => <TradeBadge trade={row.tradeSpecialization} />,
@@ -646,40 +713,53 @@ export function LabourContractorsListPage() {
           <h1 className="page-heading">Labour & Contractors</h1>
         </div>
 
-        {canManage && (
-          <div className="flex items-center gap-2">
-            {activeTab === 'contractors' ? (
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => {
-                  setEditingContractor(null);
-                  setContractorModalOpen(true);
-                }}
-                className="flex items-center gap-1.5 shadow-sm"
-              >
-                <Plus className="h-4 w-4" />
-                Register Contractor
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => {
-                  setEditingLabour(null);
-                  setLabourModalOpen(true);
-                }}
-                className="flex items-center gap-1.5 shadow-sm"
-              >
-                <Plus className="h-4 w-4" />
-                Log Daily Labour
-              </Button>
-            )}
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setCalculatorModalOpen(true)}
+            className="flex items-center gap-1.5 shadow-xs text-brand-700 border-brand-300 bg-brand-50/50 hover:bg-brand-100 dark:bg-brand-950/30 dark:border-brand-800 dark:text-brand-300"
+          >
+            <Calculator className="h-4 w-4 text-brand-600" />
+            Productivity Calculator
+          </Button>
+
+          {canManage && (
+            <>
+              {activeTab === 'contractors' ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    setEditingContractor(null);
+                    setContractorModalOpen(true);
+                  }}
+                  className="flex items-center gap-1.5 shadow-sm"
+                >
+                  <Plus className="h-4 w-4" />
+                  Register Contractor
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    setEditingLabour(null);
+                    setLabourModalOpen(true);
+                  }}
+                  className="flex items-center gap-1.5 shadow-sm"
+                >
+                  <Plus className="h-4 w-4" />
+                  Log Daily Labour
+                </Button>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {[
           {
             label: 'Total Headcount',
@@ -688,10 +768,16 @@ export function LabourContractorsListPage() {
             color: 'text-brand-700 bg-brand-50/70 border-brand-200 dark:bg-brand-950/40 dark:border-brand-800 dark:text-brand-300',
           },
           {
-            label: 'Contractors',
-            value: stats.activeContractorsCount,
+            label: 'Main Contractors',
+            value: stats.mainContractorsCount,
             icon: Building2,
             color: 'text-status-success bg-status-successBg border-status-success/30',
+          },
+          {
+            label: 'Subcontractors',
+            value: stats.subContractorsCount,
+            icon: Network,
+            color: 'text-purple-700 bg-purple-50/70 border-purple-200 dark:bg-purple-950/40 dark:border-purple-800 dark:text-purple-300',
           },
           {
             label: 'Active Trades',
@@ -839,6 +925,15 @@ export function LabourContractorsListPage() {
                 className="w-full rounded-lg border border-surface-border bg-surface-subtle py-1.5 pl-9 pr-3 text-xs text-ink-900 placeholder:text-ink-400 focus:border-brand-500 focus:bg-surface-base focus:outline-none"
               />
             </div>
+            <select
+              value={contractorTypeFilter}
+              onChange={(e) => setContractorTypeFilter(e.target.value)}
+              className="rounded-lg border border-surface-border bg-surface-subtle px-2.5 py-1.5 text-xs text-ink-900 focus:border-brand-500 focus:outline-none"
+            >
+              <option value="">All Contractor Tiers</option>
+              <option value="MAIN_CONTRACTOR">Main Contractors Only</option>
+              <option value="SUBCONTRACTOR">Subcontractors Only</option>
+            </select>
             <select
               value={tradeFilter}
               onChange={(e) => setTradeFilter(e.target.value)}
@@ -1089,6 +1184,7 @@ export function LabourContractorsListPage() {
           setEditingContractor(null);
         }}
         onSubmit={handleContractorSubmit}
+        contractors={contractorsList}
         initialData={editingContractor}
         isLoading={createContractorMutation.isPending || updateContractorMutation.isPending}
       />
@@ -1109,6 +1205,7 @@ export function LabourContractorsListPage() {
         open={Boolean(viewingContractor)}
         onClose={() => setViewingContractor(null)}
         contractor={viewingContractor}
+        contractors={contractorsList}
         onEdit={(ctr) => {
           setEditingContractor(ctr);
           setContractorModalOpen(true);
@@ -1123,6 +1220,11 @@ export function LabourContractorsListPage() {
           setEditingLabour(rec);
           setLabourModalOpen(true);
         }}
+      />
+
+      <ProductivityCalculatorModal
+        open={isCalculatorModalOpen}
+        onClose={() => setCalculatorModalOpen(false)}
       />
 
       <DeleteConfirmModal

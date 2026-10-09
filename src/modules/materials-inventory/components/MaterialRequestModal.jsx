@@ -27,6 +27,7 @@ import {
 } from '../api/materialRequestsApi';
 import { projectsApi } from '@/modules/projects/api/projectsApi';
 import { wbsScheduleApi } from '@/modules/wbs-schedule/api/wbsScheduleApi';
+import { labourContractorsApi } from '@/modules/labour-contractors/api/labourContractorsApi';
 
 export function MaterialRequestModal({
   open,
@@ -57,7 +58,7 @@ export function MaterialRequestModal({
       siteId: '',
       zone: '',
       wbsActivityId: '',
-      contractorName: '',
+      contractorId: '',
       requestedBy: currentUser?.name || currentUser?.username || 'Site Engineer',
       remarks: '',
     },
@@ -81,7 +82,7 @@ export function MaterialRequestModal({
         siteId: '',
         zone: '',
         wbsActivityId: '',
-        contractorName: '',
+        contractorId: '',
         requestedBy: currentUser?.name || currentUser?.username || 'Site Engineer',
         remarks: '',
       });
@@ -121,6 +122,14 @@ export function MaterialRequestModal({
     staleTime: 30_000,
   });
 
+  // Fetch contractors for dropdown
+  const { data: contractors = [] } = useQuery({
+    queryKey: ['contractors-dropdown-list'],
+    queryFn: () => labourContractorsApi.listContractors(),
+    enabled: open,
+    staleTime: 60_000,
+  });
+
   // Calculations
   const numericQty = parseFloat(watchedQty) || 0;
   const currentStock = Number(activeMaterial?.currentStock ?? 0);
@@ -152,7 +161,7 @@ export function MaterialRequestModal({
         wbsActivityId: values.wbsActivityId ? Number(values.wbsActivityId) : null,
         activityName: selectedWbs?.name || '',
         zone: values.zone?.trim() || null,
-        contractorName: values.contractorName?.trim() || null,
+        contractorId: values.contractorId ? Number(values.contractorId) : null,
         requestedBy: values.requestedBy?.trim() || currentUser?.name || 'Site Engineer',
         remarks: values.remarks?.trim() || null,
       });
@@ -443,12 +452,17 @@ export function MaterialRequestModal({
 
           <div>
             <label className="mb-1 block text-xs font-medium text-ink-700">Executing Contractor (Optional)</label>
-            <input
-              type="text"
-              placeholder="e.g. L&T Civil / Afcons Reinforcement"
-              {...form.register('contractorName')}
+            <select
+              {...form.register('contractorId')}
               className="w-full rounded-lg border border-surface-border bg-surface-base px-3 py-2 text-xs text-ink-900 focus:border-brand-500 focus:outline-none"
-            />
+            >
+              <option value="">-- No contractor assigned --</option>
+              {contractors.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.contractorName || c.name || c.companyName} {c.contractorType ? `(${c.contractorType})` : ''}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 

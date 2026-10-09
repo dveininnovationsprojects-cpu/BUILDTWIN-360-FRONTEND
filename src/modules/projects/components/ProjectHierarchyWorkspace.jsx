@@ -12,7 +12,7 @@ import {
   IndianRupee,
   ArrowLeft,
 } from 'lucide-react';
-import { StatusPill, Tabs, Spinner } from '@/design-system';
+import { StatusPill, Tabs, Spinner, Skeleton } from '@/design-system';
 import { projectsApi } from '../api/projectsApi';
 import { SitesManager } from './SitesManager';
 import { BuildingsManager } from './BuildingsManager';
@@ -119,8 +119,32 @@ export function ProjectHierarchyWorkspace({ projectId, onBack }) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Spinner className="h-8 w-8" />
+      <div className="space-y-6">
+        <div className="surface-panel p-5 rounded-2xl space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-9 w-9 rounded-xl" />
+              <div className="space-y-1.5">
+                <Skeleton className="h-5 w-48 rounded" />
+                <Skeleton className="h-3.5 w-32 rounded" />
+              </div>
+            </div>
+            <Skeleton className="h-6 w-20 rounded-full" />
+          </div>
+          <div className="flex gap-4 pt-2 border-t border-surface-border">
+            <Skeleton className="h-8 w-24 rounded-lg" />
+            <Skeleton className="h-8 w-24 rounded-lg" />
+            <Skeleton className="h-8 w-24 rounded-lg" />
+          </div>
+        </div>
+        <div className="surface-panel p-6 rounded-2xl min-h-[300px]">
+          <Skeleton className="h-6 w-40 mb-4 rounded" />
+          <div className="space-y-3">
+            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-10 w-full rounded-lg" />
+          </div>
+        </div>
       </div>
     );
   }

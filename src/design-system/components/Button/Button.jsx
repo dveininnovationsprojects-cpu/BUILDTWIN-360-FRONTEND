@@ -4,15 +4,15 @@ import { Loader2 } from 'lucide-react';
 import { cn } from '@/design-system/utils/cn';
 
 const buttonVariants = cva(
-  'liquid-glass-button inline-flex items-center justify-center gap-2 rounded font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-1 cursor-pointer',
+  'liquid-glass-button inline-flex items-center justify-center gap-2 rounded font-medium active:scale-[0.98] select-none disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-1 cursor-pointer',
   {
     variants: {
       variant: {
-        primary: 'gradient-accent text-white hover:shadow-md',
-        secondary: 'bg-brand-100 text-brand-800 hover:bg-brand-200',
-        outline: 'border border-surface-border text-ink-900 hover:bg-surface-muted',
-        ghost: 'text-ink-700 hover:bg-surface-muted',
-        danger: 'bg-status-danger text-white hover:bg-status-critical',
+        primary: 'gradient-accent text-white hover:shadow-md hover:brightness-105 active:brightness-95',
+        secondary: 'btn-secondary bg-brand-100 text-brand-800 hover:bg-brand-200 active:bg-brand-300',
+        outline: 'border border-surface-border text-ink-900 hover:bg-surface-muted hover:border-ink-300 active:bg-surface-border',
+        ghost: 'text-ink-700 hover:bg-surface-muted active:bg-surface-border',
+        danger: 'bg-status-danger text-white hover:bg-status-critical hover:shadow-md active:opacity-90',
       },
       size: {
         sm: 'h-8 px-3 text-xs',
