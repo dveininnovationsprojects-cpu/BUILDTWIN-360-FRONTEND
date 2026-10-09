@@ -52,7 +52,7 @@ const ROLE_THEMES = {
     composedLine: '#047857',
     badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200',
     tabActive: 'bg-emerald-600 text-white',
-    cardOrder: ['card2', 'card4', 'card1', 'card6', 'card3', 'card5'],
+    cardOrder: ['card2', 'card6', 'card4', 'card1', 'card3', 'card5'],
     chartStyle: { card1: 'DUAL_LINE_DOTS', card2: 'SOLID_PIE', card3: 'ROUNDED_BAR', card4: 'GROUPED_VERTICAL_BAR', card6: 'STEP_LINE' },
     titles: {
       card1: 'Schedule Variance & Milestone Drift',
@@ -72,7 +72,7 @@ const ROLE_THEMES = {
     composedLine: '#b45309',
     badgeBg: 'bg-amber-50 text-amber-800 border-amber-200',
     tabActive: 'bg-amber-600 text-white',
-    cardOrder: ['card4', 'card3', 'card5', 'card1', 'card2', 'card6'],
+    cardOrder: ['card4', 'card3', 'card5', 'card2', 'card6', 'card1'],
     chartStyle: { card1: 'STACKED_COLUMN_BAR', card2: 'HALF_GAUGE_PIE', card3: 'AREA_SMOOTH', card4: 'GROUPED_VERTICAL_BAR', card6: 'COMPOSED_DUAL_AXIS' },
     titles: {
       card1: 'Structural Pour Progress by Zone',
@@ -92,7 +92,7 @@ const ROLE_THEMES = {
     composedLine: '#9f1239',
     badgeBg: 'bg-rose-50 text-rose-700 border-rose-200',
     tabActive: 'bg-rose-600 text-white',
-    cardOrder: ['card3', 'card5', 'card2', 'card6', 'card4', 'card1'],
+    cardOrder: ['card3', 'card5', 'card6', 'card4', 'card1', 'card2'],
     chartStyle: { card1: 'GROUPED_COLUMN_BAR', card2: 'DONUT', card3: 'ROUNDED_BAR', card4: 'GROUPED_VERTICAL_BAR', card6: 'COMPOSED_BAR_LINE' },
     titles: {
       card1: 'Gang Daily Output vs Shift Capacity',
@@ -112,7 +112,7 @@ const ROLE_THEMES = {
     composedLine: '#1e3a8a',
     badgeBg: 'bg-blue-50 text-blue-700 border-blue-200',
     tabActive: 'bg-blue-600 text-white',
-    cardOrder: ['card5', 'card2', 'card6', 'card1', 'card4', 'card3'],
+    cardOrder: ['card5', 'card1', 'card2', 'card6', 'card3', 'card4'],
     chartStyle: { card1: 'AREA_STEEP', card2: 'DONUT', card3: 'ROUNDED_BAR', card4: 'AREA_FLOW', card6: 'LINE_BIG_DOTS' },
     titles: {
       card1: 'Material Inward vs Consumption Flow',
@@ -132,7 +132,7 @@ const ROLE_THEMES = {
     composedLine: '#451a03',
     badgeBg: 'bg-amber-100 text-amber-900 border-amber-300',
     tabActive: 'bg-amber-700 text-white',
-    cardOrder: ['card1', 'card5', 'card3', 'card2', 'card6', 'card4'],
+    cardOrder: ['card6', 'card4', 'card1', 'card5', 'card2', 'card3'],
     chartStyle: { card1: 'SPLINE_LINE_DUAL', card2: 'SOLID_PIE', card3: 'DUAL_BAR', card4: 'STACKED_HORIZONTAL_BAR', card6: 'COMPOSED_AREA_LINE' },
     titles: {
       card1: 'Cumulative Budget vs Actual Cost',
@@ -152,7 +152,7 @@ const ROLE_THEMES = {
     composedLine: '#86198f',
     badgeBg: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200',
     tabActive: 'bg-fuchsia-600 text-white',
-    cardOrder: ['card6', 'card2', 'card3', 'card1', 'card5', 'card4'],
+    cardOrder: ['card2', 'card3', 'card1', 'card5', 'card4', 'card6'],
     chartStyle: { card1: 'STACKED_COLUMN_BAR', card2: 'DONUT', card3: 'CURVED_LINE_DOTS', card4: 'GROUPED_VERTICAL_BAR', card6: 'COMPOSED_BAR_LINE' },
     titles: {
       card1: 'Inspections Passed vs Failed by Zone',
@@ -172,7 +172,7 @@ const ROLE_THEMES = {
     composedLine: '#164e63',
     badgeBg: 'bg-cyan-50 text-cyan-700 border-cyan-200',
     tabActive: 'bg-cyan-600 text-white',
-    cardOrder: ['card3', 'card1', 'card6', 'card2', 'card4', 'card5'],
+    cardOrder: ['card3', 'card6', 'card4', 'card2', 'card5', 'card1'],
     chartStyle: { card1: 'DUAL_AREA_SMOOTH', card2: 'HALF_GAUGE_PIE', card3: 'DUAL_LINE', card4: 'AREA_FLOW', card6: 'COMPOSED_AREA_LINE' },
     titles: {
       card1: 'SPI & CPI Performance Index Curves',
@@ -192,7 +192,7 @@ const ROLE_THEMES = {
     composedLine: '#020617',
     badgeBg: 'bg-slate-100 text-slate-800 border-slate-300',
     tabActive: 'bg-slate-800 text-white',
-    cardOrder: ['card6', 'card1', 'card3', 'card2', 'card4', 'card5'],
+    cardOrder: ['card6', 'card1', 'card3', 'card5', 'card2', 'card4'],
     chartStyle: { card1: 'AREA_GRADIENT', card2: 'SOLID_PIE', card3: 'ROUNDED_BAR', card4: 'GROUPED_VERTICAL_BAR', card6: 'STEP_LINE' },
     titles: {
       card1: 'API Latency & Server CPU Load Curve',
@@ -212,7 +212,7 @@ const ROLE_THEMES = {
     composedLine: '#059669',
     badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     tabActive: 'bg-emerald-500 text-white',
-    cardOrder: ['card5', 'card1', 'card4', 'card2', 'card3', 'card6'],
+    cardOrder: ['card5', 'card4', 'card1', 'card3', 'card6', 'card2'],
     chartStyle: { card1: 'STEP_LINE', card2: 'DONUT', card3: 'DUAL_BAR', card4: 'STACKED_HORIZONTAL_BAR', card6: 'COMPOSED_BAR_LINE' },
     titles: {
       card1: 'Audit Trail & Baseline Lock History',
