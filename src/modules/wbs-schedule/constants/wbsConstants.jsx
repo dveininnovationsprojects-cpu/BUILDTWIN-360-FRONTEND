@@ -39,9 +39,39 @@ export const DISCIPLINE_BADGES = {
 };
 
 export const STATUS_BADGES = {
-  PLANNED: 'bg-slate-100 text-slate-700 border-slate-200',
-  IN_PROGRESS: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  ON_HOLD: 'bg-amber-50 text-amber-700 border-amber-200',
-  COMPLETED: 'bg-blue-50 text-blue-700 border-blue-200',
-  CANCELLED: 'bg-rose-50 text-rose-700 border-rose-200',
+  PLANNED: 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300',
+  IN_PROGRESS: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400',
+  ON_HOLD: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400',
+  COMPLETED: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-400',
+  DELAYED: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400',
+  CANCELLED: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400',
 };
+
+// Units of Measure matching Spring Boot DTOs
+export const WBS_UOMS = [
+  { value: 'CUM', label: 'Cubic Meters (CUM / m³)' },
+  { value: 'SQFT', label: 'Square Feet (SQFT)' },
+  { value: 'SQM', label: 'Square Meters (SQM / m²)' },
+  { value: 'RMT', label: 'Running Meters (RMT)' },
+  { value: 'KG', label: 'Kilograms (KG)' },
+  { value: 'MT', label: 'Metric Tonnes (MT)' },
+  { value: 'NOS', label: 'Numbers / Units (NOS)' },
+  { value: 'POINTS', label: 'Electrical / Plumbing Points' },
+  { value: 'PERCENT', label: 'Percentage (%)' },
+];
+
+// Activity Dependency Precedence Types (CPM)
+export const DEPENDENCY_TYPES = [
+  { value: 'FS', label: 'Finish-to-Start (FS)', description: 'Successor starts after Predecessor finishes' },
+  { value: 'SS', label: 'Start-to-Start (SS)', description: 'Successor starts together with Predecessor' },
+  { value: 'FF', label: 'Finish-to-Finish (FF)', description: 'Successor finishes together with Predecessor' },
+  { value: 'SF', label: 'Start-to-Finish (SF)', description: 'Successor finishes after Predecessor starts' },
+];
+
+export const DEPENDENCY_TYPE_BADGES = {
+  FS: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300',
+  SS: 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300',
+  FF: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300',
+  SF: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300',
+};
+

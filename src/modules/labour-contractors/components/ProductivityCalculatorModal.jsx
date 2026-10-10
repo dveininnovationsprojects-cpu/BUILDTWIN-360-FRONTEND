@@ -90,10 +90,6 @@ export function ProductivityCalculatorModal({ open, onClose }) {
       }
     >
       <div className="flex flex-col gap-4 text-xs">
-        <div className="rounded-lg border border-brand-200/60 bg-brand-50/40 p-3 text-xs text-brand-900 dark:border-brand-900/40 dark:bg-brand-950/20 dark:text-brand-300">
-          ⚡ <strong>Real-Time Engineering Output Engine:</strong> Computes actual output rates (per labour hour) and man-hours required per execution unit using backend validation logic.
-        </div>
-
         <form onSubmit={handleCalculate} className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           <div className="md:col-span-2">
             <Input
@@ -140,7 +136,7 @@ export function ProductivityCalculatorModal({ open, onClose }) {
             <div className="flex items-center justify-between border-b border-brand-200/60 pb-2">
               <span className="font-bold text-ink-900 flex items-center gap-1.5">
                 <TrendingUp className="h-4 w-4 text-brand-600" />
-                Backend Calculated Productivity
+                Calculated Productivity
               </span>
               <span
                 className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${

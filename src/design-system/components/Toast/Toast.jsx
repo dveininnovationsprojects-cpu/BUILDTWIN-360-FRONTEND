@@ -6,7 +6,7 @@ import { cn } from '@/design-system/utils/cn';
 export const useToastStore = create((set) => ({
   toasts: [],
   push: (message, kind = 'info') =>
-    set((s) => ({ toasts: [...s.toasts, { id: Date.now() + Math.random(), message, kind }] })),
+    set(() => ({ toasts: [{ id: Date.now() + Math.random(), message, kind }] })),
   dismiss: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
 }));
 
@@ -49,7 +49,7 @@ export function ToastViewport() {
     <div
       role="region"
       aria-label="Notifications"
-      className="fixed top-2 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center gap-1.5 pointer-events-none w-max max-w-[92vw] px-3"
+      className="fixed top-5 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center gap-2.5 pointer-events-none w-full max-w-md px-4"
     >
       {toasts.map((t) => (
         <ToastRow key={t.id} toast={t} onDismiss={() => dismiss(t.id)} />
@@ -70,26 +70,26 @@ function ToastRow({ toast, onDismiss }) {
   return (
     <div
       className={cn(
-        'pointer-events-auto flex w-fit max-w-[90vw] items-center justify-between gap-2.5',
-        'rounded-full border bg-white/95 px-3 py-1 shadow-md shadow-black/10 backdrop-blur-md',
+        'pointer-events-auto flex w-full items-center justify-between gap-3',
+        'rounded-xl border bg-white/95 px-4 py-3 shadow-lg shadow-black/5 backdrop-blur-md',
         'dark:bg-surface-card/95 dark:border-surface-border',
-        'transition-all duration-200 animate-in fade-in slide-in-from-top-2',
+        'transition-all duration-200 animate-in fade-in slide-in-from-top-3',
         tone.border
       )}
     >
-      <div className="flex items-center gap-1.5 whitespace-nowrap">
-        <Icon className={cn('h-3.5 w-3.5 shrink-0', tone.icon)} />
-        <span className="text-xs font-medium text-ink-900 dark:text-white whitespace-nowrap">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <Icon className={cn('h-5 w-5 shrink-0', tone.icon)} />
+        <span className="text-sm font-medium text-ink-900 dark:text-white truncate sm:whitespace-normal">
           {toast.message}
         </span>
       </div>
       <button
         type="button"
         onClick={onDismiss}
-        className="ml-1 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-ink-400 hover:text-ink-700 hover:bg-surface-subtle transition-colors focus:outline-none"
+        className="ml-2 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-ink-400 hover:text-ink-700 hover:bg-surface-subtle dark:hover:text-ink-200 dark:hover:bg-surface-border transition-colors focus:outline-none"
         title="Dismiss notification"
       >
-        <X className="h-3 w-3" />
+        <X className="h-4 w-4" />
       </button>
     </div>
   );

@@ -185,3 +185,266 @@ export const wbsScheduleApi = {
     }
   },
 };
+
+// ==========================================
+// WBS ACTIVITIES API (WbsActivityController)
+// ==========================================
+export const wbsActivitiesApi = {
+  // GET /api/v1/work-packages/{workPackageId}/activities
+  listByWorkPackage: async (workPackageId) => {
+    try {
+      const res = await apiClient.get(`/work-packages/${workPackageId}/activities`);
+      const body = res.data?.data !== undefined ? res.data.data : res.data;
+      return Array.isArray(body) ? body : (body?.content || []);
+    } catch (err) {
+      console.error(`Failed to list activities for work package ${workPackageId}:`, err);
+      return [];
+    }
+  },
+
+  // GET /api/v1/projects/{projectId}/wbs-activities
+  listByProject: async (projectId = 1, params = {}) => {
+    try {
+      const res = await apiClient.get(`/projects/${projectId}/wbs-activities`, {
+        params: { size: 100, ...params },
+      });
+      const body = res.data?.data !== undefined ? res.data.data : res.data;
+      return Array.isArray(body) ? body : (body?.content || []);
+    } catch (err) {
+      console.error(`Failed to list activities for project ${projectId}:`, err);
+      return [];
+    }
+  },
+
+  // GET /api/v1/activities (Multi-criteria search)
+  search: async (params = {}) => {
+    try {
+      const res = await apiClient.get('/activities', { params: { size: 100, ...params } });
+      const body = res.data?.data !== undefined ? res.data.data : res.data;
+      return Array.isArray(body) ? body : (body?.content || []);
+    } catch (err) {
+      console.error('Failed to search activities:', err);
+      return [];
+    }
+  },
+
+  // GET /api/v1/activities/{id}
+  getById: async (id) => {
+    const res = await apiClient.get(`/activities/${id}`);
+    return res.data?.data !== undefined ? res.data.data : res.data;
+  },
+
+  // GET /api/v1/activities/{id}/tree
+  getTree: async (id) => {
+    const res = await apiClient.get(`/activities/${id}/tree`);
+    return res.data?.data !== undefined ? res.data.data : res.data;
+  },
+
+  // POST /api/v1/work-packages/{workPackageId}/activities
+  create: async (workPackageId, payload) => {
+    try {
+      const res = await apiClient.post(`/work-packages/${workPackageId}/activities`, payload);
+      return res.data?.data !== undefined ? res.data.data : res.data;
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Failed to create activity';
+      throw new Error(msg);
+    }
+  },
+
+  // POST /api/v1/activities/{parentId}/children
+  createChild: async (parentId, payload) => {
+    try {
+      const res = await apiClient.post(`/activities/${parentId}/children`, payload);
+      return res.data?.data !== undefined ? res.data.data : res.data;
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Failed to create child activity';
+      throw new Error(msg);
+    }
+  },
+
+  // PUT /api/v1/activities/{id}
+  update: async (id, payload) => {
+    try {
+      const res = await apiClient.put(`/activities/${id}`, payload);
+      return res.data?.data !== undefined ? res.data.data : res.data;
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Failed to update activity';
+      throw new Error(msg);
+    }
+  },
+
+  // PATCH /api/v1/activities/{id}/progress
+  updateProgress: async (id, payload) => {
+    try {
+      const res = await apiClient.patch(`/activities/${id}/progress`, payload);
+      return res.data?.data !== undefined ? res.data.data : res.data;
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Failed to update activity progress';
+      throw new Error(msg);
+    }
+  },
+
+  // PATCH /api/v1/activities/{id}/status
+  updateStatus: async (id, payload) => {
+    try {
+      const res = await apiClient.patch(`/activities/${id}/status`, payload);
+      return res.data?.data !== undefined ? res.data.data : res.data;
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Failed to update activity status';
+      throw new Error(msg);
+    }
+  },
+
+  // PATCH /api/v1/activities/{id}/assign
+  assign: async (id, payload) => {
+    try {
+      const res = await apiClient.patch(`/activities/${id}/assign`, payload);
+      return res.data?.data !== undefined ? res.data.data : res.data;
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Failed to assign activity';
+      throw new Error(msg);
+    }
+  },
+
+  // PATCH /api/v1/activities/{id}/reparent
+  reparent: async (id, payload) => {
+    try {
+      const res = await apiClient.patch(`/activities/${id}/reparent`, payload);
+      return res.data?.data !== undefined ? res.data.data : res.data;
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Failed to reparent activity';
+      throw new Error(msg);
+    }
+  },
+
+  // DELETE /api/v1/activities/{id}
+  delete: async (id) => {
+    try {
+      await apiClient.delete(`/activities/${id}`);
+      return true;
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Failed to delete activity';
+      throw new Error(msg);
+    }
+  },
+};
+
+// ================================================================
+// ACTIVITY DEPENDENCY & CPM NETWORK API (ActivityDependencyController)
+// ================================================================
+export const activityDependenciesApi = {
+  // GET /api/v1/projects/{projectId}/activity-dependencies
+  listByProject: async (projectId = 1) => {
+    try {
+      const res = await apiClient.get(`/projects/${projectId}/activity-dependencies`);
+      const body = res.data?.data !== undefined ? res.data.data : res.data;
+      return Array.isArray(body) ? body : [];
+    } catch (err) {
+      console.error(`Failed to list dependencies for project ${projectId}:`, err);
+      return [];
+    }
+  },
+
+  // GET /api/v1/work-packages/{workPackageId}/activity-dependencies
+  listByWorkPackage: async (workPackageId) => {
+    try {
+      const res = await apiClient.get(`/work-packages/${workPackageId}/activity-dependencies`);
+      const body = res.data?.data !== undefined ? res.data.data : res.data;
+      return Array.isArray(body) ? body : [];
+    } catch (err) {
+      console.error(`Failed to list dependencies for work package ${workPackageId}:`, err);
+      return [];
+    }
+  },
+
+  // GET /api/v1/activities/{activityId}/predecessors
+  getPredecessors: async (activityId) => {
+    try {
+      const res = await apiClient.get(`/activities/${activityId}/predecessors`);
+      const body = res.data?.data !== undefined ? res.data.data : res.data;
+      return Array.isArray(body) ? body : [];
+    } catch (err) {
+      console.error(`Failed to get predecessors for activity ${activityId}:`, err);
+      return [];
+    }
+  },
+
+  // GET /api/v1/activities/{activityId}/successors
+  getSuccessors: async (activityId) => {
+    try {
+      const res = await apiClient.get(`/activities/${activityId}/successors`);
+      const body = res.data?.data !== undefined ? res.data.data : res.data;
+      return Array.isArray(body) ? body : [];
+    } catch (err) {
+      console.error(`Failed to get successors for activity ${activityId}:`, err);
+      return [];
+    }
+  },
+
+  // GET /api/v1/activities/{activityId}/dependency-chain
+  getDependencyChain: async (activityId) => {
+    try {
+      const res = await apiClient.get(`/activities/${activityId}/dependency-chain`);
+      return res.data?.data !== undefined ? res.data.data : res.data;
+    } catch (err) {
+      console.error(`Failed to get dependency chain for activity ${activityId}:`, err);
+      return null;
+    }
+  },
+
+  // GET /api/v1/projects/{projectId}/activity-dependencies/network
+  getProjectNetwork: async (projectId = 1) => {
+    try {
+      const res = await apiClient.get(`/projects/${projectId}/activity-dependencies/network`);
+      return res.data?.data !== undefined ? res.data.data : res.data;
+    } catch (err) {
+      console.error(`Failed to get CPM network for project ${projectId}:`, err);
+      return null;
+    }
+  },
+
+  // POST /api/v1/activity-dependencies
+  create: async (payload) => {
+    try {
+      const res = await apiClient.post('/activity-dependencies', payload);
+      return res.data?.data !== undefined ? res.data.data : res.data;
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Failed to create precedence dependency';
+      throw new Error(msg);
+    }
+  },
+
+  // PUT /api/v1/activity-dependencies/{id}
+  update: async (id, payload) => {
+    try {
+      const res = await apiClient.put(`/activity-dependencies/${id}`, payload);
+      return res.data?.data !== undefined ? res.data.data : res.data;
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Failed to update precedence dependency';
+      throw new Error(msg);
+    }
+  },
+
+  // DELETE /api/v1/activity-dependencies/{id}
+  delete: async (id) => {
+    try {
+      await apiClient.delete(`/activity-dependencies/${id}`);
+      return true;
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Failed to delete precedence dependency';
+      throw new Error(msg);
+    }
+  },
+
+  // DELETE /api/v1/activities/{activityId}/dependencies
+  deleteByActivity: async (activityId) => {
+    try {
+      await apiClient.delete(`/activities/${activityId}/dependencies`);
+      return true;
+    } catch (err) {
+      const msg = err.response?.data?.message || err.message || 'Failed to delete dependencies for activity';
+      throw new Error(msg);
+    }
+  },
+};
+

@@ -2,6 +2,7 @@ import { Calendar, Clock, HardHat, Building } from 'lucide-react';
 import { StatusPill } from '@/design-system';
 import { formatCurrency } from '@/modules/projects/constants';
 import { DISCIPLINE_LABELS, DISCIPLINE_BADGES } from '../constants/wbsConstants';
+import { StatusGlowDot } from './WbsMicroVisuals';
 
 export function WbsTimelineView({ workPackages = [], onEdit, onUpdateStatus }) {
   if (workPackages.length === 0) {
@@ -59,11 +60,12 @@ export function WbsTimelineView({ workPackages = [], onEdit, onUpdateStatus }) {
                 </span>
               </div>
               <div className="flex items-center gap-2">
+                <StatusGlowDot status={wp.status} />
                 <StatusPill status={wp.status} />
                 <button
                   type="button"
                   onClick={() => onUpdateStatus?.(wp)}
-                  className="text-xs text-brand-600 hover:text-brand-800 font-medium px-2 py-1 rounded hover:bg-brand-50"
+                  className="text-xs text-brand-600 hover:text-brand-800 font-medium px-2 py-1 rounded-md hover:bg-brand-50 hover:scale-105 active:scale-95 transition-all"
                 >
                   Quick Status
                 </button>
@@ -116,16 +118,16 @@ export function WbsTimelineView({ workPackages = [], onEdit, onUpdateStatus }) {
                   </span>
                   <span className="font-semibold text-ink-700">{progressPercent}%</span>
                 </div>
-                <div className="w-full h-2 rounded-full bg-surface-subtle overflow-hidden">
+                <div className="w-full h-2 rounded-full bg-slate-200/80 dark:bg-slate-700 overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all duration-300 ${
+                    className={`h-full rounded-full transition-all duration-500 ease-out ${
                       wp.status === 'COMPLETED'
-                        ? 'bg-blue-600'
+                        ? 'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_8px_rgba(16,185,129,0.5)]'
                         : wp.status === 'ON_HOLD'
-                        ? 'bg-amber-500'
+                        ? 'bg-gradient-to-r from-amber-500 to-orange-400'
                         : wp.status === 'CANCELLED'
                         ? 'bg-rose-500'
-                        : 'bg-emerald-500'
+                        : 'bg-gradient-to-r from-brand-600 to-indigo-500 shadow-[0_0_8px_rgba(59,130,246,0.4)]'
                     }`}
                     style={{ width: `${progressPercent}%` }}
                   />
