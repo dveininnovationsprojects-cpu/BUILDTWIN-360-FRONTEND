@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ModulePageHeading } from '@/design-system/components/ModulePageHeading/ModulePageHeading';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Package,
@@ -437,7 +438,7 @@ export function MaterialsInventoryListPage() {
       {/* Top Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="page-heading">Materials & Inventory Control</h1>
+          <ModulePageHeading>Materials &amp; Inventory Control</ModulePageHeading>
         </div>
 
         <div className="flex items-center gap-2">

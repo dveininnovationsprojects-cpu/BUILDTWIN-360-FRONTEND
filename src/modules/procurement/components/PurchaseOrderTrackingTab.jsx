@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react';
 import { Button, StatCard, StatusPill, Table } from '@/design-system';
-import { AlertTriangle, CalendarClock, CheckCircle2, PackageCheck, Truck } from 'lucide-react';
+import { AlertTriangle, CalendarClock, CheckCircle2, Eye, PackageCheck, Truck } from 'lucide-react';
 
-export function PurchaseOrderTrackingTab({ purchaseOrders = [], suppliers = [], isLoading, canManage, onRecordGrn }) {
+export function PurchaseOrderTrackingTab({ purchaseOrders = [], suppliers = [], isLoading, canManage, onRecordGrn, onApprove, onUpdateStatus, onViewFulfillment }) {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const metrics = useMemo(() => {
     const today = new Date();
-    const open = purchaseOrders.filter((po) => !['DELIVERED', 'CANCELLED'].includes(po.status)).length;
-    const delivered = purchaseOrders.filter((po) => po.status === 'DELIVERED').length;
-    const overdue = purchaseOrders.filter((po) => po.deliveryDate && new Date(po.deliveryDate) < today && !['DELIVERED', 'CANCELLED'].includes(po.status)).length;
+    const open = purchaseOrders.filter((po) => !['FULFILLED', 'CANCELLED'].includes(po.status)).length;
+    const delivered = purchaseOrders.filter((po) => po.status === 'FULFILLED').length;
+    const overdue = purchaseOrders.filter((po) => po.deliveryDate && new Date(po.deliveryDate) < today && !['FULFILLED', 'CANCELLED'].includes(po.status)).length;
     const value = purchaseOrders.reduce((total, po) => total + Number(po.amount || 0), 0);
     return { open, delivered, overdue, value };
   }, [purchaseOrders]);
@@ -21,8 +21,23 @@ export function PurchaseOrderTrackingTab({ purchaseOrders = [], suppliers = [], 
     { key: 'materialName', header: 'Material', render: (row) => <span className="text-xs text-ink-700">{row.materialName || '—'}</span> },
     { key: 'amount', header: 'Order Value', render: (row) => <span className="text-xs font-semibold">{row.amount ? `₹${Number(row.amount).toLocaleString('en-IN')}` : '—'}</span> },
     { key: 'deliveryDate', header: 'Expected Delivery', render: (row) => <span className="text-xs text-ink-700">{row.deliveryDate || '—'}</span> },
-    { key: 'status', header: 'Status', render: (row) => <StatusPill status={row.status === 'DELIVERED' ? 'SUCCESS' : row.status === 'CANCELLED' ? 'DANGER' : 'WARNING'} label={row.status || 'ISSUED'} /> },
-    { key: 'actions', header: 'Actions', render: (row) => canManage && !['DELIVERED', 'CANCELLED'].includes(row.status) && <Button size="xs" variant="outline" onClick={() => onRecordGrn(row)}><PackageCheck className="mr-1 h-3.5 w-3.5" /> Receive</Button> },
+    { key: 'status', header: 'Status', render: (row) => <StatusPill status={row.status === 'FULFILLED' ? 'SUCCESS' : row.status === 'CANCELLED' || row.status === 'REJECTED' ? 'DANGER' : 'WARNING'} label={row.status || 'PENDING_APPROVAL'} /> },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (row) => canManage && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {row.status === 'PENDING_APPROVAL' && <>
+            <Button size="xs" onClick={() => onApprove?.(row, 'APPROVED')}>Approve</Button>
+            <Button size="xs" variant="outline" onClick={() => onApprove?.(row, 'REJECTED')}>Reject</Button>
+          </>}
+          {row.status === 'APPROVED' && <Button size="xs" onClick={() => onApprove?.(row, 'ISSUED')}>Issue PO</Button>}
+          {['ISSUED', 'PARTIALLY_DELIVERED'].includes(row.status) && <Button size="xs" variant="outline" onClick={() => onRecordGrn(row)}><PackageCheck className="mr-1 h-3.5 w-3.5" /> Receive</Button>}
+          {!['CANCELLED', 'FULFILLED'].includes(row.status) && <Button size="xs" variant="outline" onClick={() => onUpdateStatus?.(row, 'CANCELLED')}>Cancel</Button>}
+          <Button size="xs" variant="outline" onClick={() => onViewFulfillment?.(row)}><Eye className="mr-1 h-3.5 w-3.5" /> Details</Button>
+        </div>
+      ),
+    },
   ];
 
   return (

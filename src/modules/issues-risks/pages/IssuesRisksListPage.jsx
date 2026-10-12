@@ -68,7 +68,7 @@ export function IssuesRisksListPage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="page-heading">Issues & Risks</h1>
+          <ModulePageHeading>Issues &amp; Risks</ModulePageHeading>
         </div>
         {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>
@@ -107,3 +107,4 @@ export function IssuesRisksListPage() {
     </div>
   );
 }
+import { ModulePageHeading } from '@/design-system/components/ModulePageHeading/ModulePageHeading';

@@ -1,126 +1,106 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Activity, Edit, Filter, IndianRupee, Plus, RefreshCw, Search, Trash2, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-import { Table, Button, Modal, Input } from '@/design-system';
+import { Button, Input, Modal, StatusPill, Table } from '@/design-system';
+import { ModulePageHeading } from '@/design-system/components/ModulePageHeading/ModulePageHeading';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
 import { useHasRole } from '@/context/authStore';
 import { ROLES } from '@/constants/roles';
-import { costControlApi } from '../api/costControlApi';
+import { formatCurrency } from '@/modules/projects/constants';
+import { projectsApi } from '@/modules/projects/api/projectsApi';
+import { costControlApi, costTransactionApi, costAnalyticsApi } from '../api/costControlApi';
+import { BentoEvmDashboard as EvmDashboard } from '../components/BentoEvmDashboard';
 
-// Cost heads, budget revisions, committed/actual cost, PV/EV/AC/SPI/CPI (FR-070..075).
+const COST_HEADS = ['LABOUR', 'MATERIAL', 'EQUIPMENT', 'SUBCONTRACTOR', 'OVERHEAD'];
+const SOURCE_TYPES = ['PO_COMMITMENT', 'ACTUAL_EXPENSE', 'SUBCONTRACT_BILL', 'LABOUR_WAGES', 'MATERIAL_INVOICE', 'EQUIPMENT_HIRE'];
+
+const unwrapNumber = (value) => Number(value) || 0;
+function normaliseBudget(item) { return { ...item, baselineAmount: unwrapNumber(item?.baselineAmount), revisedAmount: unwrapNumber(item?.revisedAmount), costCode: item?.costCode || '', costHead: item?.costHead || 'MATERIAL', description: item?.description || '' }; }
+function normaliseTransaction(item) { return { ...item, amount: unwrapNumber(item?.amount), costCode: item?.costCode || '', costHead: item?.costHead || 'MATERIAL', sourceType: item?.sourceType || 'ACTUAL_EXPENSE' }; }
+function Metric({ label, value, icon: Icon, tone = 'brand' }) { return <div className="surface-panel flex items-center justify-between p-4"><div><p className="text-xs font-semibold uppercase tracking-wide text-ink-500">{label}</p><p className={`mt-2 text-2xl font-bold text-${tone}-700`}>{value}</p></div><Icon className={`h-6 w-6 text-${tone}-600`} /></div>; }
+
 export function CostControlListPage() {
-  const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
   const pushToast = useToastStore((state) => state.push);
+  const canManage = useHasRole(ROLES.ADMIN, ROLES.DIRECTOR, ROLES.PROJECT_MANAGER, ROLES.QUANTITY_COST_COORDINATOR);
+  const [activeTab, setActiveTab] = useState('budgets');
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [search, setSearch] = useState('');
+  const [headFilter, setHeadFilter] = useState('ALL');
+  const [isBudgetModalOpen, setBudgetModalOpen] = useState(false);
+  const [editingBudget, setEditingBudget] = useState(null);
+  const [isTransactionModalOpen, setTransactionModalOpen] = useState(false);
+  const budgetForm = useForm({ defaultValues: { costCode: '', costHead: 'MATERIAL', description: '', baselineAmount: '', revisedAmount: '', revisionReason: '', approvedBy: '' } });
+  const transactionForm = useForm({ defaultValues: { costCode: '', costHead: 'MATERIAL', sourceType: 'ACTUAL_EXPENSE', amount: '', transactionDate: new Date().toISOString().slice(0, 10), referenceNumber: '', vendorOrPayee: '', remarks: '' } });
 
-  const canManage = useHasRole(
-    ROLES.QUANTITY_COST_COORDINATOR,
-    ROLES.PROJECT_MANAGER,
-    ROLES.DIRECTOR,
-    ROLES.ADMIN
-  );
+  const { data: projects = [] } = useQuery({ queryKey: ['projects-list-simple'], queryFn: () => projectsApi.list() });
+  const projectId = selectedProjectId || projects[0]?.id || 1;
+  const selectedProject = projects.find((project) => Number(project.id) === Number(projectId));
+  const budgetsQuery = useQuery({ queryKey: ['cost-control', projectId], queryFn: () => costControlApi.list(projectId), enabled: !!projectId, select: (items) => items.map(normaliseBudget) });
+  const transactionsQuery = useQuery({ queryKey: ['cost-transactions', projectId], queryFn: () => costTransactionApi.list(projectId), enabled: !!projectId, select: (items) => items.map(normaliseTransaction) });
+  const evmQuery = useQuery({ queryKey: ['cost-evm', projectId], queryFn: () => costAnalyticsApi.evm(projectId), enabled: !!projectId });
+  const budgets = budgetsQuery.data || [];
+  const transactions = transactionsQuery.data || [];
+  const evm = evmQuery.data || {};
+  const tracking = useMemo(() => {
+    const actual = evm.actualCost || transactions.reduce((sum, item) => sum + item.amount, 0);
+    const committed = transactions
+      .filter((item) => item.sourceType === 'PO_COMMITMENT')
+      .reduce((sum, item) => sum + item.amount, 0);
+    const approved = budgets.reduce((sum, item) => sum + (item.revisedAmount > 0 ? item.revisedAmount : item.baselineAmount), 0);
+    return {
+      totalApprovedBudget: approved,
+      totalActualExpense: actual,
+      totalCommittedCost: committed,
+      totalProjectedCost: actual + committed,
+      netVariance: approved - actual - committed,
+    };
+  }, [budgets, evm.actualCost, transactions]);
 
-  const form = useForm({
-    defaultValues: {
-      code: '',
-      category: '',
-      bac: '',
-      pv: '',
-      ev: '',
-      ac: '',
-    },
-  });
+  const saveBudget = useMutation({ mutationFn: ({ id, payload }) => id ? costControlApi.update(id, payload) : costControlApi.create(payload), onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['cost-control', projectId] }); queryClient.invalidateQueries({ queryKey: ['cost-evm', projectId] }); pushToast(editingBudget ? 'Budget head updated successfully.' : 'Budget head created successfully.', 'success'); closeBudgetModal(); }, onError: (error) => pushToast(error?.response?.data?.message || error.message || 'Unable to save budget head.', 'error') });
+  const deleteBudget = useMutation({ mutationFn: costControlApi.delete, onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['cost-control', projectId] }); pushToast('Budget head deleted successfully.', 'success'); }, onError: (error) => pushToast(error.message || 'Unable to delete budget head.', 'error') });
+  const saveTransaction = useMutation({ mutationFn: costTransactionApi.create, onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['cost-transactions', projectId] }); queryClient.invalidateQueries({ queryKey: ['cost-evm', projectId] }); pushToast('Cost transaction recorded successfully.', 'success'); closeTransactionModal(); }, onError: (error) => pushToast(error?.response?.data?.message || error.message || 'Unable to record transaction.', 'error') });
+  const deleteTransaction = useMutation({ mutationFn: costTransactionApi.delete, onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['cost-transactions', projectId] }); queryClient.invalidateQueries({ queryKey: ['cost-evm', projectId] }); pushToast('Cost transaction deleted successfully.', 'success'); }, onError: (error) => pushToast(error.message || 'Unable to delete transaction.', 'error') });
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['cost-control'],
-    queryFn: () => costControlApi.list(),
-  });
+  const totals = useMemo(() => ({ baseline: budgets.reduce((sum, item) => sum + item.baselineAmount, 0), approved: budgets.reduce((sum, item) => sum + (item.revisedAmount > 0 ? item.revisedAmount : item.baselineAmount), 0), heads: budgets.length }), [budgets]);
+  const filteredBudgets = useMemo(() => budgets.filter((item) => { const query = search.trim().toLowerCase(); return (!query || [item.costCode, item.costHead, item.description].some((value) => String(value).toLowerCase().includes(query))) && (headFilter === 'ALL' || item.costHead === headFilter); }), [budgets, headFilter, search]);
 
-  const createMutation = useMutation({
-    mutationFn: (payload) => costControlApi.create(payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['cost-control'] });
-      pushToast('Budget head added successfully.', 'success');
-      setIsOpen(false);
-      form.reset();
-    },
-    onError: (err) => {
-      pushToast(err?.message || 'Failed to add budget head.', 'error');
-    },
-  });
+  function closeBudgetModal() { setBudgetModalOpen(false); setEditingBudget(null); budgetForm.reset(); }
+  function closeTransactionModal() { setTransactionModalOpen(false); transactionForm.reset({ costCode: '', costHead: 'MATERIAL', sourceType: 'ACTUAL_EXPENSE', amount: '', transactionDate: new Date().toISOString().slice(0, 10), referenceNumber: '', vendorOrPayee: '', remarks: '' }); }
+  function editBudget(item) { setEditingBudget(item); budgetForm.reset({ ...item, baselineAmount: String(item.baselineAmount), revisedAmount: item.revisedAmount ? String(item.revisedAmount) : '' }); setBudgetModalOpen(true); }
+  function submitBudget(values) { saveBudget.mutate({ id: editingBudget?.id, payload: { projectId: Number(projectId), costCode: values.costCode.trim().toUpperCase(), costHead: values.costHead, description: values.description?.trim() || null, baselineAmount: Number(values.baselineAmount), revisedAmount: values.revisedAmount ? Number(values.revisedAmount) : null, revisionReason: values.revisionReason?.trim() || null, approvedBy: values.approvedBy?.trim() || null } }); }
+  function submitTransaction(values) { saveTransaction.mutate({ projectId: Number(projectId), costCode: values.costCode.trim().toUpperCase(), costHead: values.costHead, sourceType: values.sourceType, amount: Number(values.amount), transactionDate: values.transactionDate, referenceNumber: values.referenceNumber?.trim() || null, vendorOrPayee: values.vendorOrPayee?.trim() || null, remarks: values.remarks?.trim() || null }); }
 
-  const columns = [
-    { key: 'code', header: 'WBS Code' },
-    { key: 'category', header: 'Cost Head / Category' },
-    { key: 'bac', header: 'Budget at Completion (BAC)' },
-    { key: 'ac', header: 'Actual Cost (AC)' },
-    { key: 'cpi', header: 'Cost Performance (CPI)', render: (row) => row.cpi || '1.00 (On Budget)' },
+  const budgetColumns = [
+    { key: 'costCode', header: 'Cost Code', render: (row) => <span className="font-mono text-xs font-bold text-brand-700">{row.costCode}</span> },
+    { key: 'costHead', header: 'Cost Head', render: (row) => <StatusPill status={row.costHead} /> },
+    { key: 'description', header: 'Description', render: (row) => row.description || '—' },
+    { key: 'baselineAmount', header: 'Baseline Budget', render: (row) => <span className="font-semibold">{formatCurrency(row.baselineAmount)}</span> },
+    { key: 'revisedAmount', header: 'Approved / Revised', render: (row) => <span className="font-semibold text-emerald-700">{formatCurrency(row.revisedAmount || row.baselineAmount)}</span> },
+    { key: 'status', header: 'Status', render: (row) => <StatusPill status={row.status || 'APPROVED'} /> },
+    { key: 'actions', header: 'Actions', className: 'text-right', render: (row) => canManage && <div className="flex justify-end gap-1"><button type="button" title="Edit budget head" onClick={() => editBudget(row)} className="rounded p-1.5 text-brand-700 hover:bg-brand-50"><Edit className="h-4 w-4" /></button><button type="button" title="Delete budget head" onClick={() => { if (window.confirm(`Delete budget head ${row.costCode}?`)) deleteBudget.mutate(row.id); }} className="rounded p-1.5 text-red-600 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button></div> },
+  ];
+  const transactionColumns = [
+    { key: 'transactionDate', header: 'Date' }, { key: 'costCode', header: 'Cost Code', render: (row) => <span className="font-mono text-xs font-bold text-brand-700">{row.costCode}</span> }, { key: 'costHead', header: 'Cost Head', render: (row) => <StatusPill status={row.costHead} /> }, { key: 'sourceType', header: 'Source', render: (row) => row.sourceType.replace(/_/g, ' ') }, { key: 'amount', header: 'Amount', render: (row) => <span className="font-semibold">{formatCurrency(row.amount)}</span> }, { key: 'vendorOrPayee', header: 'Vendor / Payee', render: (row) => row.vendorOrPayee || '—' }, { key: 'actions', header: 'Actions', className: 'text-right', render: (row) => canManage && <button type="button" title="Delete transaction" onClick={() => { if (window.confirm('Delete this cost transaction?')) deleteTransaction.mutate(row.id); }} className="rounded p-1.5 text-red-600 hover:bg-red-50"><Trash2 className="h-4 w-4" /></button> },
   ];
 
-  function handleSubmit(values) {
-    createMutation.mutate({
-      code: values.code,
-      category: values.category,
-      bac: values.bac,
-      pv: values.pv || values.bac,
-      ev: values.ev || values.bac,
-      ac: values.ac,
-      cpi: '1.00 (On Budget)',
-    });
-  }
-
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="page-heading">Cost Control & Budget</h1>
-        </div>
-        {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
-      </div>
-
-      <Table columns={columns} data={data ?? []} rowKey={(row) => row.id} isLoading={isLoading} />
-
-      <Modal
-        open={isOpen}
-        onClose={() => setIsOpen(false)}
-        title="Add New Cost / Budget Head"
-        size="md"
-        footer={
-          <>
-            <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-            <Button onClick={form.handleSubmit(handleSubmit)} isLoading={createMutation.isPending}>
-              Save Budget Head
-            </Button>
-          </>
-        }
-      >
-        <form className="flex flex-col gap-4" onSubmit={form.handleSubmit(handleSubmit)}>
-          <Input
-            label="WBS Code *"
-            placeholder="e.g. WBS-1.4"
-            {...form.register('code', { required: 'WBS Code is required' })}
-            error={form.formState.errors.code?.message}
-          />
-          <Input
-            label="Category / Cost Head *"
-            placeholder="e.g. Substructure Foundation"
-            {...form.register('category', { required: 'Category is required' })}
-            error={form.formState.errors.category?.message}
-          />
-          <Input
-            label="Budget at Completion (BAC) *"
-            placeholder="e.g. ₹5,000,000"
-            {...form.register('bac', { required: 'BAC is required' })}
-            error={form.formState.errors.bac?.message}
-          />
-          <Input
-            label="Actual Cost (AC) *"
-            placeholder="e.g. ₹3,850,000"
-            {...form.register('ac', { required: 'Actual Cost is required' })}
-            error={form.formState.errors.ac?.message}
-          />
-        </form>
-      </Modal>
-    </div>
-  );
+  return <div className="flex flex-col gap-5">
+    <div className="flex flex-wrap items-center justify-between gap-3"><div><ModulePageHeading>Cost Control &amp; Budget</ModulePageHeading></div><div className="flex flex-wrap items-center gap-2"><select value={projectId} onChange={(event) => setSelectedProjectId(Number(event.target.value))} className="rounded-lg border border-surface-border bg-white px-3 py-2 text-sm font-semibold text-ink-900 outline-none">{projects.map((project) => <option key={project.id} value={project.id}>{project.code} — {project.name}</option>)}</select>{activeTab === 'budgets' && canManage && <Button size="sm" onClick={() => { setEditingBudget(null); budgetForm.reset(); setBudgetModalOpen(true); }}><Plus className="mr-1.5 h-4 w-4" />Add Cost Head</Button>}{activeTab === 'transactions' && canManage && <Button size="sm" onClick={() => setTransactionModalOpen(true)}><Plus className="mr-1.5 h-4 w-4" />Record Transaction</Button>}</div></div>
+    <div className="flex flex-wrap gap-2 border-b border-surface-border"><button type="button" onClick={() => setActiveTab('budgets')} className={`px-4 py-2.5 text-sm font-semibold ${activeTab === 'budgets' ? 'border-b-2 border-brand-600 text-brand-700' : 'text-ink-500'}`}>Budget / Cost Heads</button><button type="button" onClick={() => setActiveTab('transactions')} className={`px-4 py-2.5 text-sm font-semibold ${activeTab === 'transactions' ? 'border-b-2 border-brand-600 text-brand-700' : 'text-ink-500'}`}>Cost Transactions</button><button type="button" onClick={() => setActiveTab('evm')} className={`px-4 py-2.5 text-sm font-semibold ${activeTab === 'evm' ? 'border-b-2 border-brand-600 text-brand-700' : 'text-ink-500'}`}>EVM Dashboard</button></div>
+    {activeTab === 'budgets' && <><div className="grid grid-cols-1 gap-3 sm:grid-cols-3"><Metric label="Configured Cost Heads" value={totals.heads} icon={Wallet} /><Metric label="Baseline Budget" value={formatCurrency(totals.baseline)} icon={IndianRupee} /><Metric label="Approved Budget" value={formatCurrency(totals.approved)} icon={IndianRupee} /></div><div className="surface-panel flex flex-wrap items-center gap-3 p-3"><div className="flex min-w-[240px] flex-1 items-center gap-2 rounded-lg border border-surface-border bg-white px-3 py-2 text-sm"><Search className="h-4 w-4 text-ink-400" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search cost code, head or description..." className="w-full bg-transparent outline-none" /></div><div className="flex items-center gap-2"><Filter className="h-4 w-4 text-ink-500" /><select value={headFilter} onChange={(event) => setHeadFilter(event.target.value)} className="rounded-lg border border-surface-border bg-white px-3 py-2 text-sm outline-none"><option value="ALL">All cost heads</option>{COST_HEADS.map((head) => <option key={head} value={head}>{head}</option>)}</select></div><Button variant="outline" size="sm" onClick={() => budgetsQuery.refetch()} disabled={budgetsQuery.isFetching}><RefreshCw className={`mr-1.5 h-4 w-4 ${budgetsQuery.isFetching ? 'animate-spin' : ''}`} />Refresh</Button></div><Table columns={budgetColumns} data={filteredBudgets} rowKey={(row) => row.id} isLoading={budgetsQuery.isLoading} emptyMessage={selectedProject ? 'No budget heads configured for this project.' : 'Select a project to view budget heads.'} /></>}
+    {activeTab === 'transactions' && <><div className="grid grid-cols-1 gap-3 sm:grid-cols-3"><Metric label="Transactions" value={transactions.length} icon={Activity} /><Metric label="Actual Cost" value={formatCurrency(tracking.totalActualExpense || transactions.reduce((sum, item) => sum + item.amount, 0))} icon={IndianRupee} /><Metric label="Committed Cost" value={formatCurrency(tracking.totalCommittedCost)} icon={Wallet} /></div><div className="surface-panel flex items-center justify-between p-4"><div><p className="text-sm font-semibold text-ink-800">Cost ledger entries</p><p className="text-xs text-ink-500">Actual expenses, purchase commitments, invoices, labour and equipment costs.</p></div><Button variant="outline" size="sm" onClick={() => transactionsQuery.refetch()} disabled={transactionsQuery.isFetching}><RefreshCw className={`mr-1.5 h-4 w-4 ${transactionsQuery.isFetching ? 'animate-spin' : ''}`} />Refresh</Button></div><Table columns={transactionColumns} data={transactions} rowKey={(row) => row.id} isLoading={transactionsQuery.isLoading} emptyMessage="No cost transactions recorded for this project." /></>}
+    {activeTab === 'evm' && <EvmDashboard evm={evm} tracking={tracking} isLoading={evmQuery.isLoading} onRefresh={() => evmQuery.refetch()} />}
+    <BudgetModal open={isBudgetModalOpen} onClose={closeBudgetModal} form={budgetForm} editing={editingBudget} onSubmit={submitBudget} isLoading={saveBudget.isPending} /><TransactionModal open={isTransactionModalOpen} onClose={closeTransactionModal} form={transactionForm} onSubmit={submitTransaction} isLoading={saveTransaction.isPending} />
+  </div>;
 }
+
+function LegacyEvmDashboard({ evm, tracking, isLoading, onRefresh }) {
+  const metric = (key) => isLoading ? 'Loading…' : evm[key] == null ? '—' : typeof evm[key] === 'number' ? evm[key].toFixed(2) : evm[key];
+  const statusTone = (value) => String(value || '').includes('OVER') || String(value || '').includes('BEHIND') ? 'warning' : 'success';
+  return <div className="flex flex-col gap-4"><div className="flex items-center justify-between"><div><h2 className="text-lg font-bold text-brand-950">Earned Value Management</h2><p className="text-sm text-ink-500">Live project performance calculated by the backend from budgets, progress and actual cost.</p></div><Button variant="outline" size="sm" onClick={onRefresh}><RefreshCw className="mr-1.5 h-4 w-4" />Refresh</Button></div><div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5"><Metric label="PV · Planned Value" value={formatCurrency(evm.plannedValue)} icon={TrendingUp} /><Metric label="EV · Earned Value" value={formatCurrency(evm.earnedValue)} icon={TrendingUp} /><Metric label="AC · Actual Cost" value={formatCurrency(evm.actualCost)} icon={IndianRupee} /><Metric label="SPI · Schedule Index" value={metric('schedulePerformanceIndex')} icon={Activity} /><Metric label="CPI · Cost Index" value={metric('costPerformanceIndex')} icon={TrendingDown} /></div><div className="grid grid-cols-1 gap-3 md:grid-cols-3"><div className="surface-panel p-4"><p className="text-xs font-semibold uppercase text-ink-500">Budget at Completion</p><p className="mt-2 text-xl font-bold text-brand-900">{formatCurrency(evm.budgetAtCompletion)}</p><p className="mt-2 text-xs text-ink-500">Approved budget: {formatCurrency(tracking.totalApprovedBudget)}</p></div><div className="surface-panel p-4"><p className="text-xs font-semibold uppercase text-ink-500">Schedule / Cost Health</p><div className="mt-3 flex gap-2"><StatusPill status={evm.spiStatus || 'NO_DATA'} tone={statusTone(evm.spiStatus)} /><StatusPill status={evm.cpiStatus || 'NO_DATA'} tone={statusTone(evm.cpiStatus)} /></div></div><div className="surface-panel p-4"><p className="text-xs font-semibold uppercase text-ink-500">Forecast at Completion</p><p className="mt-2 text-xl font-bold text-brand-900">{formatCurrency(evm.estimateAtCompletion)}</p><p className="mt-2 text-xs text-ink-500">VAC: {formatCurrency(evm.varianceAtCompletion)} · ETC: {formatCurrency(evm.estimateToComplete)}</p></div></div></div>;
+}
+
+function BudgetModal({ open, onClose, form, editing, onSubmit, isLoading }) { return <Modal open={open} onClose={onClose} title={editing ? 'Edit Budget / Cost Head' : 'Add Budget / Cost Head'} size="md" footer={<><Button variant="outline" onClick={onClose}>Cancel</Button><Button onClick={form.handleSubmit(onSubmit)} isLoading={isLoading}>{editing ? 'Update Budget Head' : 'Save Budget Head'}</Button></>}><form className="grid grid-cols-1 gap-4 sm:grid-cols-2" onSubmit={form.handleSubmit(onSubmit)}><Input label="Cost Code *" placeholder="CBS-MAT-001" {...form.register('costCode', { required: 'Cost code is required' })} error={form.formState.errors.costCode?.message} /><SelectField label="Cost Head *" name="costHead" form={form} options={COST_HEADS} /><div className="sm:col-span-2"><Input label="Description" placeholder="Concrete, steel, labour or other cost scope" {...form.register('description')} /></div><Input label="Baseline Amount (₹) *" type="number" min="0" step="0.01" {...form.register('baselineAmount', { required: 'Baseline amount is required', min: { value: 0, message: 'Amount cannot be negative' } })} error={form.formState.errors.baselineAmount?.message} /><Input label="Approved Revised Amount (₹)" type="number" min="0" step="0.01" {...form.register('revisedAmount')} /><Input label="Revision Reason" {...form.register('revisionReason')} /><Input label="Approved By" {...form.register('approvedBy')} /></form></Modal>; }
+function TransactionModal({ open, onClose, form, onSubmit, isLoading }) { return <Modal open={open} onClose={onClose} title="Record Cost Transaction" size="md" footer={<><Button variant="outline" onClick={onClose}>Cancel</Button><Button onClick={form.handleSubmit(onSubmit)} isLoading={isLoading}>Record Transaction</Button></>}><form className="grid grid-cols-1 gap-4 sm:grid-cols-2" onSubmit={form.handleSubmit(onSubmit)}><Input label="Cost Code *" placeholder="CBS-MAT-001" {...form.register('costCode', { required: 'Cost code is required' })} error={form.formState.errors.costCode?.message} /><SelectField label="Cost Head *" name="costHead" form={form} options={COST_HEADS} /><SelectField label="Source Type *" name="sourceType" form={form} options={SOURCE_TYPES} /><Input label="Amount (₹) *" type="number" min="0.01" step="0.01" {...form.register('amount', { required: 'Amount is required', min: { value: 0.01, message: 'Amount must be greater than zero' } })} error={form.formState.errors.amount?.message} /><Input label="Transaction Date *" type="date" {...form.register('transactionDate', { required: 'Date is required' })} error={form.formState.errors.transactionDate?.message} /><Input label="Reference Number" {...form.register('referenceNumber')} /><Input label="Vendor / Payee" {...form.register('vendorOrPayee')} /><div className="sm:col-span-2"><Input label="Remarks" {...form.register('remarks')} /></div></form></Modal>; }
+function SelectField({ label, name, form, options }) { return <label className="flex flex-col gap-1.5 text-sm font-medium text-ink-700">{label}<select {...form.register(name, { required: true })} className="rounded-lg border border-surface-border bg-white px-3 py-2.5 outline-none">{options.map((option) => <option key={option} value={option}>{option.replace(/_/g, ' ')}</option>)}</select></label>; }

@@ -7,7 +7,7 @@ import { useAuthStore } from '@/context/authStore';
 import { procurementApi } from '../api/procurementApi';
 import { CheckCircle2, AlertTriangle, ShieldCheck, PackagePlus } from 'lucide-react';
 
-export function RecordGrnModal({ open, onClose, defaultPo, purchaseOrders = [], materials = [], onSuccess }) {
+export function RecordGrnModal({ open, onClose, defaultPo, projectId, purchaseOrders = [], materials = [], onSuccess }) {
   const queryClient = useQueryClient();
   const pushToast = useToastStore((state) => state.push);
   const currentUser = useAuthStore((state) => state.user);
@@ -19,8 +19,8 @@ export function RecordGrnModal({ open, onClose, defaultPo, purchaseOrders = [], 
       grnNumber: defaultGrnNumber,
       poId: defaultPo ? String(defaultPo.id) : purchaseOrders[0]?.id ? String(purchaseOrders[0].id) : '',
       materialId: defaultPo?.materialId ? String(defaultPo.materialId) : materials[0]?.id ? String(materials[0].id) : '1',
-      projectId: defaultPo?.projectId || 1,
-      siteId: defaultPo?.siteId || 1,
+      projectId: defaultPo?.projectId || projectId || '',
+      siteId: defaultPo?.siteId || '',
       receivedQty: defaultPo?.orderedQty || 100,
       acceptedQty: defaultPo?.orderedQty || 100,
       rejectedQty: 0,

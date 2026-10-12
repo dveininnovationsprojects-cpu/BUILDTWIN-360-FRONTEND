@@ -5,4 +5,9 @@ export const costControlRoutes = [
     { path: 'cost', element: _jsx(CostControlListPage, {}) },
 ];
 // FR-075: commercial data carries separate approval permissions from ordinary progress data.
-export const costControlAllowedRoles = [ROLES.DIRECTOR, ROLES.PROJECT_MANAGER, ROLES.COST_COORDINATOR];
+export const costControlAllowedRoles = [
+    ROLES.DIRECTOR,
+    ROLES.PROJECT_MANAGER,
+    ROLES.COST_COORDINATOR,
+    ROLES.ADMIN,
+];

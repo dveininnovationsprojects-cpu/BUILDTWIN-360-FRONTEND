@@ -1,19 +1,39 @@
 import { apiClient } from '@/lib/apiClient';
 
-const MOCK_BUDGETS = [
-  { id: 'cst-001', code: 'WBS-1.1', category: 'Substructure Foundation', bac: '₹5,000,000', pv: '₹4,000,000', ev: '₹4,000,000', ac: '₹3,850,000', cpi: '1.039 (Under Budget)' },
-  { id: 'cst-002', code: 'WBS-1.2', category: 'Superstructure RCC Frame', bac: '₹18,500,000', pv: '₹6,500,000', ev: '₹5,800,000', ac: '₹6,180,000', cpi: '0.938 (Over Budget)' },
-  { id: 'cst-003', code: 'WBS-1.3', category: 'Masonry & Plastering Works', bac: '₹8,200,000', pv: '₹1,200,000', ev: '₹1,200,000', ac: '₹1,150,000', cpi: '1.043 (Under Budget)' },
-];
+function unwrap(response) {
+  const body = response?.data;
+  return body?.data !== undefined ? body.data : body;
+}
 
-// Maps to /budgets (spec section 14 - API Requirements).
+// Backend CostController budget-head endpoints.
 export const costControlApi = {
-  list: (params = {}) =>
-    apiClient.get(params.projectId ? `/cost/budgets/project/${params.projectId}` : '/cost/budgets', { params: params.projectId ? undefined : params }).then((r) => r.data).catch(() => MOCK_BUDGETS),
-  getById: (id) => apiClient.get(`/cost/budgets/${id}`).then((r) => r.data).catch(() => MOCK_BUDGETS[0]),
-  create: (payload) =>
-    apiClient.post('/cost/budgets', payload).then((r) => r.data).catch(() => ({ id: `cst-${Date.now()}`, ...payload })),
-  update: (id, payload) =>
-    apiClient.post('/cost/budgets', { ...payload, id }).then((r) => r.data).catch(() => ({ id, ...payload })),
+  list: async (projectId) => {
+    const response = await apiClient.get(`/cost/budgets/project/${projectId}`);
+    const data = unwrap(response);
+    return Array.isArray(data) ? data : [];
+  },
+  getById: async (id) => unwrap(await apiClient.get(`/cost/budgets/${id}`)),
+  create: async (payload) => unwrap(await apiClient.post('/cost/budgets', payload)),
+  update: async (id, payload) => unwrap(await apiClient.put(`/cost/budgets/${id}`, payload)),
+  delete: async (id) => {
+    await apiClient.delete(`/cost/budgets/${id}`);
+    return true;
+  },
 };
 
+export const costTransactionApi = {
+  list: async (projectId) => {
+    const response = await apiClient.get(`/cost/transactions/project/${projectId}`);
+    const data = unwrap(response);
+    return Array.isArray(data) ? data : [];
+  },
+  create: async (payload) => unwrap(await apiClient.post('/cost/transactions', payload)),
+  delete: async (id) => {
+    await apiClient.delete(`/cost/transactions/${id}`);
+    return true;
+  },
+};
+
+export const costAnalyticsApi = {
+  evm: async (projectId) => unwrap(await apiClient.get(`/cost/evm/project/${projectId}`)),
+};

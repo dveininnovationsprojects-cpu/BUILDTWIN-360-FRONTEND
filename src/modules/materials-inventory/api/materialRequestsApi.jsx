@@ -157,85 +157,25 @@ function normaliseRequest(item) {
 }
 
 export const materialRequestsApi = {
-  /**
-   * GET /api/v1/procurement/requests/project/:projectId
-   * Retrieves all material requests for a project
-   */
   async listByProject(projectId = 1) {
-    try {
-      const res = await apiClient.get(`/procurement/requests/project/${projectId}`);
-      const list = extractList(res.data);
-      return list.map(normaliseRequest);
-    } catch (err) {
-      if (isNetworkError(err) || err.response?.status === 404 || err.response?.status === 401) {
-        return localMaterialRequests
-          .filter((r) => !projectId || String(r.projectId) === String(projectId))
-          .map(normaliseRequest);
-      }
-      throw err;
-    }
+    const res = await apiClient.get(`/procurement/requests/project/${projectId}`);
+    return extractList(res.data).map(normaliseRequest);
   },
-
-  /**
-   * GET /api/v1/procurement/requests/project/:projectId/status/:status
-   * Retrieves material requests filtered by project and approval status (PENDING, APPROVED, REJECTED)
-   */
   async listByStatus(projectId = 1, status = 'PENDING') {
-    try {
-      const res = await apiClient.get(`/procurement/requests/project/${projectId}/status/${status}`);
-      const list = extractList(res.data);
-      return list.map(normaliseRequest);
-    } catch (err) {
-      if (isNetworkError(err) || err.response?.status === 404 || err.response?.status === 401) {
-        return localMaterialRequests
-          .filter(
-            (r) =>
-              (!projectId || String(r.projectId) === String(projectId)) &&
-              String(r.status).toUpperCase() === String(status).toUpperCase()
-          )
-          .map(normaliseRequest);
-      }
-      throw err;
-    }
+    const res = await apiClient.get(`/procurement/requests/project/${projectId}/status/${status}`);
+    return extractList(res.data).map(normaliseRequest);
   },
-
-  /**
-   * GET /api/v1/procurement/requests/project/:projectId/projected-shortage
-   * FR-056: Detect projected inventory shortages
-   */
   async getProjectedShortage(projectId = 1) {
-    try {
-      const res = await apiClient.get(`/procurement/requests/project/${projectId}/projected-shortage`);
-      return extractList(res.data);
-    } catch (err) {
-      if (isNetworkError(err) || err.response?.status === 404 || err.response?.status === 401) {
-        return [];
-      }
-      throw err;
-    }
+    const res = await apiClient.get(`/procurement/requests/project/${projectId}/projected-shortage`);
+    return extractList(res.data);
   },
-
-  /**
-   * GET /api/v1/procurement/requests/:id
-   */
   async getById(id) {
-    try {
-      const res = await apiClient.get(`/procurement/requests/${id}`);
-      return normaliseRequest(extractSingle(res.data));
-    } catch (err) {
-      const local = localMaterialRequests.find((r) => String(r.id) === String(id));
-      if (local) return normaliseRequest(local);
-      throw err;
-    }
+    const res = await apiClient.get(`/procurement/requests/${id}`);
+    return normaliseRequest(extractSingle(res.data));
   },
-
-  /**
-   * POST /api/v1/procurement/requests
-   * Raises a new material requisition (FR-051)
-   */
   async create(payload) {
-    const formatted = {
-      projectId: Number(payload.projectId || 1),
+    const body = {
+      projectId: Number(payload.projectId),
       materialId: Number(payload.materialId),
       requiredQty: Number(payload.requiredQty),
       requiredDate: payload.requiredDate ? String(payload.requiredDate).slice(0, 10) : null,
@@ -244,93 +184,27 @@ export const materialRequestsApi = {
       wbsActivityId: payload.wbsActivityId ? Number(payload.wbsActivityId) : null,
       zone: payload.zone?.trim() || null,
       contractorId: payload.contractorId ? Number(payload.contractorId) : null,
-      requestedBy: payload.requestedBy?.trim() || 'Site Engineer',
+      requestedBy: payload.requestedBy?.trim() || null,
       remarks: payload.remarks?.trim() || null,
     };
-
-    try {
-      const res = await apiClient.post('/procurement/requests', formatted);
-      const created = normaliseRequest(extractSingle(res.data));
-      // Keep local in sync
-      localMaterialRequests = [created, ...localMaterialRequests];
-      return created;
-    } catch (err) {
-      if (isNetworkError(err) || err.response?.status === 404 || err.response?.status === 401 || err.response?.status === 403) {
-        const fallback = {
-          id: Date.now(),
-          requestNumber: `MRF-2026-${Math.floor(Math.random() * 900 + 100)}`,
-          ...formatted,
-          priority: payload.priority || 'NORMAL',
-          materialName: payload.materialName || '',
-          materialCode: payload.materialCode || '',
-          unit: payload.unit || 'BAGS',
-          siteName: payload.siteName || '',
-          activityName: payload.activityName || '',
-          contractorName: payload.contractorName || '',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        localMaterialRequests = [fallback, ...localMaterialRequests];
-        return normaliseRequest(fallback);
-      }
-      throw err;
-    }
+    const res = await apiClient.post('/procurement/requests', body);
+    return normaliseRequest(extractSingle(res.data));
   },
-
-  /**
-   * PUT /api/v1/procurement/requests/:id/approval
-   * Approves or rejects a material requisition (FR-051)
-   */
+  async update(id, payload) {
+    const res = await apiClient.put(`/procurement/requests/${id}`, payload);
+    return normaliseRequest(extractSingle(res.data));
+  },
   async updateApproval(id, approvalDto) {
-    const payload = {
-      status: approvalDto.status, // "APPROVED" or "REJECTED"
-      approvedBy: approvalDto.approvedBy || 'Project Manager',
+    const res = await apiClient.put(`/procurement/requests/${id}/approval`, {
+      status: approvalDto.status,
+      approvedBy: approvalDto.approvedBy || null,
       rejectionReason: approvalDto.rejectionReason || null,
       remarks: approvalDto.remarks || null,
-    };
-
-    try {
-      const res = await apiClient.put(`/procurement/requests/${id}/approval`, payload);
-      const updated = normaliseRequest(extractSingle(res.data));
-      localMaterialRequests = localMaterialRequests.map((r) =>
-        String(r.id) === String(id) ? { ...r, ...updated } : r
-      );
-      return updated;
-    } catch (err) {
-      if (isNetworkError(err) || err.response?.status === 404 || err.response?.status === 401 || err.response?.status === 403) {
-        localMaterialRequests = localMaterialRequests.map((r) => {
-          if (String(r.id) === String(id)) {
-            return {
-              ...r,
-              status: payload.status,
-              approvedBy: payload.approvedBy,
-              rejectionReason: payload.rejectionReason,
-              remarks: payload.remarks ? `${r.remarks ? r.remarks + ' | ' : ''}${payload.remarks}` : r.remarks,
-              updatedAt: new Date().toISOString(),
-            };
-          }
-          return r;
-        });
-        const match = localMaterialRequests.find((r) => String(r.id) === String(id));
-        return normaliseRequest(match);
-      }
-      throw err;
-    }
+    });
+    return normaliseRequest(extractSingle(res.data));
   },
-
-  /**
-   * DELETE /api/v1/procurement/requests/:id
-   */
   async delete(id) {
-    try {
-      await apiClient.delete(`/procurement/requests/${id}`);
-    } catch (err) {
-      if (!isNetworkError(err) && err.response?.status !== 404 && err.response?.status !== 401) {
-        throw err;
-      }
-    } finally {
-      localMaterialRequests = localMaterialRequests.filter((r) => String(r.id) !== String(id));
-    }
+    await apiClient.delete(`/procurement/requests/${id}`);
     return true;
   },
 };

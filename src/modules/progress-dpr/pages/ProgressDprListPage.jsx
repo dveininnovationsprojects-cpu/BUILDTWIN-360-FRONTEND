@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ModulePageHeading } from '@/design-system/components/ModulePageHeading/ModulePageHeading';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Download,
@@ -184,7 +185,7 @@ export function ProgressDprListPage() {
       {/* Header Banner */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="page-heading">Daily Progress Report (DPR)</h1>
+          <ModulePageHeading>Daily Progress Report (DPR)</ModulePageHeading>
         </div>
 
         <div className="flex items-center gap-2">

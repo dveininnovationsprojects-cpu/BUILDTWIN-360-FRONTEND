@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { Table, Button, Modal, Input, StatusPill, Tabs, StatCard } from '@/design-system';
@@ -7,6 +7,7 @@ import { useHasRole } from '@/context/authStore';
 import { ROLES } from '@/constants/roles';
 import { procurementApi } from '../api/procurementApi';
 import { supplierApi } from '../api/supplierApi';
+import { projectsApi } from '@/modules/projects/api/projectsApi';
 import { GrnListTab } from '../components/GrnListTab';
 import { RecordGrnModal } from '../components/RecordGrnModal';
 import { SupplierMasterTab } from '../components/SupplierMasterTab';
@@ -22,18 +23,34 @@ import {
   DollarSign,
   ClipboardList,
   Building2,
-  Award
+  Award,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 
 export function ProcurementListPage() {
   const [isPoModalOpen, setIsPoModalOpen] = useState(false);
   const [isGrnModalOpen, setIsGrnModalOpen] = useState(false);
   const [selectedPoForGrn, setSelectedPoForGrn] = useState(null);
+  const [editingPo, setEditingPo] = useState(null);
   const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState(null);
+  const [selectedFulfillment, setSelectedFulfillment] = useState(null);
+  const [selectedProjectId, setSelectedProjectId] = useState('');
 
   const queryClient = useQueryClient();
   const pushToast = useToastStore((state) => state.push);
+
+  const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => projectsApi.list(),
+  });
+
+  useEffect(() => {
+    if (!selectedProjectId && projects.length > 0) setSelectedProjectId(String(projects[0].id));
+  }, [projects, selectedProjectId]);
+
+  const projectId = Number(selectedProjectId || projects[0]?.id || 0);
 
   const canManage = useHasRole(
     ROLES.PROCUREMENT_STORE,
@@ -47,12 +64,12 @@ export function ProcurementListPage() {
   const poForm = useForm({
     defaultValues: {
       poNumber: `PO-${new Date().getFullYear()}-00${Math.floor(Math.random() * 90 + 10)}`,
-      supplier: '',
-      supplierId: 1,
-      projectId: 1,
+      supplierId: '',
+      projectId: projectId || '',
+      materialId: '',
       amount: '',
       deliveryDate: new Date().toISOString().slice(0, 10),
-      status: 'ISSUED',
+      remarks: '',
     },
   });
 
@@ -62,14 +79,16 @@ export function ProcurementListPage() {
 
   // Query: Purchase Orders
   const { data: purchaseOrders = [], isLoading: isLoadingPos } = useQuery({
-    queryKey: ['procurement'],
-    queryFn: () => procurementApi.list(),
+    queryKey: ['procurement', projectId],
+    queryFn: () => procurementApi.list({ projectId }),
+    enabled: projectId > 0,
   });
 
   // Query: Goods Receipt Notes
   const { data: grns = [], isLoading: isLoadingGrns } = useQuery({
-    queryKey: ['grns'],
-    queryFn: () => procurementApi.listGrns(),
+    queryKey: ['grns', projectId],
+    queryFn: () => procurementApi.listGrns(projectId),
+    enabled: projectId > 0,
   });
 
   // Query: Materials Master
@@ -83,27 +102,36 @@ export function ProcurementListPage() {
     queryFn: () => supplierApi.list(),
   });
 
+  const enrichedPurchaseOrders = useMemo(() => purchaseOrders.map((po) => ({
+    ...po,
+    supplier: po.supplier || suppliers.find((supplier) => String(supplier.id) === String(po.supplierId))?.name,
+    materialName: po.materialName || materials.find((material) => String(material.id) === String(po.materialId))?.name,
+    orderedQty: po.orderedQty ?? po.orderQty,
+  })), [purchaseOrders, suppliers, materials]);
+
   // Query: Projected Shortages (FR-056)
   const { data: projectedShortages = [], isLoading: isLoadingShortages } = useQuery({
-    queryKey: ['projected-shortages'],
-    queryFn: () => procurementApi.getProjectedShortages(1),
+    queryKey: ['projected-shortages', projectId],
+    queryFn: () => procurementApi.getProjectedShortages(projectId),
+    enabled: projectId > 0,
   });
 
   // Mutation: Create PO
   const createPoMutation = useMutation({
-    mutationFn: (payload) => procurementApi.create(payload),
+    mutationFn: ({ id, payload }) => id ? procurementApi.update(id, payload) : procurementApi.create(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['procurement'] });
-      pushToast('Purchase Order created successfully.', 'success');
+      pushToast(editingPo ? 'Purchase Order updated successfully.' : 'Purchase Order created successfully.', 'success');
       setIsPoModalOpen(false);
+      setEditingPo(null);
       poForm.reset({
         poNumber: `PO-${new Date().getFullYear()}-00${Math.floor(Math.random() * 90 + 10)}`,
-        supplier: '',
-        supplierId: 1,
-        projectId: 1,
+        supplierId: '',
+        projectId: projectId || '',
+        materialId: '',
         amount: '',
         deliveryDate: new Date().toISOString().slice(0, 10),
-        status: 'ISSUED',
+        remarks: '',
       });
     },
     onError: (err) => {
@@ -123,16 +151,101 @@ export function ProcurementListPage() {
     onError: (err) => pushToast(err?.message || 'Failed to save supplier.', 'error'),
   });
 
+  const deletePoMutation = useMutation({
+    mutationFn: (id) => procurementApi.deletePurchaseOrder(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['procurement'] });
+      queryClient.invalidateQueries({ queryKey: ['grns'] });
+      pushToast('Purchase Order cancelled successfully.', 'success');
+    },
+    onError: (err) => pushToast(err?.message || 'Unable to delete Purchase Order.', 'error'),
+  });
+
+  const poApprovalMutation = useMutation({
+    mutationFn: ({ id, status }) => procurementApi.approve(id, { status, approvedBy: 'Current User' }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['procurement'] });
+      pushToast(`Purchase Order ${variables.status.toLowerCase()} successfully.`, 'success');
+    },
+    onError: (err) => pushToast(err?.message || 'Unable to update PO approval.', 'error'),
+  });
+
+  const poStatusMutation = useMutation({
+    mutationFn: ({ id, status }) => procurementApi.updateStatus(id, { status, updatedBy: 'Current User' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['procurement'] });
+      pushToast('Purchase Order status updated.', 'success');
+    },
+    onError: (err) => pushToast(err?.message || 'Unable to update PO status.', 'error'),
+  });
+
+  const supplierDeleteMutation = useMutation({
+    mutationFn: (id) => supplierApi.remove(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      pushToast('Supplier deleted successfully.', 'success');
+    },
+    onError: (err) => pushToast(err?.message || 'Unable to delete supplier.', 'error'),
+  });
+
+  const grnVoidMutation = useMutation({
+    mutationFn: (id) => procurementApi.deleteGrn(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['grns'] });
+      queryClient.invalidateQueries({ queryKey: ['procurement'] });
+      queryClient.invalidateQueries({ queryKey: ['materials'] });
+      pushToast('GRN voided and stock reversal completed.', 'success');
+    },
+    onError: (err) => pushToast(err?.message || 'Unable to void GRN.', 'error'),
+  });
+
+  const grnUpdateMutation = useMutation({
+    mutationFn: ({ id, payload }) => procurementApi.updateGrn(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['grns'] });
+      pushToast('GRN details updated successfully.', 'success');
+    },
+    onError: (err) => pushToast(err?.message || 'Unable to update GRN.', 'error'),
+  });
+
   const handleCreatePoSubmit = (values) => {
-    createPoMutation.mutate({
+    createPoMutation.mutate({ id: editingPo?.id, payload: {
       poNumber: values.poNumber,
-      supplier: values.supplier,
-      supplierId: Number(values.supplierId || 1),
-      projectId: Number(values.projectId || 1),
-      amount: values.amount ? Number(values.amount) : 0,
+      supplierId: Number(values.supplierId),
+      projectId: Number(values.projectId || projectId),
+      materialId: values.materialId ? Number(values.materialId) : null,
+      amount: values.amount ? Number(values.amount) : null,
       deliveryDate: values.deliveryDate,
-      status: values.status || 'ISSUED',
+      remarks: values.remarks || null,
+    } });
+  };
+
+  const handleEditPo = (po) => {
+    setEditingPo(po);
+    poForm.reset({
+      poNumber: po.poNumber || '',
+      supplierId: String(po.supplierId || ''),
+      projectId: po.projectId || projectId,
+      materialId: String(po.materialId || ''),
+      amount: po.amount ?? '',
+      deliveryDate: po.deliveryDate || new Date().toISOString().slice(0, 10),
+      remarks: po.remarks || '',
     });
+    setIsPoModalOpen(true);
+  };
+
+  const handleNewPo = () => {
+    setEditingPo(null);
+    poForm.reset({
+      poNumber: `PO-${new Date().getFullYear()}-00${Math.floor(Math.random() * 90 + 10)}`,
+      supplierId: '',
+      projectId: projectId || '',
+      materialId: '',
+      amount: '',
+      deliveryDate: new Date().toISOString().slice(0, 10),
+      remarks: '',
+    });
+    setIsPoModalOpen(true);
   };
 
   const handleOpenGrnForPo = (po) => {
@@ -153,6 +266,27 @@ export function ProcurementListPage() {
   };
 
   const handleSupplierSubmit = (values) => saveSupplierMutation.mutate({ id: editingSupplier?.id, payload: values });
+
+  const handlePoApproval = (po, status) => {
+    if (window.confirm(`Are you sure you want to mark ${po.poNumber || `PO-${po.id}`} as ${status}?`)) {
+      poApprovalMutation.mutate({ id: po.id, status });
+    }
+  };
+
+  const handlePoStatus = (po, status) => {
+    if (window.confirm(`Update ${po.poNumber || `PO-${po.id}`} to ${status}?`)) {
+      poStatusMutation.mutate({ id: po.id, status });
+    }
+  };
+
+  const handleViewFulfillment = async (po) => {
+    try {
+      const data = await procurementApi.getFulfillment(po.id);
+      setSelectedFulfillment({ po, data });
+    } catch (err) {
+      pushToast(err?.message || 'Unable to fetch PO fulfillment.', 'error');
+    }
+  };
 
   // PO Table Columns
   const poColumns = [
@@ -194,17 +328,9 @@ export function ProcurementListPage() {
       header: 'Actions',
       render: (row) => (
         <div className="flex items-center gap-2">
-          {canManage && (
-            <Button
-              size="xs"
-              variant="outline"
-              onClick={() => handleOpenGrnForPo(row)}
-              className="text-brand-700 border-brand-300 hover:bg-brand-50"
-            >
-              <PackageCheck className="w-3.5 h-3.5 mr-1 inline" />
-              Record GRN
-            </Button>
-          )}
+          {canManage && <Button size="xs" variant="outline" onClick={() => handleOpenGrnForPo(row)} title="Record GRN" aria-label={`Record GRN for ${row.poNumber}`}><PackageCheck className="w-3.5 h-3.5" /></Button>}
+          {canManage && <Button size="xs" variant="outline" onClick={() => handleEditPo(row)} title="Edit purchase order" aria-label={`Edit ${row.poNumber}`}><Pencil className="w-3.5 h-3.5" /></Button>}
+          {canManage && <Button size="xs" variant="outline" onClick={() => { if (window.confirm(`Cancel ${row.poNumber || `PO-${row.id}`}?`)) deletePoMutation.mutate(row.id); }} title="Delete purchase order" aria-label={`Delete ${row.poNumber}`}><Trash2 className="w-3.5 h-3.5" /></Button>}
         </div>
       ),
     },
@@ -258,7 +384,7 @@ export function ProcurementListPage() {
               Track vendor purchase orders, committed delivery dates, and issue Goods Receipt Notes upon site arrival.
             </p>
             {canManage && (
-              <Button size="sm" onClick={() => setIsPoModalOpen(true)}>
+              <Button size="sm" onClick={handleNewPo}>
                 <Plus className="w-4 h-4 mr-1 inline" />
                 Add Purchase Order
               </Button>
@@ -266,7 +392,7 @@ export function ProcurementListPage() {
           </div>
           <Table
             columns={poColumns}
-            data={purchaseOrders}
+            data={enrichedPurchaseOrders}
             rowKey={(row) => row.id}
             isLoading={isLoadingPos}
           />
@@ -283,11 +409,14 @@ export function ProcurementListPage() {
       ),
       content: (
         <PurchaseOrderTrackingTab
-          purchaseOrders={purchaseOrders}
+          purchaseOrders={enrichedPurchaseOrders}
           suppliers={suppliers}
           isLoading={isLoadingPos}
           canManage={canManage}
           onRecordGrn={handleOpenGrnForPo}
+          onApprove={handlePoApproval}
+          onUpdateStatus={handlePoStatus}
+          onViewFulfillment={handleViewFulfillment}
         />
       ),
     },
@@ -308,6 +437,10 @@ export function ProcurementListPage() {
             setSelectedPoForGrn(null);
             setIsGrnModalOpen(true);
           }}
+          onVoid={(grn) => {
+            if (window.confirm(`Void ${grn.grnNumber || `GRN-${grn.id}`}? This will reverse accepted stock.`)) grnVoidMutation.mutate(grn.id);
+          }}
+          onEdit={(id, payload) => grnUpdateMutation.mutateAsync({ id, payload })}
         />
       ),
     },
@@ -326,6 +459,9 @@ export function ProcurementListPage() {
           canManage={canManage}
           onAdd={handleAddSupplier}
           onEdit={handleEditSupplier}
+          onDelete={(supplier) => {
+            if (window.confirm(`Delete supplier ${supplier.name}?`)) supplierDeleteMutation.mutate(supplier.id);
+          }}
         />
       ),
     },
@@ -340,7 +476,7 @@ export function ProcurementListPage() {
       content: (
         <SupplierPerformanceTab
           suppliers={suppliers}
-          purchaseOrders={purchaseOrders}
+          purchaseOrders={enrichedPurchaseOrders}
           grns={grns}
           isLoading={isLoadingSuppliers || isLoadingPos || isLoadingGrns}
         />
@@ -386,12 +522,22 @@ export function ProcurementListPage() {
           </h1>
         </div>
 
-        {canManage && (
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={selectedProjectId}
+            onChange={(event) => setSelectedProjectId(event.target.value)}
+            disabled={isLoadingProjects || projects.length === 0}
+            className="h-9 min-w-56 rounded-lg border border-surface-border bg-surface-base px-3 text-sm text-ink-900"
+          >
+            <option value="">{isLoadingProjects ? 'Loading projects...' : 'Select project'}</option>
+            {projects.map((project) => <option key={project.id} value={project.id}>{project.code ? `${project.code} - ` : ''}{project.name}</option>)}
+          </select>
+          {canManage && (
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setIsPoModalOpen(true)}
+              onClick={handleNewPo}
             >
               <Plus className="w-4 h-4 mr-1 inline" />
               New PO
@@ -407,7 +553,8 @@ export function ProcurementListPage() {
               Record GRN
             </Button>
           </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Main Tabbed Interface */}
@@ -416,19 +563,19 @@ export function ProcurementListPage() {
       {/* Create Purchase Order Modal */}
       <Modal
         open={isPoModalOpen}
-        onClose={() => setIsPoModalOpen(false)}
-        title="Create Purchase Order (PO)"
+        onClose={() => { setIsPoModalOpen(false); setEditingPo(null); }}
+        title={editingPo ? 'Edit Purchase Order (PO)' : 'Create Purchase Order (PO)'}
         size="md"
         footer={
           <>
-            <Button variant="outline" onClick={() => setIsPoModalOpen(false)}>
+            <Button variant="outline" onClick={() => { setIsPoModalOpen(false); setEditingPo(null); }}>
               Cancel
             </Button>
             <Button
               onClick={poForm.handleSubmit(handleCreatePoSubmit)}
               isLoading={createPoMutation.isPending}
             >
-              Create PO
+              {editingPo ? 'Save Changes' : 'Create PO'}
             </Button>
           </>
         }
@@ -440,18 +587,32 @@ export function ProcurementListPage() {
             {...poForm.register('poNumber', { required: 'PO number is required' })}
             error={poForm.formState.errors.poNumber?.message}
           />
-          <Input
-            label="Supplier / Vendor Name *"
-            placeholder="e.g. UltraTech Cement Distributors"
-            {...poForm.register('supplier', { required: 'Supplier is required' })}
-            error={poForm.formState.errors.supplier?.message}
-          />
+          <label className="flex flex-col gap-1.5 text-xs font-medium text-ink-700">
+            Supplier / Vendor *
+            <select
+              className="h-10 rounded-lg border border-surface-border bg-surface-base px-3 text-sm text-ink-900"
+              {...poForm.register('supplierId', { required: 'Please select a supplier' })}
+            >
+              <option value="">Select supplier from Supplier Master</option>
+              {suppliers.map((supplier) => (
+                <option key={supplier.id} value={supplier.id}>
+                  {supplier.supplierCode} - {supplier.name}
+                </option>
+              ))}
+            </select>
+            {poForm.formState.errors.supplierId && (
+              <span className="text-xs text-status-danger">{poForm.formState.errors.supplierId.message}</span>
+            )}
+          </label>
           <div className="grid grid-cols-2 gap-3">
             <Input
               label="Order Amount (₹)"
               type="number"
               placeholder="e.g. 150000"
-              {...poForm.register('amount')}
+              min="0"
+              step="0.01"
+              {...poForm.register('amount', { min: { value: 0, message: 'Amount cannot be negative' } })}
+              error={poForm.formState.errors.amount?.message}
             />
             <Input
               label="Expected Delivery Date *"
@@ -501,6 +662,23 @@ export function ProcurementListPage() {
         </form>
       </Modal>
 
+      <Modal
+        open={Boolean(selectedFulfillment)}
+        onClose={() => setSelectedFulfillment(null)}
+        title={`PO Fulfillment - ${selectedFulfillment?.po?.poNumber || ''}`}
+        size="md"
+        footer={<Button variant="outline" onClick={() => setSelectedFulfillment(null)}>Close</Button>}
+      >
+        <div className="grid grid-cols-2 gap-3 text-sm text-ink-800">
+          {Object.entries(selectedFulfillment?.data || {}).map(([key, value]) => (
+            <div key={key} className="rounded-lg border border-surface-border bg-surface-subtle p-3">
+              <span className="block text-xs font-medium uppercase tracking-wide text-ink-500">{key.replace(/[A-Z]/g, (letter) => ` ${letter}`).trim()}</span>
+              <strong className="mt-1 block text-ink-900">{value == null ? '—' : String(value)}</strong>
+            </div>
+          ))}
+        </div>
+      </Modal>
+
       {/* Record Goods Receipt Note (GRN) Modal */}
       <RecordGrnModal
         open={isGrnModalOpen}
@@ -509,7 +687,8 @@ export function ProcurementListPage() {
           setSelectedPoForGrn(null);
         }}
         defaultPo={selectedPoForGrn}
-        purchaseOrders={purchaseOrders}
+        projectId={projectId}
+        purchaseOrders={enrichedPurchaseOrders}
         materials={materials}
         onSuccess={() => {
           queryClient.invalidateQueries({ queryKey: ['grns'] });

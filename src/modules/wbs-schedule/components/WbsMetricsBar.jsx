@@ -9,13 +9,17 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '@/modules/projects/constants';
 
-export function WbsMetricsBar({ workPackages = [], onSelectStatus }) {
+export function WbsMetricsBar({ workPackages = [], totalAllocatedBudget, onSelectStatus }) {
   const totalPackages = workPackages.length;
   const inProgress = workPackages.filter((w) => w.status === 'IN_PROGRESS').length;
   const planned = workPackages.filter((w) => w.status === 'PLANNED').length;
   const onHold = workPackages.filter((w) => w.status === 'ON_HOLD').length;
   const completed = workPackages.filter((w) => w.status === 'COMPLETED').length;
-  const totalBudget = workPackages.reduce((acc, w) => acc + (Number(w.budgetAmount) || 0), 0);
+  // Prefer the backend project rollup. The local sum is only a resilience
+  // fallback when the summary endpoint is temporarily unavailable.
+  const totalBudget = totalAllocatedBudget != null
+    ? Number(totalAllocatedBudget) || 0
+    : workPackages.reduce((acc, w) => acc + (Number(w.budgetAmount) || 0), 0);
 
   const cards = [
     {
@@ -121,8 +125,8 @@ export function WbsMetricsBar({ workPackages = [], onSelectStatus }) {
             />
 
             {/* Top Row: Label & Micro-Action Icon */}
-            <div className="relative z-10 flex items-center justify-between gap-1.5">
-              <div className="flex items-center gap-1.5">
+            <div className="relative z-10 flex min-w-0 items-center justify-between gap-1.5">
+              <div className="flex min-w-0 flex-1 items-center gap-1.5">
                 {hasLivePulse && (
                   <span className="relative flex h-2 w-2 shrink-0">
                     <span
@@ -140,7 +144,7 @@ export function WbsMetricsBar({ workPackages = [], onSelectStatus }) {
                 {hasCheckGlow && (
                   <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 shadow-xs shadow-emerald-400 shrink-0" />
                 )}
-                <span className="text-[11px] font-bold tracking-wide uppercase text-ink-600 dark:text-ink-400 leading-tight truncate">
+                <span className="min-w-0 truncate text-[11px] font-bold tracking-wide uppercase text-ink-600 dark:text-ink-400 leading-tight">
                   {label}
                 </span>
               </div>

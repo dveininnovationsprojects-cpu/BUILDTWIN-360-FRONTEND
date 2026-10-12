@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { ModulePageHeading } from '@/design-system/components/ModulePageHeading/ModulePageHeading';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Users,
@@ -710,7 +711,7 @@ export function LabourContractorsListPage() {
       {/* Page Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="page-heading">Labour & Contractors</h1>
+          <ModulePageHeading>Labour &amp; Contractors</ModulePageHeading>
         </div>
 
         <div className="flex items-center gap-2">

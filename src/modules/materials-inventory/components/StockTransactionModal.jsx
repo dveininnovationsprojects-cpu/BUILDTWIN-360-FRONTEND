@@ -129,7 +129,13 @@ export function StockTransactionModal({
       if (values.transactionType === 'WASTAGE') {
         return stockLedgerApi.recordWastage(payload);
       }
-      // RECEIPT, RETURN, ADJUSTMENT
+      if (values.transactionType === 'RECEIPT') {
+        return stockLedgerApi.recordReceipt(payload);
+      }
+      if (values.transactionType === 'RETURN') {
+        return stockLedgerApi.returnMaterial(payload);
+      }
+      // ADJUSTMENT
       return stockLedgerApi.recordTransaction(payload);
     },
     onSuccess: (result, values) => {

@@ -186,6 +186,21 @@ export const wbsScheduleApi = {
   },
 };
 
+// GET /api/v1/projects/{projectId}/wbs-summary
+// Project-level KPI source. This must remain independent of table filters.
+export const wbsSummaryApi = {
+  get: async (projectId = 1) => {
+    try {
+      const response = await apiClient.get(`/projects/${projectId}/wbs-summary`);
+      const payload = response?.data?.data !== undefined ? response.data.data : response?.data;
+      return payload || null;
+    } catch (err) {
+      console.warn(`Backend WBS summary fetch failed for project ${projectId}:`, err);
+      return null;
+    }
+  },
+};
+
 // ==========================================
 // WBS ACTIVITIES API (WbsActivityController)
 // ==========================================
