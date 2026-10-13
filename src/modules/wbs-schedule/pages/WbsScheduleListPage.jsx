@@ -15,6 +15,7 @@ import {
   Package,
   ListTree,
   GitBranch,
+  CalendarClock,
 } from 'lucide-react';
 import { Table, StatusPill, Button, Modal } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
@@ -34,6 +35,7 @@ import { WbsStatusModal } from '../components/WbsStatusModal';
 import { WbsTimelineView } from '../components/WbsTimelineView';
 import { WbsActivitiesTab } from '../components/WbsActivitiesTab';
 import { WbsDependenciesTab } from '../components/WbsDependenciesTab';
+import { WbsScheduleControlTab } from '../components/WbsScheduleControlTab';
 import { ActivityDependencyModal } from '../components/ActivityDependencyModal';
 import {
   WBS_DISCIPLINES,
@@ -466,6 +468,19 @@ export function WbsScheduleListPage() {
       <div className="flex items-center border-b border-surface-border">
         <button
           type="button"
+          onClick={() => setActiveTab('schedule-control')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 rounded-t-lg transition-all duration-200 ${
+            activeTab === 'schedule-control'
+              ? 'border-brand-600 text-brand-700 bg-brand-50/60 shadow-2xs'
+              : 'border-transparent text-ink-500 hover:text-ink-800 hover:bg-slate-50/60'
+          }`}
+        >
+          <CalendarClock className={`h-4 w-4 ${activeTab === 'schedule-control' ? 'text-brand-600' : ''}`} />
+          Schedule Control
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab('work-packages')}
           className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 rounded-t-lg transition-all duration-200 ${
             activeTab === 'work-packages'
@@ -530,6 +545,17 @@ export function WbsScheduleListPage() {
           </span>
         </button>
       </div>
+
+      {activeTab === 'schedule-control' && (
+        <WbsScheduleControlTab
+          projectId={effectiveProjectId}
+          project={projects.find((project) => String(project.id) === String(effectiveProjectId))}
+          activities={activities}
+          workPackages={rawPackages}
+          onOpenActivities={() => setActiveTab('activities')}
+          onOpenWorkPackages={() => setActiveTab('work-packages')}
+        />
+      )}
 
       {/* ======================================================== */}
       {/* TAB 1: WORK PACKAGES & TIMELINE                          */}
