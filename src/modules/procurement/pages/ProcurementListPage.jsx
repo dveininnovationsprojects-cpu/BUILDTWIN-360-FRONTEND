@@ -13,6 +13,8 @@ import { RecordGrnModal } from '../components/RecordGrnModal';
 import { SupplierMasterTab } from '../components/SupplierMasterTab';
 import { PurchaseOrderTrackingTab } from '../components/PurchaseOrderTrackingTab';
 import { SupplierPerformanceTab } from '../components/SupplierPerformanceTab';
+import { MaterialRequestsTab } from '../components/MaterialRequestsTab';
+import { StockLedgerTab } from '../components/StockLedgerTab';
 import {
   Truck,
   PackageCheck,
@@ -24,8 +26,8 @@ import {
   ClipboardList,
   Building2,
   Award,
-  Pencil,
-  Trash2
+  Trash2,
+  X
 } from 'lucide-react';
 
 export function ProcurementListPage() {
@@ -329,7 +331,6 @@ export function ProcurementListPage() {
       render: (row) => (
         <div className="flex items-center gap-2">
           {canManage && <Button size="xs" variant="outline" onClick={() => handleOpenGrnForPo(row)} title="Record GRN" aria-label={`Record GRN for ${row.poNumber}`}><PackageCheck className="w-3.5 h-3.5" /></Button>}
-          {canManage && <Button size="xs" variant="outline" onClick={() => handleEditPo(row)} title="Edit purchase order" aria-label={`Edit ${row.poNumber}`}><Pencil className="w-3.5 h-3.5" /></Button>}
           {canManage && <Button size="xs" variant="outline" onClick={() => { if (window.confirm(`Cancel ${row.poNumber || `PO-${row.id}`}?`)) deletePoMutation.mutate(row.id); }} title="Delete purchase order" aria-label={`Delete ${row.poNumber}`}><Trash2 className="w-3.5 h-3.5" /></Button>}
         </div>
       ),
@@ -369,6 +370,22 @@ export function ProcurementListPage() {
 
   // Tab definitions
   const tabItems = [
+    {
+      key: 'requests',
+      label: (
+        <span className="flex items-center gap-1.5">
+          <ClipboardList className="w-4 h-4 text-brand-600" />
+          Material Requests (MR)
+        </span>
+      ),
+      content: (
+        <MaterialRequestsTab
+          projectId={projectId}
+          materials={materials}
+          canManage={canManage}
+        />
+      ),
+    },
     {
       key: 'pos',
       label: (
@@ -441,6 +458,22 @@ export function ProcurementListPage() {
             if (window.confirm(`Void ${grn.grnNumber || `GRN-${grn.id}`}? This will reverse accepted stock.`)) grnVoidMutation.mutate(grn.id);
           }}
           onEdit={(id, payload) => grnUpdateMutation.mutateAsync({ id, payload })}
+        />
+      ),
+    },
+    {
+      key: 'ledger',
+      label: (
+        <span className="flex items-center gap-1.5">
+          <Boxes className="w-4 h-4 text-brand-600" />
+          Stock Movements &amp; Consumptions
+        </span>
+      ),
+      content: (
+        <StockLedgerTab
+          projectId={projectId}
+          materials={materials}
+          canManage={canManage}
         />
       ),
     },
@@ -665,17 +698,61 @@ export function ProcurementListPage() {
       <Modal
         open={Boolean(selectedFulfillment)}
         onClose={() => setSelectedFulfillment(null)}
-        title={`PO Fulfillment - ${selectedFulfillment?.po?.poNumber || ''}`}
+        title={`PO Details & Fulfillment — ${selectedFulfillment?.po?.poNumber || ''}`}
         size="md"
-        footer={<Button variant="outline" onClick={() => setSelectedFulfillment(null)}>Close</Button>}
-      >
-        <div className="grid grid-cols-2 gap-3 text-sm text-ink-800">
-          {Object.entries(selectedFulfillment?.data || {}).map(([key, value]) => (
-            <div key={key} className="rounded-lg border border-surface-border bg-surface-subtle p-3">
-              <span className="block text-xs font-medium uppercase tracking-wide text-ink-500">{key.replace(/[A-Z]/g, (letter) => ` ${letter}`).trim()}</span>
-              <strong className="mt-1 block text-ink-900">{value == null ? '—' : String(value)}</strong>
+        footer={(
+          <div className="flex w-full items-center justify-between">
+            <div>
+              {canManage && selectedFulfillment?.po && !['CANCELLED', 'FULFILLED'].includes(selectedFulfillment.po.status) && (
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={() => {
+                    const po = selectedFulfillment.po;
+                    if (window.confirm(`Are you sure you want to cancel ${po.poNumber || `PO-${po.id}`}?`)) {
+                      poStatusMutation.mutate(
+                        { id: po.id, status: 'CANCELLED' },
+                        {
+                          onSuccess: () => {
+                            setSelectedFulfillment(null);
+                          },
+                        }
+                      );
+                    }
+                  }}
+                >
+                  <X className="mr-1.5 h-4 w-4 inline" />
+                  Cancel Purchase Order
+                </Button>
+              )}
             </div>
-          ))}
+            <Button variant="outline" size="sm" onClick={() => setSelectedFulfillment(null)}>
+              Close
+            </Button>
+          </div>
+        )}
+      >
+        <div className="flex flex-col gap-4">
+          {selectedFulfillment?.po && (
+            <div className="flex items-center justify-between rounded-lg border border-surface-border bg-surface-subtle p-3">
+              <div>
+                <span className="text-xs text-ink-500">Current Status</span>
+                <p className="font-semibold text-ink-900">{selectedFulfillment.po.status || 'PENDING'}</p>
+              </div>
+              <StatusPill
+                status={selectedFulfillment.po.status === 'FULFILLED' ? 'SUCCESS' : selectedFulfillment.po.status === 'CANCELLED' ? 'DANGER' : 'WARNING'}
+                label={selectedFulfillment.po.status || 'PENDING'}
+              />
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-3 text-sm text-ink-800">
+            {Object.entries(selectedFulfillment?.data || {}).map(([key, value]) => (
+              <div key={key} className="rounded-lg border border-surface-border bg-surface-subtle p-3">
+                <span className="block text-xs font-medium uppercase tracking-wide text-ink-500">{key.replace(/[A-Z]/g, (letter) => ` ${letter}`).trim()}</span>
+                <strong className="mt-1 block text-ink-900">{value == null ? '—' : String(value)}</strong>
+              </div>
+            ))}
+          </div>
         </div>
       </Modal>
 
