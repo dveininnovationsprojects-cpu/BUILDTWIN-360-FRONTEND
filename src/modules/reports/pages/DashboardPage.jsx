@@ -12,7 +12,6 @@ import {
   Area,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   LabelList,
   ComposedChart,
@@ -834,7 +833,6 @@ export function DashboardPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       {theme.chartStyle?.card1 === 'STEP_LINE' ? (
                         <LineChart data={roleSpec.budgetVariance} margin={{ top: 8, right: 15, left: -22, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                           <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
                           <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
                           <Tooltip cursor={false} contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#0f172a' }} labelStyle={{ color: '#64748b', fontWeight: '700' }} />
@@ -843,7 +841,6 @@ export function DashboardPage() {
                         </LineChart>
                       ) : theme.chartStyle?.card1 === 'DUAL_LINE_DOTS' || theme.chartStyle?.card1 === 'SPLINE_LINE_DUAL' ? (
                         <LineChart data={roleSpec.budgetVariance} margin={{ top: 8, right: 15, left: -22, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                           <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
                           <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
                           <Tooltip cursor={false} contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#0f172a' }} labelStyle={{ color: '#64748b', fontWeight: '700' }} />
@@ -852,7 +849,6 @@ export function DashboardPage() {
                         </LineChart>
                       ) : theme.chartStyle?.card1 === 'STACKED_COLUMN_BAR' || theme.chartStyle?.card1 === 'GROUPED_COLUMN_BAR' ? (
                         <BarChart data={roleSpec.budgetVariance} margin={{ top: 8, right: 15, left: -22, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                           <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
                           <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
                           <Tooltip cursor={false} contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#0f172a' }} labelStyle={{ color: '#64748b', fontWeight: '700' }} />
@@ -871,7 +867,6 @@ export function DashboardPage() {
                               <stop offset="95%" stopColor={theme.secondary} stopOpacity={0}/>
                             </linearGradient>
                           </defs>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                           <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
                           <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
                           <Tooltip cursor={false} contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#0f172a' }} labelStyle={{ color: '#64748b', fontWeight: '700' }} />
@@ -933,7 +928,6 @@ export function DashboardPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       {theme.chartStyle?.card3 === 'CURVED_LINE_DOTS' || theme.chartStyle?.card3 === 'DUAL_LINE' ? (
                         <LineChart data={roleSpec.budgetVariance} margin={{ top: 5, right: 15, left: -22, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                           <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
                           <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
                           <Tooltip cursor={false} contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#0f172a' }} labelStyle={{ color: '#64748b', fontWeight: '700' }} />
@@ -942,7 +936,6 @@ export function DashboardPage() {
                         </LineChart>
                       ) : theme.chartStyle?.card3 === 'AREA_SMOOTH' ? (
                         <AreaChart data={roleSpec.budgetVariance} margin={{ top: 5, right: 15, left: -22, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                           <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
                           <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
                           <Tooltip cursor={false} contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#0f172a' }} labelStyle={{ color: '#64748b', fontWeight: '700' }} />
@@ -950,7 +943,6 @@ export function DashboardPage() {
                         </AreaChart>
                       ) : theme.chartStyle?.card3 === 'ROUNDED_BAR' || theme.chartStyle?.card3 === 'SINGLE_BAR' ? (
                         <BarChart data={roleSpec.budgetVariance} margin={{ top: 5, right: 15, left: -22, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                           <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
                           <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
                           <Tooltip cursor={false} contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#0f172a' }} labelStyle={{ color: '#64748b', fontWeight: '700' }} />
@@ -958,7 +950,6 @@ export function DashboardPage() {
                         </BarChart>
                       ) : (
                         <BarChart data={roleSpec.budgetVariance} margin={{ top: 5, right: 15, left: -22, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                           <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
                           <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
                           <Tooltip cursor={false} contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#0f172a' }} labelStyle={{ color: '#64748b', fontWeight: '700' }} />
@@ -982,7 +973,6 @@ export function DashboardPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       {theme.chartStyle?.card4 === 'GROUPED_VERTICAL_BAR' ? (
                         <BarChart data={roleSpec.workload} margin={{ top: 5, right: 15, left: -22, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                           <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
                           <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
                           <Tooltip cursor={false} contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#0f172a' }} labelStyle={{ color: '#64748b', fontWeight: '700' }} />
@@ -991,7 +981,6 @@ export function DashboardPage() {
                         </BarChart>
                       ) : theme.chartStyle?.card4 === 'AREA_FLOW' ? (
                         <AreaChart data={roleSpec.workload} margin={{ top: 5, right: 15, left: -22, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                           <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
                           <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
                           <Tooltip cursor={false} contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#0f172a' }} labelStyle={{ color: '#64748b', fontWeight: '700' }} />
@@ -1003,7 +992,6 @@ export function DashboardPage() {
                           data={roleSpec.workload}
                           margin={{ top: 5, right: 15, left: 5, bottom: 5 }}
                         >
-                          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
                           <XAxis type="number" tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
                           <YAxis dataKey="project" type="category" tick={{ fontSize: 9, fill: '#334155', fontWeight: 600 }} axisLine={false} tickLine={false} width={65} />
                           <Tooltip cursor={false} contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#0f172a' }} labelStyle={{ color: '#64748b', fontWeight: '700' }} />
@@ -1061,7 +1049,6 @@ export function DashboardPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     {theme.chartStyle?.card6 === 'STEP_LINE' ? (
                       <LineChart data={roleSpec.resources} margin={{ top: 8, right: 25, left: -22, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                         <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
                         <Tooltip cursor={false} contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#0f172a' }} labelStyle={{ color: '#64748b', fontWeight: '700' }} />
@@ -1069,7 +1056,6 @@ export function DashboardPage() {
                       </LineChart>
                     ) : theme.chartStyle?.card6 === 'COMPOSED_AREA_LINE' || theme.chartStyle?.card6 === 'COMPOSED_DUAL_AXIS' ? (
                       <ComposedChart data={roleSpec.resources} margin={{ top: 8, right: 25, left: -22, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                         <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
                         <Tooltip cursor={false} contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#0f172a' }} labelStyle={{ color: '#64748b', fontWeight: '700' }} />
@@ -1078,7 +1064,6 @@ export function DashboardPage() {
                       </ComposedChart>
                     ) : theme.chartStyle?.card6 === 'LINE_BIG_DOTS' ? (
                       <LineChart data={roleSpec.resources} margin={{ top: 8, right: 25, left: -22, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                         <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
                         <Tooltip cursor={false} contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#0f172a' }} labelStyle={{ color: '#64748b', fontWeight: '700' }} />
@@ -1086,7 +1071,6 @@ export function DashboardPage() {
                       </LineChart>
                     ) : (
                       <ComposedChart data={roleSpec.resources} margin={{ top: 8, right: 25, left: -22, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                         <XAxis dataKey="project" tick={{ fontSize: 9, fill: '#475569', fontWeight: 600 }} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fontSize: 9, fill: '#64748b' }} axisLine={false} tickLine={false} />
                         <Tooltip cursor={false} contentStyle={TOOLTIP_STYLE} itemStyle={{ color: '#0f172a' }} labelStyle={{ color: '#64748b', fontWeight: '700' }} />
