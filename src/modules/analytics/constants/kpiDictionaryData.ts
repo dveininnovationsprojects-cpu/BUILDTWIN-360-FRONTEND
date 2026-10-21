@@ -80,6 +80,42 @@ export const BUILDTWIN_KPI_DICTIONARY: KPIDefinition[] = [
     }
   },
   {
+    id: 'kpi-cst-02',
+    code: 'KPI-CST-02',
+    name: 'Budget Variance & Cost Variance (CV) Engine',
+    category: 'Cost',
+    businessPurpose: 'Measures net monetary deviation between earned physical value and recorded financial expenditure, identifying budget deficits or savings.',
+    formula: 'Cost Variance (CV) = EV - AC; CV % = ((EV - AC) / EV) * 100; Budget Variance = BAC - AC',
+    sourceTables: ['wbs_budget.bac', 'earned_value.ev', 'cost_transactions.amount'],
+    refreshTrigger: 'Real-time on cost transaction posting or DPR progress verification.',
+    exclusions: 'Advance mobilizations amortized proportionally against measurement milestones.',
+    ownerRole: 'Project Manager / Cost Controller',
+    validationExample: {
+      project: 'PRJ-001 Padur Structural Frame',
+      scenario: 'EV = ₹4,50,000, AC = ₹4,80,000, BAC = ₹12,00,000',
+      calculation: 'CV = 4,50,000 - 4,80,000; CV% = (-30,000 / 4,50,000) * 100',
+      result: '-₹30,000 (-6.67% Cost Variance Deficit)'
+    }
+  },
+  {
+    id: 'kpi-cst-03',
+    code: 'KPI-CST-03',
+    name: 'Forecast at Completion (FAC) & Variance at Completion (VAC)',
+    category: 'Cost',
+    businessPurpose: 'Predicts the final total project expenditure at project closeout based on current cost efficiency trends (CPI), calculating projected cost overruns or savings against original baseline budget.',
+    formula: 'FAC = BAC / CPI; Estimate to Complete (ETC) = FAC - AC; Variance at Completion (VAC) = BAC - FAC',
+    sourceTables: ['wbs_budget.bac', 'earned_value.ev', 'cost_transactions.ac', 'cpi_metrics.cpi'],
+    refreshTrigger: 'Weekly EVM reconciliation batch process.',
+    exclusions: 'Formal scope change orders adjust BAC baseline before computing final VAC.',
+    ownerRole: 'Director / Project Director / Commercial Manager',
+    validationExample: {
+      project: 'PRJ-001 Padur Total Project',
+      scenario: 'BAC = ₹50,00,000, Current CPI = 0.9375',
+      calculation: 'FAC = 50,00,000 / 0.9375; VAC = 50,00,000 - 53,33,333',
+      result: 'FAC = ₹53,33,333 (-₹3,33,333 Projected Budget Overrun at Closeout)'
+    }
+  },
+  {
     id: 'kpi-lbr-01',
     code: 'KPI-LBR-01',
     name: 'Labour Productivity Index (LPI)',

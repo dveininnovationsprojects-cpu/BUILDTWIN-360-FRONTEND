@@ -156,20 +156,57 @@ export function BusinessCalculationLogicModule() {
     return { rejPct, variance, isDelayed: aLt > cLt, isRejExceeded: parseFloat(rejPct) > 2.0 };
   }, [calcRejRec, calcRejDef, calcContractedLt, calcActualLt]);
 
+  // Calculator State 9: Cost Performance Index (CPI) & Cost Variance (CV) Engine (KPI-CST-01 & 02)
+  const [calcEvmEv, setCalcEvmEv] = useState(450000);
+  const [calcEvmAc, setCalcEvmAc] = useState(480000);
+  const [calcEvmBac, setCalcEvmBac] = useState(1200000);
+
+  const calcEvmCpiResult = useMemo(() => {
+    const ev = parseFloat(calcEvmEv) || 0;
+    const ac = parseFloat(calcEvmAc) || 0;
+    const bac = parseFloat(calcEvmBac) || 0;
+    const cpi = ac > 0 ? (ev / ac).toFixed(3) : '1.000';
+    const cv = ev - ac;
+    const cvPct = ev > 0 ? (((ev - ac) / ev) * 100).toFixed(2) : '0.00';
+    const budgetVar = bac - ac;
+    const isOverrun = cv < 0;
+    return { cpi, cv, cvPct, budgetVar, isOverrun };
+  }, [calcEvmEv, calcEvmAc, calcEvmBac]);
+
+  // Calculator State 10: Forecast at Completion (FAC) & Variance at Completion (VAC) (KPI-CST-03)
+  const [calcFacBac, setCalcFacBac] = useState(5000000);
+  const [calcFacCpi, setCalcFacCpi] = useState(0.938);
+  const [calcFacAc, setCalcFacAc] = useState(2800000);
+  const [calcFacEv, setCalcFacEv] = useState(2625000);
+
+  const calcFacMetrics = useMemo(() => {
+    const bac = parseFloat(calcFacBac) || 0;
+    const cpi = parseFloat(calcFacCpi) || 1.0;
+    const ac = parseFloat(calcFacAc) || 0;
+    const ev = parseFloat(calcFacEv) || 0;
+
+    const fac = cpi > 0 ? Math.round(bac / cpi) : bac;
+    const etc = Math.max(0, fac - ac);
+    const vac = bac - fac;
+    const tcpi = bac - ac !== 0 ? Math.max(0, (bac - ev) / (bac - ac)).toFixed(2) : '1.00';
+
+    return { fac, etc, vac, tcpi, isDeficit: vac < 0 };
+  }, [calcFacBac, calcFacCpi, calcFacAc, calcFacEv]);
+
   return (
     <div className="flex flex-col gap-5">
-      {/* Featured Interactive Calculation Simulator for 8 Core Logics */}
+      {/* Featured Interactive Calculation Simulator for 10 Core Logics */}
       <div className="rounded-xl border border-brand-200 bg-gradient-to-r from-brand-950 via-slate-900 to-brand-900 text-white p-5 shadow-lg">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-4">
           <div>
             <div className="flex items-center gap-2">
               <span className="bg-emerald-500/20 text-emerald-300 font-mono text-xs px-2.5 py-0.5 rounded-full font-bold border border-emerald-500/30 flex items-center gap-1">
-                <Cpu className="h-3.5 w-3.5" /> 8 LIVE DOMAIN CALCULATION ENGINES
+                <Cpu className="h-3.5 w-3.5" /> 10 LIVE DOMAIN CALCULATION ENGINES
               </span>
               <h3 className="text-lg font-bold text-white">Domain Rule Execution Engine</h3>
             </div>
             <p className="text-xs text-slate-300 mt-1">
-              Test real-time mathematical evaluations for schedule progress, material depletion, wastage, shortage risk, and supplier lead-time performance.
+              Test real-time mathematical evaluations for schedule progress, material depletion, wastage, shortage risk, supplier SLAs, and EVM cost forecasting.
             </p>
           </div>
 
@@ -254,6 +291,26 @@ export function BusinessCalculationLogicModule() {
               }`}
             >
               8. Lead Time & Rejection
+            </button>
+            <button
+              onClick={() => setActiveCalcTab('EVM_CPI_CV')}
+              className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
+                activeCalcTab === 'EVM_CPI_CV'
+                  ? 'bg-brand-600 text-white shadow-sm'
+                  : 'text-brand-400/80 hover:text-brand-300'
+              }`}
+            >
+              9. CPI & Cost Variance
+            </button>
+            <button
+              onClick={() => setActiveCalcTab('EVM_FAC')}
+              className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
+                activeCalcTab === 'EVM_FAC'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-emerald-400/80 hover:text-emerald-300'
+              }`}
+            >
+              10. FAC & TCPI Forecast
             </button>
           </div>
         </div>
@@ -785,6 +842,142 @@ export function BusinessCalculationLogicModule() {
                 <span className={`font-bold ${calcSupplierQuality.isRejExceeded ? 'text-rose-400' : 'text-emerald-400'}`}>
                   {calcSupplierQuality.isRejExceeded ? 'EXCESS DEFECTS' : 'ACCEPTABLE'}
                 </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 9: Cost Performance Index (CPI) & Cost Variance (CV) Engine */}
+        {activeCalcTab === 'EVM_CPI_CV' && (
+          <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
+            <div className="lg:col-span-2 space-y-3 bg-slate-900/90 p-4 rounded-lg border border-slate-800">
+              <div className="font-semibold text-brand-300 flex items-center justify-between">
+                <span>Earned Value & Actual Cost Inputs</span>
+                <span className="font-mono text-[11px] text-slate-400">KPI-CST-01 & KPI-CST-02 Rules</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Earned Value (EV) in ₹</label>
+                  <input
+                    type="number"
+                    value={calcEvmEv}
+                    onChange={(e) => setCalcEvmEv(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Actual Cost Spent (AC) in ₹</label>
+                  <input
+                    type="number"
+                    value={calcEvmAc}
+                    onChange={(e) => setCalcEvmAc(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Budget at Completion (BAC) in ₹</label>
+                  <input
+                    type="number"
+                    value={calcEvmBac}
+                    onChange={(e) => setCalcEvmBac(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+              </div>
+              <div className="text-[11px] text-slate-400 bg-slate-950/60 p-2 rounded border border-slate-800/80 font-mono">
+                CPI = {calcEvmEv.toLocaleString('en-IN')} / {calcEvmAc.toLocaleString('en-IN')} = {calcEvmCpiResult.cpi} • Cost Variance (CV) = {calcEvmEv.toLocaleString('en-IN')} - {calcEvmAc.toLocaleString('en-IN')} = ₹{calcEvmCpiResult.cv.toLocaleString('en-IN')} ({calcEvmCpiResult.cvPct}%)
+              </div>
+            </div>
+
+            <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 flex flex-col justify-between">
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Cost Performance (CPI)</span>
+                <div className={`text-3xl font-black font-mono mt-1 ${parseFloat(calcEvmCpiResult.cpi) >= 1.0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  {calcEvmCpiResult.cpi}
+                </div>
+                <div className="text-[11px] text-slate-300 mt-1">
+                  Cost Variance: <strong className={calcEvmCpiResult.cv >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
+                    {calcEvmCpiResult.cv >= 0 ? `+₹${calcEvmCpiResult.cv.toLocaleString('en-IN')}` : `-₹${Math.abs(calcEvmCpiResult.cv).toLocaleString('en-IN')}`}
+                  </strong> ({calcEvmCpiResult.cvPct}%)
+                </div>
+              </div>
+              <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">Budget Health:</span>
+                <span className={`font-bold ${parseFloat(calcEvmCpiResult.cpi) >= 1.0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  {parseFloat(calcEvmCpiResult.cpi) >= 1.0 ? 'UNDER BUDGET (SAVING)' : 'OVER BUDGET DEFICIT'}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 10: Forecast at Completion (FAC) & Variance at Completion (VAC) Engine */}
+        {activeCalcTab === 'EVM_FAC' && (
+          <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
+            <div className="lg:col-span-2 space-y-3 bg-slate-900/90 p-4 rounded-lg border border-slate-800">
+              <div className="font-semibold text-emerald-300 flex items-center justify-between">
+                <span>EVM Forecasting Inputs (FAC = BAC / CPI)</span>
+                <span className="font-mono text-[11px] text-slate-400">KPI-CST-03 Predictive Closeout Rule</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Baseline Budget (BAC)</label>
+                  <input
+                    type="number"
+                    value={calcFacBac}
+                    onChange={(e) => setCalcFacBac(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Current CPI Trend</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={calcFacCpi}
+                    onChange={(e) => setCalcFacCpi(parseFloat(e.target.value) || 0.01)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Actual Cost Spent (AC)</label>
+                  <input
+                    type="number"
+                    value={calcFacAc}
+                    onChange={(e) => setCalcFacAc(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Earned Value (EV)</label>
+                  <input
+                    type="number"
+                    value={calcFacEv}
+                    onChange={(e) => setCalcFacEv(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+              </div>
+              <div className="text-[11px] text-slate-400 bg-slate-950/60 p-2 rounded border border-slate-800/80 font-mono">
+                FAC = {calcFacBac.toLocaleString('en-IN')} / {calcFacCpi} = ₹{calcFacMetrics.fac.toLocaleString('en-IN')} • ETC = ₹{calcFacMetrics.etc.toLocaleString('en-IN')} • TCPI = {calcFacMetrics.tcpi}
+              </div>
+            </div>
+
+            <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 flex flex-col justify-between">
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Projected Final Cost (FAC)</span>
+                <div className="text-2xl font-black font-mono text-purple-300 mt-1">
+                  ₹{calcFacMetrics.fac.toLocaleString('en-IN')}
+                </div>
+                <div className="text-[11px] text-slate-300 mt-1">
+                  VAC at Closeout: <strong className={calcFacMetrics.vac >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
+                    {calcFacMetrics.vac >= 0 ? `+₹${calcFacMetrics.vac.toLocaleString('en-IN')} Surplus` : `-₹${Math.abs(calcFacMetrics.vac).toLocaleString('en-IN')} Overrun`}
+                  </strong>
+                </div>
+              </div>
+              <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">Target TCPI:</span>
+                <span className="font-bold text-amber-400">{calcFacMetrics.tcpi}</span>
               </div>
             </div>
           </div>
