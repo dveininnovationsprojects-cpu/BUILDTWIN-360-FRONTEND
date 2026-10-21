@@ -84,54 +84,131 @@ export function BusinessCalculationLogicModule() {
     return (spiEv / spiPv).toFixed(3);
   }, [spiEv, spiPv]);
 
+  // Calculator State 4: Material Depletion Forecast (KPI-MAT-01)
+  const [calcMatStock, setCalcMatStock] = useState(120);
+  const [calcMatDailyRate, setCalcMatDailyRate] = useState(30);
+  const [calcMatTargetDays, setCalcMatTargetDays] = useState(5);
+
+  const calcMatDaysToDepletion = useMemo(() => {
+    const rate = parseFloat(calcMatDailyRate) || 1;
+    return (parseFloat(calcMatStock) / rate).toFixed(1);
+  }, [calcMatStock, calcMatDailyRate]);
+
+  // Calculator State 5: Material Wastage % (KPI-MAT-02)
+  const [calcWstIssued, setCalcWstIssued] = useState(10.0);
+  const [calcWstMeasured, setCalcWstMeasured] = useState(9.4);
+  const [calcWstReturned, setCalcWstReturned] = useState(0.3);
+  const [calcWstBenchmark, setCalcWstBenchmark] = useState(2.5);
+
+  const calcWastageResult = useMemo(() => {
+    const iss = parseFloat(calcWstIssued) || 1;
+    const meas = parseFloat(calcWstMeasured) || 0;
+    const ret = parseFloat(calcWstReturned) || 0;
+    const wasted = Math.max(0, (iss - ret) - meas);
+    const pct = ((wasted / iss) * 100).toFixed(2);
+    const isExceeded = parseFloat(pct) > parseFloat(calcWstBenchmark);
+    return { pct, wasted: wasted.toFixed(2), isExceeded };
+  }, [calcWstIssued, calcWstMeasured, calcWstReturned, calcWstBenchmark]);
+
+  // Calculator State 6: Shortage Risk Scoring Engine (KPI-MAT-03)
+  const [calcRiskStock, setCalcRiskStock] = useState(45);
+  const [calcRiskReorder, setCalcRiskReorder] = useState(100);
+  const [calcRiskBurn, setCalcRiskBurn] = useState(15);
+  const [calcRiskLeadTime, setCalcRiskLeadTime] = useState(6);
+  const [calcRiskCritical, setCalcRiskCritical] = useState(true);
+
+  const calcRiskScoreResult = useMemo(() => {
+    const cur = parseFloat(calcRiskStock) || 0;
+    const reorder = parseFloat(calcRiskReorder) || 1;
+    const burn = parseFloat(calcRiskBurn) || 1;
+    const lead = parseFloat(calcRiskLeadTime) || 1;
+
+    const bufferScore = Math.min(100, Math.max(0, ((reorder - cur) / reorder) * 100));
+    const daysCover = burn > 0 ? cur / burn : 999;
+    const leadTimeRisk = daysCover < lead ? 100 : daysCover <= 1.5 * lead ? 40 : 10;
+    const critScore = calcRiskCritical ? 100 : 25;
+    const score = (0.35 * bufferScore + 0.35 * leadTimeRisk + 0.30 * critScore).toFixed(1);
+    return { score, daysCover: daysCover.toFixed(1) };
+  }, [calcRiskStock, calcRiskReorder, calcRiskBurn, calcRiskLeadTime, calcRiskCritical]);
+
   return (
     <div className="flex flex-col gap-5">
-      {/* Featured Interactive Calculation Simulator for 3 Core Logics */}
+      {/* Featured Interactive Calculation Simulator for 6 Core Logics */}
       <div className="rounded-xl border border-brand-200 bg-gradient-to-r from-brand-950 via-slate-900 to-brand-900 text-white p-5 shadow-lg">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-4">
           <div>
             <div className="flex items-center gap-2">
               <span className="bg-emerald-500/20 text-emerald-300 font-mono text-xs px-2.5 py-0.5 rounded-full font-bold border border-emerald-500/30 flex items-center gap-1">
-                <Cpu className="h-3.5 w-3.5" /> LIVE CALCULATION LOGIC SIMULATOR
+                <Cpu className="h-3.5 w-3.5" /> 6 LIVE DOMAIN CALCULATION ENGINES
               </span>
               <h3 className="text-lg font-bold text-white">Domain Rule Execution Engine</h3>
             </div>
             <p className="text-xs text-slate-300 mt-1">
-              Select any of the 3 domain calculation logics to test real-time mathematical evaluations with site inputs.
+              Test real-time mathematical evaluations for schedule progress, material depletion, wastage loss, and shortage risk.
             </p>
           </div>
 
-          {/* Selector Tabs matching the 3 items from user request */}
-          <div className="flex items-center gap-1.5 bg-slate-950/80 p-1 rounded-lg border border-slate-800">
+          {/* Selector Tabs matching all 6 domain engines */}
+          <div className="flex flex-wrap items-center gap-1.5 bg-slate-950/80 p-1.5 rounded-lg border border-slate-800">
             <button
               onClick={() => setActiveCalcTab('PRG')}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+              className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
                 activeCalcTab === 'PRG'
                   ? 'bg-brand-500 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              1. Physical Progress %
+              1. Physical %
             </button>
             <button
               onClick={() => setActiveCalcTab('SCH_VAR')}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+              className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
                 activeCalcTab === 'SCH_VAR'
                   ? 'bg-brand-500 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              2. Schedule Variance & Slippage
+              2. Schedule Var
             </button>
             <button
               onClick={() => setActiveCalcTab('SPI')}
-              className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${
+              className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
                 activeCalcTab === 'SPI'
                   ? 'bg-brand-500 text-white shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              3. Schedule Performance Index (SPI)
+              3. SPI Index
+            </button>
+            <button
+              onClick={() => setActiveCalcTab('MAT_DEP')}
+              className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
+                activeCalcTab === 'MAT_DEP'
+                  ? 'bg-emerald-600 text-white shadow-sm'
+                  : 'text-emerald-400/80 hover:text-emerald-300'
+              }`}
+            >
+              4. Depletion Forecast
+            </button>
+            <button
+              onClick={() => setActiveCalcTab('MAT_WST')}
+              className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
+                activeCalcTab === 'MAT_WST'
+                  ? 'bg-amber-600 text-white shadow-sm'
+                  : 'text-amber-400/80 hover:text-amber-300'
+              }`}
+            >
+              5. Wastage % & Loss
+            </button>
+            <button
+              onClick={() => setActiveCalcTab('MAT_RSK')}
+              className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
+                activeCalcTab === 'MAT_RSK'
+                  ? 'bg-rose-600 text-white shadow-sm'
+                  : 'text-rose-400/80 hover:text-rose-300'
+              }`}
+            >
+              6. Shortage Risk Score
             </button>
           </div>
         </div>
@@ -329,6 +406,214 @@ export function BusinessCalculationLogicModule() {
                 <span className="text-slate-400">Efficiency Index:</span>
                 <span className={`font-bold ${parseFloat(calculatedSpi) < 1.0 ? 'text-rose-400' : 'text-emerald-400'}`}>
                   {parseFloat(calculatedSpi) < 1.0 ? 'SLIPPAGE ALERT' : 'OPTIMAL BURN'}
+                </span>
+              </div>
+            </div>
+          </div>
+        {/* Tab 4: Material Consumption Rate & Depletion Forecast Model */}
+        {activeCalcTab === 'MAT_DEP' && (
+          <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
+            <div className="lg:col-span-2 space-y-3 bg-slate-900/90 p-4 rounded-lg border border-slate-800">
+              <div className="font-semibold text-emerald-300 flex items-center justify-between">
+                <span>Material Consumption & Upcoming Milestone Inputs</span>
+                <span className="font-mono text-[11px] text-slate-400">KPI-MAT-01 Rule</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Usable Store Balance (Bags)</label>
+                  <input
+                    type="number"
+                    value={calcMatStock}
+                    onChange={(e) => setCalcMatStock(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Rolling Consumption CR₇d (Bags/day)</label>
+                  <input
+                    type="number"
+                    value={calcMatDailyRate}
+                    onChange={(e) => setCalcMatDailyRate(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Planned Activity In (Days)</label>
+                  <input
+                    type="number"
+                    value={calcMatTargetDays}
+                    onChange={(e) => setCalcMatTargetDays(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+              </div>
+              <div className="text-[11px] text-slate-400 bg-slate-950/60 p-2 rounded border border-slate-800/80 font-mono">
+                Formula: Days to Depletion = Stock ({calcMatStock}) / CR₇d ({calcMatDailyRate}) = {calcMatDaysToDepletion} Days
+              </div>
+            </div>
+
+            <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 flex flex-col justify-between">
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Depletion Forecast Velocity</span>
+                <div className={`text-3xl font-black font-mono mt-1 ${parseFloat(calcMatDaysToDepletion) < calcMatTargetDays ? 'text-rose-400' : 'text-emerald-400'}`}>
+                  {calcMatDaysToDepletion} Days
+                </div>
+                <div className="text-[11px] text-slate-300 mt-1">
+                  {parseFloat(calcMatDaysToDepletion) < calcMatTargetDays
+                    ? `⚠️ Runs out ${(calcMatTargetDays - parseFloat(calcMatDaysToDepletion)).toFixed(1)} days BEFORE planned activity!`
+                    : `✅ Covers activity with ${(parseFloat(calcMatDaysToDepletion) - calcMatTargetDays).toFixed(1)} days safety buffer.`}
+                </div>
+              </div>
+              <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">Inventory Status:</span>
+                <span className={`font-bold ${parseFloat(calcMatDaysToDepletion) < calcMatTargetDays ? 'text-rose-400' : 'text-emerald-400'}`}>
+                  {parseFloat(calcMatDaysToDepletion) < calcMatTargetDays ? 'SHORTAGE ALERT' : 'ADEQUATE COVER'}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 5: Material Wastage % Formula & Loss Monitoring Logic */}
+        {activeCalcTab === 'MAT_WST' && (
+          <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
+            <div className="lg:col-span-2 space-y-3 bg-slate-900/90 p-4 rounded-lg border border-slate-800">
+              <div className="font-semibold text-amber-300 flex items-center justify-between">
+                <span>Material Reconciliation & Scrap Input Audit</span>
+                <span className="font-mono text-[11px] text-slate-400">KPI-MAT-02 Rule</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Issued Qty (MT)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={calcWstIssued}
+                    onChange={(e) => setCalcWstIssued(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Measured (MT)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={calcWstMeasured}
+                    onChange={(e) => setCalcWstMeasured(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Returned (MT)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={calcWstReturned}
+                    onChange={(e) => setCalcWstReturned(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Benchmark (%)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={calcWstBenchmark}
+                    onChange={(e) => setCalcWstBenchmark(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+              </div>
+              <div className="text-[11px] text-slate-400 bg-slate-950/60 p-2 rounded border border-slate-800/80 font-mono">
+                Formula: ((Issued [{calcWstIssued}] - Measured [{calcWstMeasured}] - Returned [{calcWstReturned}]) / Issued [{calcWstIssued}]) × 100 = {calcWastageResult.pct}%
+              </div>
+            </div>
+
+            <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 flex flex-col justify-between">
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Wastage % vs Benchmark</span>
+                <div className={`text-3xl font-black font-mono mt-1 ${calcWastageResult.isExceeded ? 'text-rose-400' : 'text-emerald-400'}`}>
+                  {calcWastageResult.pct}%
+                </div>
+                <div className="text-[11px] text-slate-300 mt-1">
+                  Threshold: {calcWstBenchmark}% • Net Scrap: {calcWastageResult.wasted} MT
+                </div>
+              </div>
+              <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">Audit Status:</span>
+                <span className={`font-bold ${calcWastageResult.isExceeded ? 'text-rose-400' : 'text-emerald-400'}`}>
+                  {calcWastageResult.isExceeded ? 'EXCESS SCRAP DETECTED' : 'NORMAL TOLERANCE'}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 6: Low-Stock & Projected Shortage Risk Scoring Engine */}
+        {activeCalcTab === 'MAT_RSK' && (
+          <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
+            <div className="lg:col-span-2 space-y-3 bg-slate-900/90 p-4 rounded-lg border border-slate-800">
+              <div className="font-semibold text-rose-300 flex items-center justify-between">
+                <span>Multi-Factor Risk Scoring Parameters</span>
+                <span className="font-mono text-[11px] text-slate-400">KPI-MAT-03 Engine</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Current Stock</label>
+                  <input
+                    type="number"
+                    value={calcRiskStock}
+                    onChange={(e) => setCalcRiskStock(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Reorder Level</label>
+                  <input
+                    type="number"
+                    value={calcRiskReorder}
+                    onChange={(e) => setCalcRiskReorder(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Burn Rate (/day)</label>
+                  <input
+                    type="number"
+                    value={calcRiskBurn}
+                    onChange={(e) => setCalcRiskBurn(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Lead Time (Days)</label>
+                  <input
+                    type="number"
+                    value={calcRiskLeadTime}
+                    onChange={(e) => setCalcRiskLeadTime(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+              </div>
+              <div className="text-[11px] text-slate-400 bg-slate-950/60 p-2 rounded border border-slate-800/80 font-mono">
+                Weighted: (0.35 * Buffer Deficit) + (0.35 * Lead Time Gap) + (0.30 * Critical Path)
+              </div>
+            </div>
+
+            <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 flex flex-col justify-between">
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Shortage Risk Index</span>
+                <div className={`text-3xl font-black font-mono mt-1 ${parseFloat(calcRiskScoreResult.score) >= 70 ? 'text-rose-400' : parseFloat(calcRiskScoreResult.score) >= 40 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                  {calcRiskScoreResult.score} / 100
+                </div>
+                <div className="text-[11px] text-slate-300 mt-1">
+                  Days of Stock Left: {calcRiskScoreResult.daysCover} Days vs {calcRiskLeadTime} Days Lead Time
+                </div>
+              </div>
+              <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">Risk Assessment:</span>
+                <span className={`font-bold ${parseFloat(calcRiskScoreResult.score) >= 70 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                  {parseFloat(calcRiskScoreResult.score) >= 70 ? 'CRITICAL SHORTAGE' : 'CONTROLLED'}
                 </span>
               </div>
             </div>

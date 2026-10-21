@@ -134,6 +134,24 @@ export const BUILDTWIN_KPI_DICTIONARY: KPIDefinition[] = [
     }
   },
   {
+    id: 'kpi-mat-03',
+    code: 'KPI-MAT-03',
+    name: 'Low-Stock & Projected Shortage Risk Scoring Engine',
+    category: 'Material',
+    businessPurpose: 'Calculates a composite 0-100 risk score indicating vulnerability of planned activities to inventory runout based on buffer deficit, supplier lead time, burn rate, and critical path linkage.',
+    formula: 'Shortage Risk Score = (0.35 * Buffer Deficit Score) + (0.30 * Lead Time Coverage Risk) + (0.20 * Critical Path Weight) + (0.15 * Supplier Late Delivery Risk)',
+    sourceTables: ['materials.current_stock', 'materials.reorder_level', 'purchase_orders.lead_time_days', 'wbs_activities.is_critical_path'],
+    refreshTrigger: 'Real-time on stock issue or WBS schedule revision.',
+    exclusions: 'Inactive or archived materials excluded from shortage scoring.',
+    ownerRole: 'Procurement Officer / Material Controller',
+    validationExample: {
+      project: 'PRJ-001 Padur Residence (OPC Cement)',
+      scenario: 'Balance = 120 Bags, Reorder = 200 Bags, Cover = 4 Days, Lead Time = 6 Days, Critical Path = Yes',
+      calculation: '(0.35 * 40.0) + (0.30 * 100.0) + (0.20 * 100.0) + (0.15 * 30.0)',
+      result: '86.5/100 (CRITICAL SHORTAGE RISK - Expedite Purchase Order Immediately)'
+    }
+  },
+  {
     id: 'kpi-sup-01',
     code: 'KPI-SUP-01',
     name: 'Supplier On-Time Delivery (OTD %)',
