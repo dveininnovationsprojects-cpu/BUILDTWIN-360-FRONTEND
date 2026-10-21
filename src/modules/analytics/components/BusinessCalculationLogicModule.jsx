@@ -131,24 +131,49 @@ export function BusinessCalculationLogicModule() {
     return { score, daysCover: daysCover.toFixed(1) };
   }, [calcRiskStock, calcRiskReorder, calcRiskBurn, calcRiskLeadTime, calcRiskCritical]);
 
+  // Calculator State 7: Supplier OTD % (KPI-SUP-01)
+  const [calcOtdTotal, setCalcOtdTotal] = useState(20);
+  const [calcOtdOnTime, setCalcOtdOnTime] = useState(18);
+  const calcOtdPct = useMemo(() => {
+    const tot = parseFloat(calcOtdTotal) || 1;
+    const ont = parseFloat(calcOtdOnTime) || 0;
+    return ((ont / tot) * 100).toFixed(1);
+  }, [calcOtdTotal, calcOtdOnTime]);
+
+  // Calculator State 8: Supplier Rejection Rate & Lead Time (KPI-SUP-02 & 03)
+  const [calcRejRec, setCalcRejRec] = useState(100);
+  const [calcRejDef, setCalcRejDef] = useState(2.5);
+  const [calcContractedLt, setCalcContractedLt] = useState(5);
+  const [calcActualLt, setCalcActualLt] = useState(6.8);
+
+  const calcSupplierQuality = useMemo(() => {
+    const rec = parseFloat(calcRejRec) || 1;
+    const def = parseFloat(calcRejDef) || 0;
+    const rejPct = ((def / rec) * 100).toFixed(1);
+    const cLt = parseFloat(calcContractedLt) || 1;
+    const aLt = parseFloat(calcActualLt) || 1;
+    const variance = (aLt - cLt).toFixed(1);
+    return { rejPct, variance, isDelayed: aLt > cLt, isRejExceeded: parseFloat(rejPct) > 2.0 };
+  }, [calcRejRec, calcRejDef, calcContractedLt, calcActualLt]);
+
   return (
     <div className="flex flex-col gap-5">
-      {/* Featured Interactive Calculation Simulator for 6 Core Logics */}
+      {/* Featured Interactive Calculation Simulator for 8 Core Logics */}
       <div className="rounded-xl border border-brand-200 bg-gradient-to-r from-brand-950 via-slate-900 to-brand-900 text-white p-5 shadow-lg">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-4">
           <div>
             <div className="flex items-center gap-2">
               <span className="bg-emerald-500/20 text-emerald-300 font-mono text-xs px-2.5 py-0.5 rounded-full font-bold border border-emerald-500/30 flex items-center gap-1">
-                <Cpu className="h-3.5 w-3.5" /> 6 LIVE DOMAIN CALCULATION ENGINES
+                <Cpu className="h-3.5 w-3.5" /> 8 LIVE DOMAIN CALCULATION ENGINES
               </span>
               <h3 className="text-lg font-bold text-white">Domain Rule Execution Engine</h3>
             </div>
             <p className="text-xs text-slate-300 mt-1">
-              Test real-time mathematical evaluations for schedule progress, material depletion, wastage loss, and shortage risk.
+              Test real-time mathematical evaluations for schedule progress, material depletion, wastage, shortage risk, and supplier lead-time performance.
             </p>
           </div>
 
-          {/* Selector Tabs matching all 6 domain engines */}
+          {/* Selector Tabs matching all 8 domain engines */}
           <div className="flex flex-wrap items-center gap-1.5 bg-slate-950/80 p-1.5 rounded-lg border border-slate-800">
             <button
               onClick={() => setActiveCalcTab('PRG')}
@@ -209,6 +234,26 @@ export function BusinessCalculationLogicModule() {
               }`}
             >
               6. Shortage Risk Score
+            </button>
+            <button
+              onClick={() => setActiveCalcTab('SUP_OTD')}
+              className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
+                activeCalcTab === 'SUP_OTD'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-indigo-400/80 hover:text-indigo-300'
+              }`}
+            >
+              7. Supplier OTD %
+            </button>
+            <button
+              onClick={() => setActiveCalcTab('SUP_LT')}
+              className={`px-2.5 py-1 rounded text-xs font-bold transition-all ${
+                activeCalcTab === 'SUP_LT'
+                  ? 'bg-purple-600 text-white shadow-sm'
+                  : 'text-purple-400/80 hover:text-purple-300'
+              }`}
+            >
+              8. Lead Time & Rejection
             </button>
           </div>
         </div>
@@ -614,6 +659,131 @@ export function BusinessCalculationLogicModule() {
                 <span className="text-slate-400">Risk Assessment:</span>
                 <span className={`font-bold ${parseFloat(calcRiskScoreResult.score) >= 70 ? 'text-rose-400' : 'text-emerald-400'}`}>
                   {parseFloat(calcRiskScoreResult.score) >= 70 ? 'CRITICAL SHORTAGE' : 'CONTROLLED'}
+                </span>
+              </div>
+            </div>
+          </div>
+        {/* Tab 7: Supplier On-Time Delivery % (OTD %) Metric Logic */}
+        {activeCalcTab === 'SUP_OTD' && (
+          <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
+            <div className="lg:col-span-2 space-y-3 bg-slate-900/90 p-4 rounded-lg border border-slate-800">
+              <div className="font-semibold text-indigo-300 flex items-center justify-between">
+                <span>Supplier Delivery Punctuality Inputs</span>
+                <span className="font-mono text-[11px] text-slate-400">KPI-SUP-01 Rule</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Total Goods Receipts (GRNs)</label>
+                  <input
+                    type="number"
+                    value={calcOtdTotal}
+                    onChange={(e) => setCalcOtdTotal(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">On-Time Deliveries (GRN Date ≤ PO Due Date)</label>
+                  <input
+                    type="number"
+                    value={calcOtdOnTime}
+                    onChange={(e) => setCalcOtdOnTime(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+              </div>
+              <div className="text-[11px] text-slate-400 bg-slate-950/60 p-2 rounded border border-slate-800/80 font-mono">
+                Formula: Supplier OTD % = (On-time Receipts [{calcOtdOnTime}] / Total Receipts [{calcOtdTotal}]) × 100 = {calcOtdPct}%
+              </div>
+            </div>
+
+            <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 flex flex-col justify-between">
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Supplier Delivery Reliability</span>
+                <div className={`text-3xl font-black font-mono mt-1 ${parseFloat(calcOtdPct) >= 90 ? 'text-emerald-400' : parseFloat(calcOtdPct) >= 80 ? 'text-amber-400' : 'text-rose-400'}`}>
+                  {calcOtdPct}%
+                </div>
+                <div className="text-[11px] text-slate-300 mt-1">
+                  {parseFloat(calcOtdPct) >= 90
+                    ? '✅ Tier 1 Vendor: Meets 90% SLA Benchmark'
+                    : '⚠️ Sub-benchmark: Performance penalty warning'}
+                </div>
+              </div>
+              <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">SLA Status:</span>
+                <span className={`font-bold ${parseFloat(calcOtdPct) >= 90 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                  {parseFloat(calcOtdPct) >= 90 ? 'COMPLIANT' : 'ATTENTION REQUIRED'}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 8: Supplier Rejection Rate & Average Lead Time Models */}
+        {activeCalcTab === 'SUP_LT' && (
+          <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
+            <div className="lg:col-span-2 space-y-3 bg-slate-900/90 p-4 rounded-lg border border-slate-800">
+              <div className="font-semibold text-purple-300 flex items-center justify-between">
+                <span>Quality Rejection & Delivery Lead Time Inputs</span>
+                <span className="font-mono text-[11px] text-slate-400">KPI-SUP-02 & 03 Rules</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Received (Units)</label>
+                  <input
+                    type="number"
+                    value={calcRejRec}
+                    onChange={(e) => setCalcRejRec(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Rejected (Units)</label>
+                  <input
+                    type="number"
+                    value={calcRejDef}
+                    onChange={(e) => setCalcRejDef(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Contract SLA (Days)</label>
+                  <input
+                    type="number"
+                    value={calcContractedLt}
+                    onChange={(e) => setCalcContractedLt(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] text-slate-400 block mb-1">Actual Avg (Days)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={calcActualLt}
+                    onChange={(e) => setCalcActualLt(parseFloat(e.target.value) || 0)}
+                    className="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-white font-mono"
+                  />
+                </div>
+              </div>
+              <div className="text-[11px] text-slate-400 bg-slate-950/60 p-2 rounded border border-slate-800/80 font-mono">
+                Rejection Rate = ({calcRejDef} / {calcRejRec}) × 100 = {calcSupplierQuality.rejPct}% • Lead Time Variance = {calcActualLt} - {calcContractedLt} = {calcSupplierQuality.variance}d
+              </div>
+            </div>
+
+            <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 flex flex-col justify-between">
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Lead Time Lag & Rejection</span>
+                <div className={`text-3xl font-black font-mono mt-1 ${calcSupplierQuality.isDelayed ? 'text-rose-400' : 'text-emerald-400'}`}>
+                  {calcSupplierQuality.isDelayed ? `+${calcSupplierQuality.variance}d Lag` : 'On Schedule'}
+                </div>
+                <div className="text-[11px] text-slate-300 mt-1">
+                  Rejection Rate: <strong className={calcSupplierQuality.isRejExceeded ? 'text-rose-400' : 'text-emerald-400'}>{calcSupplierQuality.rejPct}%</strong> (Tolerance: 2.0%)
+                </div>
+              </div>
+              <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">Quality Verdict:</span>
+                <span className={`font-bold ${calcSupplierQuality.isRejExceeded ? 'text-rose-400' : 'text-emerald-400'}`}>
+                  {calcSupplierQuality.isRejExceeded ? 'EXCESS DEFECTS' : 'ACCEPTABLE'}
                 </span>
               </div>
             </div>

@@ -167,6 +167,42 @@ export const BUILDTWIN_KPI_DICTIONARY = [
     }
   },
   {
+    id: 'kpi-sup-02',
+    code: 'KPI-SUP-02',
+    name: 'Supplier Material Rejection Rate (%)',
+    category: 'Supplier',
+    businessPurpose: 'Monitors vendor consignment quality and site delivery rejections to prevent substandard materials from entering construction works.',
+    formula: 'Supplier Rejection Rate % = (Total Rejected Qty / Total Received Qty) * 100',
+    sourceTables: ['grn.received_qty', 'grn.accepted_qty', 'grn.rejected_qty', 'quality_inspections.result'],
+    refreshTrigger: 'Real-time on GRN inspection and acceptance sign-off.',
+    exclusions: 'Goods returned due to site order cancellation excluded from vendor defect score.',
+    ownerRole: 'Procurement Officer / QA Engineer',
+    validationExample: {
+      project: 'Supplier: Tata Tiscon Steels Ltd',
+      scenario: '50.0 MT Rebar received, 1.5 MT rejected due to transit rust and bend test failure',
+      calculation: '(1.5 / 50.0) * 100',
+      result: '3.0% Rejection Rate (Exceeds 2.0% quality benchmark threshold)'
+    }
+  },
+  {
+    id: 'kpi-sup-03',
+    code: 'KPI-SUP-03',
+    name: 'Procurement Lead-Time Analysis & Variance (Days)',
+    category: 'Supplier',
+    businessPurpose: 'Measures procurement cycle velocity from Purchase Order issue to on-site Goods Receipt, identifying lead-time slippage against contracted SLAs.',
+    formula: 'Actual Lead Time = GRN Date - PO Issue Date; Lead Time Variance = Actual Lead Time - Contracted SLA Days',
+    sourceTables: ['purchase_orders.created_at', 'purchase_orders.lead_time_days', 'grn.created_at'],
+    refreshTrigger: 'Real-time on GRN receipt creation.',
+    exclusions: 'Emergency spot orders flagged separately from standard framework agreements.',
+    ownerRole: 'Procurement Lead / Material Controller',
+    validationExample: {
+      project: 'Supplier: Ultratech Cement Bulk Depot',
+      scenario: 'Contracted SLA = 4 Days, PO Issued Aug 20, GRN Received Aug 26 (6 Days actual)',
+      calculation: '6 - 4 Days',
+      result: '+2.0 Days Lead-Time Slippage (Supplier Delivery Lag Alert)'
+    }
+  },
+  {
     id: 'kpi-qlt-01',
     code: 'KPI-QLT-01',
     name: 'NCR / Quality Defect Ageing & Closure Index',
