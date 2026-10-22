@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Bell, Search, ChevronDown, Menu } from 'lucide-react';
+import { Bell, Search, ChevronDown, Menu, Server } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Avatar } from '@/design-system/components/Avatar/Avatar';
 import { Dropdown } from '@/design-system/components/Dropdown/Dropdown';
@@ -16,6 +16,39 @@ export function Topbar({ onMenuToggle }) {
   const location = useLocation();
   const [isLogoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [isSearchOpen, setSearchOpen] = useState(false);
+  const [backendStatus, setBackendStatus] = useState({
+    checked: false,
+    online: false,
+    details: 'Checking Spring Boot connection...',
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+    async function checkHealth() {
+      try {
+        const res = await fetch('/v3/api-docs', { method: 'GET' });
+        if (isMounted) {
+          if (res.ok) {
+            setBackendStatus({ online: true, checked: true, details: 'Spring Boot 3.0 Connected (PostgreSQL :8080)' });
+          } else {
+            setBackendStatus({ online: false, checked: true, details: `Backend status: ${res.status}` });
+          }
+        }
+      } catch {
+        if (isMounted) {
+          setBackendStatus({ online: false, checked: true, details: 'Spring Boot Backend Offline on :8080' });
+        }
+      }
+    }
+
+    checkHealth();
+    const interval = setInterval(checkHealth, 15000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
   const [searchQuery, setSearchQuery] = useState(() => {
     try {
       return sessionStorage.getItem('buildtwin-search-query') ?? '';
@@ -114,6 +147,26 @@ export function Topbar({ onMenuToggle }) {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-4">
+        {/* Spring Boot Backend Live Connection Badge */}
+        <div
+          title={backendStatus.details}
+          className={`hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
+            backendStatus.online
+              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+              : 'bg-rose-50 text-rose-800 border-rose-200'
+          }`}
+        >
+          <span
+            className={`h-2 w-2 rounded-full ${
+              backendStatus.online ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
+            }`}
+          />
+          <Server className="h-3 w-3 opacity-70" />
+          <span className="font-mono text-[11px]">
+            {backendStatus.online ? 'Backend: Connected (:8080)' : 'Backend: Offline'}
+          </span>
+        </div>
+
         <button
           type="button"
           aria-label="Open notifications"
