@@ -1,14 +1,14 @@
 import { useMemo, useState } from 'react';
 import { Button, StatCard, StatusPill, Table } from '@/design-system';
-import { AlertTriangle, CalendarClock, CheckCircle2, PackageCheck, Truck } from 'lucide-react';
+import { AlertTriangle, CalendarClock, Check, CheckCircle2, Eye, PackageCheck, Send, Truck, X } from 'lucide-react';
 
-export function PurchaseOrderTrackingTab({ purchaseOrders = [], suppliers = [], isLoading, canManage, onRecordGrn }) {
+export function PurchaseOrderTrackingTab({ purchaseOrders = [], suppliers = [], isLoading, canManage, onRecordGrn, onApprove, onUpdateStatus, onViewFulfillment }) {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const metrics = useMemo(() => {
     const today = new Date();
-    const open = purchaseOrders.filter((po) => !['DELIVERED', 'CANCELLED'].includes(po.status)).length;
-    const delivered = purchaseOrders.filter((po) => po.status === 'DELIVERED').length;
-    const overdue = purchaseOrders.filter((po) => po.deliveryDate && new Date(po.deliveryDate) < today && !['DELIVERED', 'CANCELLED'].includes(po.status)).length;
+    const open = purchaseOrders.filter((po) => !['FULFILLED', 'CANCELLED'].includes(po.status)).length;
+    const delivered = purchaseOrders.filter((po) => po.status === 'FULFILLED').length;
+    const overdue = purchaseOrders.filter((po) => po.deliveryDate && new Date(po.deliveryDate) < today && !['FULFILLED', 'CANCELLED'].includes(po.status)).length;
     const value = purchaseOrders.reduce((total, po) => total + Number(po.amount || 0), 0);
     return { open, delivered, overdue, value };
   }, [purchaseOrders]);
@@ -21,8 +21,38 @@ export function PurchaseOrderTrackingTab({ purchaseOrders = [], suppliers = [], 
     { key: 'materialName', header: 'Material', render: (row) => <span className="text-xs text-ink-700">{row.materialName || '—'}</span> },
     { key: 'amount', header: 'Order Value', render: (row) => <span className="text-xs font-semibold">{row.amount ? `₹${Number(row.amount).toLocaleString('en-IN')}` : '—'}</span> },
     { key: 'deliveryDate', header: 'Expected Delivery', render: (row) => <span className="text-xs text-ink-700">{row.deliveryDate || '—'}</span> },
-    { key: 'status', header: 'Status', render: (row) => <StatusPill status={row.status === 'DELIVERED' ? 'SUCCESS' : row.status === 'CANCELLED' ? 'DANGER' : 'WARNING'} label={row.status || 'ISSUED'} /> },
-    { key: 'actions', header: 'Actions', render: (row) => canManage && !['DELIVERED', 'CANCELLED'].includes(row.status) && <Button size="xs" variant="outline" onClick={() => onRecordGrn(row)}><PackageCheck className="mr-1 h-3.5 w-3.5" /> Receive</Button> },
+    { key: 'status', header: 'Status', render: (row) => <StatusPill status={row.status === 'FULFILLED' ? 'SUCCESS' : row.status === 'CANCELLED' || row.status === 'REJECTED' ? 'DANGER' : 'WARNING'} label={row.status || 'PENDING_APPROVAL'} /> },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (row) => canManage && (
+        <div className="flex items-center gap-1.5">
+          {row.status === 'PENDING_APPROVAL' && (
+            <>
+              <Button size="xs" variant="outline" onClick={() => onApprove?.(row, 'APPROVED')} title="Approve Purchase Order" aria-label={`Approve ${row.poNumber || `PO-${row.id}`}>`}>
+                <Check className="h-3.5 w-3.5 text-status-success" />
+              </Button>
+              <Button size="xs" variant="outline" onClick={() => onApprove?.(row, 'REJECTED')} title="Reject Purchase Order" aria-label={`Reject ${row.poNumber || `PO-${row.id}`}>`}>
+                <X className="h-3.5 w-3.5 text-status-danger" />
+              </Button>
+            </>
+          )}
+          {row.status === 'APPROVED' && (
+            <Button size="xs" variant="outline" onClick={() => onApprove?.(row, 'ISSUED')} title="Issue Purchase Order" aria-label={`Issue ${row.poNumber || `PO-${row.id}`}>`}>
+              <Send className="h-3.5 w-3.5 text-brand-600" />
+            </Button>
+          )}
+          {['ISSUED', 'PARTIALLY_DELIVERED'].includes(row.status) && (
+            <Button size="xs" variant="outline" onClick={() => onRecordGrn(row)} title="Record GRN / Receive" aria-label={`Receive ${row.poNumber || `PO-${row.id}`}>`}>
+              <PackageCheck className="h-3.5 w-3.5 text-brand-600" />
+            </Button>
+          )}
+          <Button size="xs" variant="outline" onClick={() => onViewFulfillment?.(row)} title="View Details & Actions" aria-label={`View details for ${row.poNumber || `PO-${row.id}`}>`}>
+            <Eye className="h-3.5 w-3.5 text-ink-700" />
+          </Button>
+        </div>
+      ),
+    },
   ];
 
   return (

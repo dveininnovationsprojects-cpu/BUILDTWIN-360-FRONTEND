@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import { Table, Button, Input, StatusPill, EmptyState, StatCard } from '@/design-system';
 import { GrnDetailsModal } from './GrnDetailsModal';
-import { PackageCheck, Search, Filter, Eye, AlertOctagon, CheckCircle2, TrendingUp } from 'lucide-react';
+import { PackageCheck, Search, Filter, AlertOctagon, CheckCircle2, TrendingUp } from 'lucide-react';
 
-export function GrnListTab({ grns = [], isLoading, onRecordGrn, canManage }) {
+export function GrnListTab({ grns = [], isLoading, onRecordGrn, onEdit, onVoid, canManage }) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [selectedGrn, setSelectedGrn] = useState(null);
@@ -134,16 +134,6 @@ export function GrnListTab({ grns = [], isLoading, onRecordGrn, canManage }) {
         return <span className="text-xs text-ink-500">{d}</span>;
       },
     },
-    {
-      key: 'actions',
-      header: 'Action',
-      render: (row) => (
-        <Button size="xs" variant="outline" onClick={() => setSelectedGrn(row)}>
-          <Eye className="w-3.5 h-3.5 mr-1 inline" />
-          View
-        </Button>
-      ),
-    },
   ];
 
   return (
@@ -225,6 +215,7 @@ export function GrnListTab({ grns = [], isLoading, onRecordGrn, canManage }) {
           data={filteredGrns}
           rowKey={(row) => row.id}
           isLoading={isLoading}
+          onRowClick={setSelectedGrn}
         />
       )}
 
@@ -233,6 +224,8 @@ export function GrnListTab({ grns = [], isLoading, onRecordGrn, canManage }) {
         open={Boolean(selectedGrn)}
         onClose={() => setSelectedGrn(null)}
         grn={selectedGrn}
+        onEdit={onEdit}
+        onVoid={onVoid}
       />
     </div>
   );

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { ModulePageHeading } from '@/design-system/components/ModulePageHeading/ModulePageHeading';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import {
   Edit,
@@ -14,6 +15,7 @@ import {
   Package,
   ListTree,
   GitBranch,
+  CalendarClock,
 } from 'lucide-react';
 import { Table, StatusPill, Button, Modal } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
@@ -23,6 +25,7 @@ import { formatCurrency } from '@/modules/projects/constants';
 import { projectsApi, sitesApi } from '@/modules/projects/api/projectsApi';
 import {
   wbsScheduleApi,
+  wbsSummaryApi,
   wbsActivitiesApi,
   activityDependenciesApi,
 } from '../api/wbsScheduleApi';
@@ -32,6 +35,7 @@ import { WbsStatusModal } from '../components/WbsStatusModal';
 import { WbsTimelineView } from '../components/WbsTimelineView';
 import { WbsActivitiesTab } from '../components/WbsActivitiesTab';
 import { WbsDependenciesTab } from '../components/WbsDependenciesTab';
+import { WbsScheduleControlTab } from '../components/WbsScheduleControlTab';
 import { ActivityDependencyModal } from '../components/ActivityDependencyModal';
 import {
   WBS_DISCIPLINES,
@@ -113,6 +117,13 @@ export function WbsScheduleListPage() {
         status: statusFilter !== 'ALL' ? statusFilter : undefined,
         discipline: disciplineFilter !== 'ALL' ? disciplineFilter : undefined,
       }),
+    enabled: !!effectiveProjectId,
+  });
+
+  // Project-level KPI data must not change when the table is filtered.
+  const { data: wbsSummary } = useQuery({
+    queryKey: ['wbs-summary', effectiveProjectId],
+    queryFn: () => wbsSummaryApi.get(effectiveProjectId),
     enabled: !!effectiveProjectId,
   });
 
@@ -427,7 +438,7 @@ export function WbsScheduleListPage() {
       {/* Page Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="page-heading">WBS &amp; Construction Scheduling</h1>
+          <ModulePageHeading>WBS &amp; Construction Scheduling</ModulePageHeading>
           <p className="text-xs text-ink-500 mt-0.5">
             Work Breakdown Structure, Field Activities, Quantity Progress &amp; CPM Precedence Logic
           </p>
@@ -520,14 +531,42 @@ export function WbsScheduleListPage() {
             {dependencies.length}
           </span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('schedule-control')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 rounded-t-lg transition-all duration-200 ${
+            activeTab === 'schedule-control'
+              ? 'border-brand-600 text-brand-700 bg-brand-50/60 shadow-2xs'
+              : 'border-transparent text-ink-500 hover:text-ink-800 hover:bg-slate-50/60'
+          }`}
+        >
+          <CalendarClock className={`h-4 w-4 ${activeTab === 'schedule-control' ? 'text-brand-600' : ''}`} />
+          Schedule Control
+        </button>
       </div>
+
+      {activeTab === 'schedule-control' && (
+        <WbsScheduleControlTab
+          projectId={effectiveProjectId}
+          project={projects.find((project) => String(project.id) === String(effectiveProjectId))}
+          activities={activities}
+          workPackages={rawPackages}
+          onOpenActivities={() => setActiveTab('activities')}
+          onOpenWorkPackages={() => setActiveTab('work-packages')}
+        />
+      )}
 
       {/* ======================================================== */}
       {/* TAB 1: WORK PACKAGES & TIMELINE                          */}
       {/* ======================================================== */}
       {activeTab === 'work-packages' && (
         <div className="flex flex-col gap-4">
-          <WbsMetricsBar workPackages={rawPackages} onSelectStatus={setStatusFilter} />
+          <WbsMetricsBar
+            workPackages={rawPackages}
+            totalAllocatedBudget={wbsSummary?.totalAllocatedBudget}
+            onSelectStatus={setStatusFilter}
+          />
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2.5 flex-1">

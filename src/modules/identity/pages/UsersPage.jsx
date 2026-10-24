@@ -7,9 +7,10 @@ export function UsersPage() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="page-heading">Users & Access</h1>
+        <ModulePageHeading>Users &amp; Access</ModulePageHeading>
       </div>
       <UserManagementPanel />
     </div>
   );
 }
+import { ModulePageHeading } from '@/design-system/components/ModulePageHeading/ModulePageHeading';

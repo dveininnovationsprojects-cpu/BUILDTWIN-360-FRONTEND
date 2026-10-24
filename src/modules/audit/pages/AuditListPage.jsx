@@ -62,7 +62,7 @@ export function AuditListPage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="page-heading">Audit Trail & Logs</h1>
+          <ModulePageHeading>Audit Trail &amp; Logs</ModulePageHeading>
         </div>
         {canAddLog && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>
@@ -107,3 +107,4 @@ export function AuditListPage() {
     </div>
   );
 }
+import { ModulePageHeading } from '@/design-system/components/ModulePageHeading/ModulePageHeading';

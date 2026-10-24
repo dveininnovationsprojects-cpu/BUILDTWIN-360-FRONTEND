@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Bell, Search, ChevronDown, Menu, Server } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Bell, Search, ChevronDown, Menu, Server, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Avatar } from '@/design-system/components/Avatar/Avatar';
 import { Dropdown } from '@/design-system/components/Dropdown/Dropdown';
@@ -14,8 +14,10 @@ export function Topbar({ onMenuToggle }) {
   const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
   const location = useLocation();
+
   const [isLogoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
-  const [isSearchOpen, setSearchOpen] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [isDropdownOpen, setDropdownOpen] = useState(false);
   const [backendStatus, setBackendStatus] = useState({
     checked: false,
     online: false,
@@ -48,7 +50,6 @@ export function Topbar({ onMenuToggle }) {
       clearInterval(interval);
     };
   }, []);
-
   const [searchQuery, setSearchQuery] = useState(() => {
     try {
       return sessionStorage.getItem('buildtwin-search-query') ?? '';
@@ -57,6 +58,10 @@ export function Topbar({ onMenuToggle }) {
     }
   });
 
+  const searchContainerRef = useRef(null);
+  const inputRef = useRef(null);
+
+  // Sync search query to session storage
   useEffect(() => {
     try {
       sessionStorage.setItem('buildtwin-search-query', searchQuery);
@@ -65,9 +70,50 @@ export function Topbar({ onMenuToggle }) {
     }
   }, [searchQuery]);
 
+  // Collapse dropdown on page navigation
   useEffect(() => {
-    setSearchOpen(false);
+    setDropdownOpen(false);
+    if (!searchQuery.trim()) {
+      setIsSearchExpanded(false);
+    }
   }, [location.pathname]);
+
+  // Click outside listener to collapse search bar
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+        if (!searchQuery.trim()) {
+          setIsSearchExpanded(false);
+        }
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [searchQuery]);
+
+  // Keyboard shortcut listener (/ or Ctrl+K / Cmd+K to open search, Escape to close)
+  useEffect(() => {
+    function handleKeyDown(event) {
+      const isInput = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
+
+      if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
+        event.preventDefault();
+        setIsSearchExpanded(true);
+        setTimeout(() => inputRef.current?.focus(), 80);
+      } else if (event.key === '/' && !isInput) {
+        event.preventDefault();
+        setIsSearchExpanded(true);
+        setTimeout(() => inputRef.current?.focus(), 80);
+      } else if (event.key === 'Escape' && isSearchExpanded) {
+        setIsSearchExpanded(false);
+        setDropdownOpen(false);
+        inputRef.current?.blur();
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isSearchExpanded]);
 
   const searchResults = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -81,7 +127,8 @@ export function Topbar({ onMenuToggle }) {
   }, [searchQuery, user]);
 
   function openSearchResult(path) {
-    setSearchOpen(false);
+    setDropdownOpen(false);
+    setIsSearchExpanded(false);
     navigate(path);
   }
 
@@ -92,16 +139,29 @@ export function Topbar({ onMenuToggle }) {
     }
   }
 
+  function toggleSearch() {
+    if (isSearchExpanded) {
+      if (searchQuery.trim()) {
+        setSearchQuery('');
+      }
+      setIsSearchExpanded(false);
+      setDropdownOpen(false);
+    } else {
+      setIsSearchExpanded(true);
+      setTimeout(() => inputRef.current?.focus(), 80);
+    }
+  }
+
   function confirmLogout() {
     setLogoutConfirmOpen(false);
     logout();
-    // Navigate to login page after logout
     navigate('/login', { replace: true });
   }
 
   return (
     <header className="relative flex min-h-16 items-center justify-between bg-surface-subtle px-4 shadow-[0_1px_0_rgba(15,42,74,0.03)] sm:px-6">
-      <div className="flex min-w-0 flex-1 items-center gap-3 text-ink-500">
+      {/* Left Area: Mobile Menu Trigger */}
+      <div className="flex items-center gap-3">
         <button
           type="button"
           aria-label="Open module menu"
@@ -111,42 +171,97 @@ export function Topbar({ onMenuToggle }) {
         >
           <Menu className="h-5 w-5" />
         </button>
-        <div className="relative flex h-10 w-full max-w-3xl items-center gap-2 rounded-xl border border-white/80 bg-white/55 px-3 shadow-[0_4px_16px_rgba(15,42,74,0.06),inset_0_1px_0_rgba(255,255,255,0.8)] backdrop-blur-md transition-colors focus-within:border-brand-300 focus-within:bg-white/75">
-          <Search className="h-4 w-4 shrink-0 text-ink-400" />
-          <input
-            value={searchQuery}
-            onChange={(event) => {
-              setSearchQuery(event.target.value);
-              setSearchOpen(true);
-            }}
-            onFocus={() => setSearchOpen(Boolean(searchQuery.trim()))}
-            onKeyDown={handleSearchKeyDown}
-            placeholder="Search projects, activities, DPRs..."
-            aria-label="Search projects, activities, and DPRs"
-            className="min-w-0 flex-1 bg-transparent text-xs text-ink-700 outline-none placeholder:text-ink-300 sm:text-sm"
-          />
-          {isSearchOpen && searchQuery.trim() && (
-            <div className="absolute left-0 right-0 top-12 z-50 overflow-hidden rounded-xl border border-surface-border bg-white shadow-lg">
-              {searchResults.length > 0 ? (
-                searchResults.map((item) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => openSearchResult(item.to)}
-                    className="block w-full px-4 py-2.5 text-left text-sm text-ink-700 transition-colors hover:bg-surface-subtle hover:text-brand-900"
-                  >
-                    {item.label}
-                  </button>
-                ))
-              ) : (
-                <p className="px-4 py-3 text-sm text-ink-500">No matching content found.</p>
-              )}
+      </div>
+
+      {/* Right Area: Expandable Search Bar + Notifications + Profile */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Expandable Search Bar Component */}
+        <div ref={searchContainerRef} className="relative flex items-center">
+          <div
+            className={`relative flex h-10 items-center overflow-hidden rounded-full border transition-all duration-300 ease-out ${
+              isSearchExpanded
+                ? 'w-64 sm:w-80 md:w-96 border-brand-300 bg-white shadow-[0_4px_18px_rgba(15,42,74,0.08)] ring-2 ring-brand-100/80'
+                : 'w-10 border-transparent bg-transparent hover:bg-brand-50'
+            }`}
+          >
+            <button
+              type="button"
+              aria-label="Search"
+              title={isSearchExpanded ? 'Search' : 'Search projects, activities, DPRs... (Press / or Ctrl+K)'}
+              onClick={toggleSearch}
+              className="flex h-10 w-10 shrink-0 items-center justify-center text-ink-500 transition-colors hover:text-brand-600 focus:outline-none"
+            >
+              <Search className="h-4 w-4 shrink-0 transition-transform duration-200 hover:scale-110" />
+            </button>
+
+            {/* Input is visible when expanded */}
+            <input
+              ref={inputRef}
+              value={searchQuery}
+              onChange={(event) => {
+                setSearchQuery(event.target.value);
+                setDropdownOpen(true);
+              }}
+              onFocus={() => {
+                setIsSearchExpanded(true);
+                setDropdownOpen(Boolean(searchQuery.trim()));
+              }}
+              onKeyDown={handleSearchKeyDown}
+              placeholder="Search projects, activities, DPRs..."
+              aria-label="Search projects, activities, and DPRs"
+              tabIndex={isSearchExpanded ? 0 : -1}
+              className={`min-w-0 flex-1 bg-transparent text-xs text-ink-800 outline-none placeholder:text-ink-400 sm:text-sm transition-opacity duration-200 ${
+                isSearchExpanded ? 'opacity-100 pr-2' : 'pointer-events-none opacity-0'
+              }`}
+            />
+
+            {/* Close / Clear Button */}
+            {isSearchExpanded && (
+              <button
+                type="button"
+                aria-label="Close search"
+                title="Close search (Esc)"
+                onClick={toggleSearch}
+                className="mr-2 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-ink-400 transition-colors hover:bg-surface-subtle hover:text-ink-700 focus:outline-none"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Search Results Dropdown */}
+          {isSearchExpanded && isDropdownOpen && searchQuery.trim() && (
+            <div className="absolute right-0 top-12 z-50 w-72 sm:w-80 md:w-96 overflow-hidden rounded-xl border border-surface-border bg-white shadow-xl animate-fadeIn">
+              <div className="flex items-center justify-between border-b border-surface-border bg-surface-subtle px-3.5 py-2 text-[11px] font-bold uppercase tracking-wider text-ink-400">
+                <span>Quick Results</span>
+                <span className="font-mono text-[10px] text-ink-400">{searchResults.length} found</span>
+              </div>
+              <div className="max-h-72 overflow-y-auto py-1">
+                {searchResults.length > 0 ? (
+                  searchResults.map((item) => {
+                    const ItemIcon = item.icon;
+                    return (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={() => openSearchResult(item.to)}
+                        className="group flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-ink-700 transition-colors hover:bg-brand-50 hover:text-brand-900"
+                      >
+                        {ItemIcon && <ItemIcon className="h-4 w-4 shrink-0 text-ink-400 transition-colors group-hover:text-brand-600" />}
+                        <span className="font-medium text-ink-800 transition-colors group-hover:text-brand-900">{item.label}</span>
+                      </button>
+                    );
+                  })
+                ) : (
+                  <p className="px-4 py-4 text-center text-xs text-ink-500">
+                    No matching content found for "<span className="font-semibold text-brand-900">{searchQuery}</span>".
+                  </p>
+                )}
+              </div>
             </div>
           )}
         </div>
-      </div>
 
-      <div className="flex items-center gap-2 sm:gap-4">
         {/* Spring Boot Backend Live Connection Badge */}
         <div
           title={backendStatus.details}
@@ -167,6 +282,7 @@ export function Topbar({ onMenuToggle }) {
           </span>
         </div>
 
+        {/* Notifications Icon Button */}
         <button
           type="button"
           aria-label="Open notifications"
@@ -180,6 +296,7 @@ export function Topbar({ onMenuToggle }) {
           </span>
         </button>
 
+        {/* User Profile Dropdown */}
         <Dropdown
           trigger={
             <button
@@ -210,6 +327,7 @@ export function Topbar({ onMenuToggle }) {
         />
       </div>
 
+      {/* Logout Confirmation Modal */}
       <Modal
         open={isLogoutConfirmOpen}
         onClose={() => setLogoutConfirmOpen(false)}

@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { Modal, Button, StatusPill, Card } from '@/design-system';
-import { CheckCircle2, XCircle, FileText, ExternalLink, PackageCheck, Calendar, User, Hash } from 'lucide-react';
+import { CheckCircle2, XCircle, FileText, ExternalLink, PackageCheck, Calendar, User, Hash, Edit3, Trash2 } from 'lucide-react';
+import { GrnEditModal } from './GrnEditModal';
 
-export function GrnDetailsModal({ open, onClose, grn }) {
+export function GrnDetailsModal({ open, onClose, grn, onEdit, onVoid }) {
+  const [isEditOpen, setIsEditOpen] = useState(false);
   if (!grn) return null;
 
   const received = Number(grn.receivedQty || 0);
@@ -29,16 +32,21 @@ export function GrnDetailsModal({ open, onClose, grn }) {
     : 'Recently';
 
   return (
+    <>
     <Modal
       open={open}
       onClose={onClose}
       title={`Goods Receipt Note — ${grn.grnNumber || `GRN-${grn.id}`}`}
       size="md"
-      footer={
-        <Button variant="outline" onClick={onClose}>
-          Close
-        </Button>
-      }
+      footer={(
+        <div className="flex w-full items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setIsEditOpen(true)}><Edit3 className="mr-1.5 h-4 w-4" /> Edit</Button>
+            {grn.status !== 'VOID' && <Button variant="outline" onClick={() => onVoid?.(grn)}><Trash2 className="mr-1.5 h-4 w-4" /> Delete / Void</Button>}
+          </div>
+          <Button variant="outline" onClick={onClose}>Close</Button>
+        </div>
+      )}
     >
       <div className="flex flex-col gap-5 text-ink-900">
         {/* Top Header Card */}
@@ -174,5 +182,12 @@ export function GrnDetailsModal({ open, onClose, grn }) {
         )}
       </div>
     </Modal>
+    <GrnEditModal
+      open={isEditOpen}
+      onClose={() => setIsEditOpen(false)}
+      grn={grn}
+      onSave={async (id, values) => { await onEdit?.(id, values); setIsEditOpen(false); onClose(); }}
+    />
+    </>
   );
 }

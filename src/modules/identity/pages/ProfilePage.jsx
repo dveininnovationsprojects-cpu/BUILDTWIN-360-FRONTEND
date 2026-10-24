@@ -99,7 +99,7 @@ export function ProfilePage() {
   return (
     <div className="flex flex-col items-center gap-6 py-2">
       <div className="w-full max-w-2xl text-center">
-        <h1 className="page-heading">My Profile</h1>
+        <ModulePageHeading>My Profile</ModulePageHeading>
       </div>
 
       <div className="w-full max-w-2xl space-y-6">
@@ -248,3 +248,4 @@ export function ProfilePage() {
     </div>
   );
 }
+import { ModulePageHeading } from '@/design-system/components/ModulePageHeading/ModulePageHeading';

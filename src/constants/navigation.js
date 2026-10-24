@@ -33,7 +33,7 @@ export const NAV_ITEMS = [
     label: 'Cost & Budget',
     to: '/cost',
     icon: Wallet,
-    roles: [ROLES.DIRECTOR, ROLES.PROJECT_MANAGER, ROLES.COST_COORDINATOR],
+    roles: [ROLES.DIRECTOR, ROLES.PROJECT_MANAGER, ROLES.COST_COORDINATOR, ROLES.ADMIN],
   },
   { key: 'quality', label: 'Quality & NCR', to: '/quality', icon: ShieldCheck },
   { key: 'issues-risks', label: 'Issues & Risks', to: '/issues', icon: AlertTriangle },

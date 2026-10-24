@@ -446,6 +446,20 @@ export const stockLedgerApi = {
     }
   },
 
+  /** POST /api/v1/stock-ledger/receipt */
+  async recordReceipt(payload) {
+    const body = { ...payload, materialId: Number(payload.materialId), projectId: Number(payload.projectId), quantity: Number(payload.quantity), transactionType: 'RECEIPT' };
+    const res = await apiClient.post('/stock-ledger/receipt', body);
+    return normaliseLedger(res.data);
+  },
+
+  /** POST /api/v1/stock-ledger/return */
+  async returnMaterial(payload) {
+    const body = { ...payload, materialId: Number(payload.materialId), projectId: Number(payload.projectId), quantity: Number(payload.quantity), transactionType: 'RETURN' };
+    const res = await apiClient.post('/stock-ledger/return', body);
+    return normaliseLedger(res.data);
+  },
+
   /**
    * POST /api/v1/stock-ledger/issue
    * Issues material from store to specific WBS Activity, Zone, or Contractor

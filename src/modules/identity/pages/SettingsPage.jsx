@@ -55,7 +55,7 @@ export function SettingsPage() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 className="page-heading">Settings</h1>
+        <ModulePageHeading>Settings</ModulePageHeading>
       </div>
 
       <div className="grid w-full max-w-5xl grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
@@ -133,3 +133,4 @@ export function SettingsPage() {
     </div>
   );
 }
+import { ModulePageHeading } from '@/design-system/components/ModulePageHeading/ModulePageHeading';

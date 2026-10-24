@@ -9,7 +9,10 @@ const MOCK_QUALITY = [
 // Maps to /quality-issues (spec section 14 - API Requirements).
 export const qualityApi = {
   list: (params = {}) =>
-    apiClient.get(params.projectId ? `/quality/issues/project/${params.projectId}` : '/quality/issues', { params: params.projectId ? undefined : params }).then((r) => r.data).catch(() => MOCK_QUALITY),
+    // The running backend exposes quality issues by project. Keep the default
+    // project aligned with the rest of the demo workspace until the page
+    // supplies an explicit project selector.
+    apiClient.get(`/quality/issues/project/${params.projectId ?? 1}`).then((r) => r.data).catch(() => MOCK_QUALITY),
   getById: (id) => apiClient.get(`/quality/issues/${id}`).then((r) => r.data).catch(() => MOCK_QUALITY[0]),
   create: (payload) =>
     apiClient.post('/quality/issues', payload).then((r) => r.data).catch(() => ({ id: `qlt-${Date.now()}`, ...payload })),

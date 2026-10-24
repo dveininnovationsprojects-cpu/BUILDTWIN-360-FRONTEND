@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { Button, EmptyState, StatCard, StatusPill, Table } from '@/design-system';
-import { Building2, Edit3, Search, ShieldCheck, Users } from 'lucide-react';
+import { Building2, Edit3, Filter, Search, ShieldCheck, Trash2, Users } from 'lucide-react';
 
-export function SupplierMasterTab({ suppliers = [], isLoading, canManage, onAdd, onEdit }) {
+export function SupplierMasterTab({ suppliers = [], isLoading, canManage, onAdd, onEdit, onDelete }) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
 
@@ -34,7 +34,12 @@ export function SupplierMasterTab({ suppliers = [], isLoading, canManage, onAdd,
     {
       key: 'actions',
       header: 'Actions',
-      render: (row) => canManage && <Button size="xs" variant="outline" onClick={() => onEdit(row)}><Edit3 className="mr-1 h-3.5 w-3.5" /> Edit</Button>,
+      render: (row) => canManage && (
+        <div className="flex items-center gap-1.5">
+          <Button size="xs" variant="outline" onClick={() => onEdit(row)} title="Edit supplier" aria-label={`Edit ${row.name}`}><Edit3 className="h-3.5 w-3.5" /></Button>
+          <Button size="xs" variant="outline" onClick={() => onDelete?.(row)} title="Delete supplier" aria-label={`Delete ${row.name}`}><Trash2 className="h-3.5 w-3.5" /></Button>
+        </div>
+      ),
     },
   ];
 
@@ -51,7 +56,8 @@ export function SupplierMasterTab({ suppliers = [], isLoading, canManage, onAdd,
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-ink-400" />
           <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search supplier, code, contact, GSTIN..." className="h-9 w-full rounded border border-surface-border bg-surface-base pl-9 pr-3 text-xs text-ink-900 focus:outline-none focus:ring-2 focus:ring-brand-400" />
         </div>
-        <div className="flex items-center gap-2">&
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-ink-400" aria-hidden="true" />
           <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className="h-9 rounded border border-surface-border bg-surface-base px-2.5 text-xs text-ink-900">
             <option value="ALL">All statuses</option>
             <option value="ACTIVE">Active</option>

@@ -60,7 +60,7 @@ export function NotificationsListPage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="page-heading">Notifications & Alerts</h1>
+          <ModulePageHeading>Notifications &amp; Alerts</ModulePageHeading>
         </div>
         {canManage && <Button size="sm" onClick={() => setIsOpen(true)}>Add New</Button>}
       </div>
@@ -93,3 +93,4 @@ export function NotificationsListPage() {
     </div>
   );
 }
+import { ModulePageHeading } from '@/design-system/components/ModulePageHeading/ModulePageHeading';

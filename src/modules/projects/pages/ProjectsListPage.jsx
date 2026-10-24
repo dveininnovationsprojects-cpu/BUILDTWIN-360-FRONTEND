@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ModulePageHeading } from '@/design-system/components/ModulePageHeading/ModulePageHeading';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Search,
@@ -286,7 +287,7 @@ export function ProjectsListPage() {
       {/* Page header */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="page-heading">Construction Projects</h1>
+          <ModulePageHeading>Construction Projects</ModulePageHeading>
         </div>
         {canManage && (
           <Button size="sm" onClick={openCreate} className="flex items-center gap-1.5">
