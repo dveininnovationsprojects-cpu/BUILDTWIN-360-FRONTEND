@@ -6,10 +6,14 @@ const MOCK_DOCUMENTS = [
   { id: 'doc-003', name: 'Approved BOQ & Material Requisition Sheet.xlsx', category: 'BOQ / Estimation', uploadedBy: 'QS Coordinator', version: 'v3.0' },
 ];
 
-// Maps to /documents (spec section 14 - API Requirements).
+// The backend exposes document reads by project. The unscoped GET /documents
+// route does not exist, so the repository view uses its local seed until a
+// project context is supplied.
 export const documentsApi = {
   list: (params = {}) =>
-    apiClient.get(params.projectId ? `/documents/project/${params.projectId}` : '/documents', { params: params.projectId ? undefined : params }).then((r) => r.data).catch(() => MOCK_DOCUMENTS),
+    params.projectId
+      ? apiClient.get(`/documents/project/${params.projectId}`).then((r) => r.data)
+      : Promise.resolve(MOCK_DOCUMENTS),
   getById: (id) => apiClient.get(`/documents/${id}`).then((r) => r.data).catch(() => MOCK_DOCUMENTS[0]),
   create: (payload) =>
     apiClient.post('/documents', payload).then((r) => r.data).catch(() => ({ id: `doc-${Date.now()}`, ...payload })),

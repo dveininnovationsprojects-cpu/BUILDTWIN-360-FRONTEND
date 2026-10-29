@@ -45,7 +45,7 @@ import {
 } from '../api/costControlApi';
 import { BentoEvmDashboard as EvmDashboard } from '../components/BentoEvmDashboard';
 
-const COST_HEADS = ['LABOUR', 'MATERIAL', 'EQUIPMENT', 'SUBCONTRACTOR', 'OVERHEAD', 'CONTINGENCY'];
+const COST_HEADS = ['LABOUR', 'MATERIAL', 'EQUIPMENT', 'SUBCONTRACTOR', 'OVERHEAD'];
 const SOURCE_TYPES = [
   'PO_COMMITMENT',
   'ACTUAL_EXPENSE',
@@ -376,6 +376,7 @@ export function CostControlListPage() {
       payload: {
         revisedAmount: Number(values.revisedAmount),
         reason: values.reason?.trim() || 'Authorized cost scope revision',
+        revisionReason: values.reason?.trim() || 'Authorized cost scope revision',
       },
     });
   }
@@ -530,9 +531,6 @@ export function CostControlListPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <ModulePageHeading>Cost Control, Budget &amp; EVM</ModulePageHeading>
-          <p className="mt-0.5 text-xs text-ink-500">
-            Cost Breakdown Structure (CBS) · Ground Consumptions Sync · Variance Matrix &amp; 90% Alarms
-          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <select

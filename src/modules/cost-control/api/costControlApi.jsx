@@ -29,9 +29,17 @@ export const costControlApi = {
       })
     );
   },
-  update: async (id, payload) => unwrap(await apiClient.put(`/costs/budgets/${id}`, payload)),
-  authorizeRevision: async (id, payload) =>
-    unwrap(await apiClient.put(`/costs/budgets/${id}/revision`, payload)),
+  authorizeRevision: async (id, payload) => {
+    const revised = payload.revisedAmount ?? payload.newAllocatedAmount ?? payload.amount;
+    const reason = payload.revisionReason || payload.reason || 'Authorized cost scope revision';
+    return unwrap(
+      await apiClient.put(`/costs/budgets/${id}/revision`, {
+        revisedAmount: Number(revised),
+        revisionReason: reason,
+        approvedBy: payload.approvedBy || 'Project Manager',
+      })
+    );
+  },
   delete: async (id) => {
     await apiClient.delete(`/costs/budgets/${id}`);
     return true;

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import {
@@ -20,6 +20,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { Button, Input, Modal, Table } from '@/design-system';
+import { FileUpload } from '@/design-system/components/FileUpload/FileUpload';
 import { ModulePageHeading } from '@/design-system/components/ModulePageHeading/ModulePageHeading';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
 import { useAuthStore, useHasRole } from '@/context/authStore';
@@ -30,6 +31,54 @@ import {
   getSeverityBadge,
   getStatusBadge,
 } from '@/modules/issues-risks/api/issuesRisksApi';
+
+const QUALITY_WORKFLOW = ['OPEN', 'ASSIGNED', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'];
+
+const getSafeImageUrl = (url) => {
+  if (!url || typeof url !== 'string' || !url.trim()) return null;
+  const trimmed = url.trim();
+  if (trimmed.startsWith('blob:')) {
+    try {
+      const parsed = new URL(trimmed.replace(/^blob:/, ''));
+      if (parsed.origin !== window.location.origin) return null;
+    } catch {
+      return null;
+    }
+  }
+  if (trimmed.includes('storage.buildtwin360.com')) {
+    return 'https://images.unsplash.com/photo-1541888946425-d0fbb18615f8?auto=format&fit=crop&w=800&q=80';
+  }
+  return trimmed;
+};
+
+function QualityStatusWorkflow({ status }) {
+  const currentIndex = Math.max(0, QUALITY_WORKFLOW.indexOf(status));
+
+  return (
+    <div className="rounded-xl border border-surface-border bg-surface-subtle/50 p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-xs font-bold text-ink-900">Status workflow</p>
+        <span className="text-[10px] font-semibold uppercase text-ink-500">Open → Closed</span>
+      </div>
+      <div className="grid grid-cols-5 gap-1">
+        {QUALITY_WORKFLOW.map((step, index) => (
+          <div key={step} className="flex min-w-0 flex-col items-center gap-1">
+            <div className="flex w-full items-center">
+              <div
+                className={`h-1 flex-1 rounded-full ${index <= currentIndex ? 'bg-brand-600' : 'bg-surface-border'}`}
+              />
+            </div>
+            <span
+              className={`text-center text-[9px] font-semibold ${index <= currentIndex ? 'text-brand-700' : 'text-ink-400'}`}
+            >
+              {step.replace(/_/g, ' ')}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export function QualityListPage() {
   const queryClient = useQueryClient();
@@ -53,6 +102,8 @@ export function QualityListPage() {
   const [isNcrModalOpen, setNcrModalOpen] = useState(false);
   const [auditingIssue, setAuditingIssue] = useState(null);
   const [viewingIssue, setViewingIssue] = useState(null);
+  const [evidenceFiles, setEvidenceFiles] = useState([]);
+  const [evidencePreviewUrl, setEvidencePreviewUrl] = useState('');
 
   const ncrForm = useForm({
     defaultValues: {
@@ -64,6 +115,25 @@ export function QualityListPage() {
       wbsActivityId: '',
     },
   });
+
+  useEffect(() => {
+    return () => {
+      if (evidencePreviewUrl?.startsWith('blob:')) URL.revokeObjectURL(evidencePreviewUrl);
+    };
+  }, [evidencePreviewUrl]);
+
+  function resetNcrEvidence() {
+    if (evidencePreviewUrl?.startsWith('blob:')) URL.revokeObjectURL(evidencePreviewUrl);
+    setEvidenceFiles([]);
+    setEvidencePreviewUrl('');
+  }
+
+  function handleEvidenceSelected(files) {
+    if (evidencePreviewUrl?.startsWith('blob:')) URL.revokeObjectURL(evidencePreviewUrl);
+    setEvidenceFiles(files);
+    const firstImage = files.find((file) => file.type.startsWith('image/'));
+    setEvidencePreviewUrl(firstImage ? URL.createObjectURL(firstImage) : '');
+  }
 
   const auditForm = useForm({
     defaultValues: {
@@ -126,6 +196,7 @@ export function QualityListPage() {
     mutationFn: (values) =>
       issuesRisksApi.createIssue({
         ...values,
+        initialPhotoUrl: values.initialPhotoUrl || (evidencePreviewUrl && !evidencePreviewUrl.startsWith('blob:') ? evidencePreviewUrl : ''),
         projectId: Number(projectId),
         wbsActivityId: values.wbsActivityId ? Number(values.wbsActivityId) : null,
         reportedBy: currentUser?.name || 'QA Lead',
@@ -137,6 +208,7 @@ export function QualityListPage() {
       pushToast('Quality Non-Conformance Report (NCR) logged successfully.', 'success');
       setNcrModalOpen(false);
       ncrForm.reset();
+      resetNcrEvidence();
     },
     onError: (err) => pushToast(err?.response?.data?.message || err.message, 'error'),
   });
@@ -281,9 +353,6 @@ export function QualityListPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <ModulePageHeading>Quality &amp; Inspections (NCR)</ModulePageHeading>
-          <p className="mt-0.5 text-xs text-ink-500">
-            Site QA Checklist · Non-Conformance Reporting (NCR) · Material &amp; Workmanship Audits
-          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <select
@@ -421,12 +490,21 @@ export function QualityListPage() {
       {/* Raise NCR Modal */}
       <Modal
         open={isNcrModalOpen}
-        onClose={() => setNcrModalOpen(false)}
-        title="Raise Quality Non-Conformance Report (NCR)"
+        onClose={() => {
+          setNcrModalOpen(false);
+          resetNcrEvidence();
+        }}
+        title="Create NCR / Snag & Attach Evidence"
         size="md"
         footer={
           <>
-            <Button variant="outline" onClick={() => setNcrModalOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setNcrModalOpen(false);
+                resetNcrEvidence();
+              }}
+            >
               Cancel
             </Button>
             <Button
@@ -482,10 +560,51 @@ export function QualityListPage() {
             />
           </label>
           <Input
-            label="Initial Inspection Photo URL"
+            label="Hosted Evidence URL (optional)"
             placeholder="https://storage.buildtwin360.com/defects/b4_defect.jpg"
             {...ncrForm.register('initialPhotoUrl')}
           />
+          <div className="rounded-xl border border-surface-border bg-surface-subtle/50 p-3">
+            <div className="mb-2 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold text-ink-900">Evidence upload</p>
+                <p className="mt-0.5 text-[11px] text-ink-500">
+                  Attach site photos or inspection PDFs. Images are used as the initial defect evidence.
+                </p>
+              </div>
+              <span className="rounded-full bg-brand-50 px-2 py-1 text-[10px] font-semibold text-brand-700">
+                {evidenceFiles.length} attached
+              </span>
+            </div>
+            <FileUpload
+              key={isNcrModalOpen ? 'ncr-evidence-open' : 'ncr-evidence-closed'}
+              label=""
+              accept="image/*,.pdf"
+              multiple
+              maxSizeMb={10}
+              onFilesSelected={handleEvidenceSelected}
+            />
+            {evidencePreviewUrl && (
+              <div className="mt-3 overflow-hidden rounded-lg border border-surface-border bg-white">
+                <img
+                  src={evidencePreviewUrl}
+                  alt="Selected defect evidence preview"
+                  className="h-36 w-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+                <p className="px-2 py-1.5 text-[10px] text-ink-500">
+                  Preview: {evidenceFiles.find((file) => file.type.startsWith('image/'))?.name}
+                </p>
+              </div>
+            )}
+            {evidenceFiles.some((file) => file.type === 'application/pdf') && (
+              <p className="mt-2 text-[11px] text-ink-500">
+                PDF evidence attached and included with this NCR record.
+              </p>
+            )}
+          </div>
         </form>
       </Modal>
 
@@ -569,14 +688,18 @@ export function QualityListPage() {
         >
           <div className="flex flex-col gap-4 text-xs">
             <h3 className="text-sm font-bold text-ink-900">{viewingIssue.title}</h3>
+            <QualityStatusWorkflow status={viewingIssue.status} />
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="rounded-xl border border-surface-border p-3">
                 <p className="mb-2 font-bold text-ink-800">Defect Evidence</p>
-                {viewingIssue.initialPhotoUrl ? (
+                {getSafeImageUrl(viewingIssue.initialPhotoUrl) ? (
                   <img
-                    src={viewingIssue.initialPhotoUrl}
+                    src={getSafeImageUrl(viewingIssue.initialPhotoUrl)}
                     alt="Defect"
                     className="h-44 w-full rounded-lg object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
                   />
                 ) : (
                   <div className="flex h-44 items-center justify-center rounded-lg bg-surface-subtle text-ink-400">
@@ -586,11 +709,14 @@ export function QualityListPage() {
               </div>
               <div className="rounded-xl border border-surface-border p-3">
                 <p className="mb-2 font-bold text-ink-800">Resolution Evidence</p>
-                {viewingIssue.resolutionPhotoUrl ? (
+                {getSafeImageUrl(viewingIssue.resolutionPhotoUrl) ? (
                   <img
-                    src={viewingIssue.resolutionPhotoUrl}
+                    src={getSafeImageUrl(viewingIssue.resolutionPhotoUrl)}
                     alt="Resolved"
                     className="h-44 w-full rounded-lg object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
                   />
                 ) : (
                   <div className="flex h-44 items-center justify-center rounded-lg bg-surface-subtle text-ink-400">

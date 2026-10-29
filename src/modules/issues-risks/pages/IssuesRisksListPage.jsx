@@ -38,6 +38,23 @@ import {
   getStatusBadge,
 } from '../api/issuesRisksApi';
 
+const getSafeImageUrl = (url) => {
+  if (!url || typeof url !== 'string' || !url.trim()) return null;
+  const trimmed = url.trim();
+  if (trimmed.startsWith('blob:')) {
+    try {
+      const parsed = new URL(trimmed.replace(/^blob:/, ''));
+      if (parsed.origin !== window.location.origin) return null;
+    } catch {
+      return null;
+    }
+  }
+  if (trimmed.includes('storage.buildtwin360.com')) {
+    return 'https://images.unsplash.com/photo-1541888946425-d0fbb18615f8?auto=format&fit=crop&w=800&q=80';
+  }
+  return trimmed;
+};
+
 export function IssuesRisksListPage() {
   const queryClient = useQueryClient();
   const pushToast = useToastStore((state) => state.push);
@@ -70,6 +87,7 @@ export function IssuesRisksListPage() {
   const [typeFilter, setTypeFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [severityFilter, setSeverityFilter] = useState('ALL');
+  const [activeRegister, setActiveRegister] = useState('ISSUES');
 
   // Modals state
   const [isCreateModalOpen, setCreateModalOpen] = useState(false);
@@ -242,6 +260,15 @@ export function IssuesRisksListPage() {
         (iss.reportedBy && iss.reportedBy.toLowerCase().includes(q))
     );
   }, [issues, search]);
+
+  const riskRegister = useMemo(
+    () => filteredIssues.filter((issue) => issue.issueType === 'RISK'),
+    [filteredIssues]
+  );
+  const issueRegister = useMemo(
+    () => filteredIssues.filter((issue) => issue.issueType !== 'RISK'),
+    [filteredIssues]
+  );
 
   // Handlers
   function openAssign(issue) {
@@ -433,15 +460,73 @@ export function IssuesRisksListPage() {
     },
   ];
 
+  const riskColumns = [
+    {
+      key: 'ticketNumber',
+      header: 'Risk ID',
+      render: (row) => (
+        <div className="flex flex-col">
+          <span className="font-mono text-xs font-bold text-brand-700">{row.ticketNumber || `RISK-${row.id}`}</span>
+          <span className="text-[10px] text-ink-400">Logged {row.createdAt ? new Date(row.createdAt).toLocaleDateString() : '—'}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'title',
+      header: 'Risk / Trigger',
+      render: (row) => (
+        <div className="max-w-sm">
+          <p className="text-xs font-semibold text-ink-900">{row.title}</p>
+          <p className="mt-0.5 line-clamp-2 text-[11px] text-ink-500">{row.description || 'No trigger or mitigation notes recorded.'}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'severity',
+      header: 'Risk Level',
+      render: (row) => (
+        <span className={`rounded-full px-2 py-0.5 text-[10px] uppercase ${getSeverityBadge(row.severity)}`}>
+          {row.severity}
+        </span>
+      ),
+    },
+    {
+      key: 'status',
+      header: 'Treatment Status',
+      render: (row) => (
+        <span className={`rounded-md px-2 py-0.5 text-[10px] font-semibold ${getStatusBadge(row.status)}`}>
+          {row.status.replace(/_/g, ' ')}
+        </span>
+      ),
+    },
+    {
+      key: 'owner',
+      header: 'Owner / Review Date',
+      render: (row) => (
+        <div className="flex flex-col text-xs">
+          <span className="font-medium text-ink-900">{row.assignedTo || 'Unassigned'}</span>
+          <span className="text-[11px] text-ink-500">Review: {row.targetResolutionDate || 'Not set'}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      className: 'text-right',
+      render: (row) => (
+        <Button size="xs" variant="outline" onClick={() => setViewingIssue(row)}>
+          <Eye className="mr-1 h-3.5 w-3.5" /> View register entry
+        </Button>
+      ),
+    },
+  ];
+
   return (
     <div className="flex flex-col gap-5">
       {/* Top Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <ModulePageHeading>Quality, NCR, Snags &amp; Issues</ModulePageHeading>
-          <p className="mt-0.5 text-xs text-ink-500">
-            5-Step Master Defect Lifecycle · SLA Escalation · Site Audit Sign-off
-          </p>
+          <ModulePageHeading>Issues and Risks</ModulePageHeading>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <select
@@ -544,6 +629,39 @@ export function IssuesRisksListPage() {
         />
       </div>
 
+      {/* Issue workspace / Risk register */}
+      <div className="flex border-b border-surface-border">
+        <button
+          type="button"
+          onClick={() => {
+            setActiveRegister('ISSUES');
+            setTypeFilter('ALL');
+          }}
+          className={`px-4 py-2.5 text-xs font-semibold ${activeRegister === 'ISSUES' ? 'border-b-2 border-brand-600 text-brand-700' : 'text-ink-500'}`}
+        >
+          Issue lifecycle ({issues.filter((issue) => issue.issueType !== 'RISK').length})
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setActiveRegister('RISKS');
+            setTypeFilter('RISK');
+          }}
+          className={`px-4 py-2.5 text-xs font-semibold ${activeRegister === 'RISKS' ? 'border-b-2 border-brand-600 text-brand-700' : 'text-ink-500'}`}
+        >
+          Risk register ({issues.filter((issue) => issue.issueType === 'RISK').length})
+        </button>
+      </div>
+
+      {activeRegister === 'RISKS' && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <KpiCard label="Registered Risks" value={riskRegister.length} icon={AlertTriangle} tone="neutral" />
+          <KpiCard label="Critical / High" value={riskRegister.filter((risk) => risk.severity === 'CRITICAL' || risk.severity === 'HIGH').length} icon={ShieldAlert} tone="critical" />
+          <KpiCard label="Open Treatment" value={riskRegister.filter((risk) => risk.status !== 'CLOSED').length} icon={Clock} tone="warning" />
+          <KpiCard label="Overdue Reviews" value={riskRegister.filter((risk) => risk.isOverdue).length} icon={Calendar} tone="danger" />
+        </div>
+      )}
+
       {/* Filters & Search Toolbar */}
       <div className="surface-panel flex flex-wrap items-center justify-between gap-3 p-3">
         {/* Search */}
@@ -620,14 +738,16 @@ export function IssuesRisksListPage() {
         </div>
       </div>
 
-      {/* Main Table */}
+      {/* Main Table / Risk Register */}
       <Table
-        columns={columns}
-        data={filteredIssues}
+        columns={activeRegister === 'RISKS' ? riskColumns : columns}
+        data={activeRegister === 'RISKS' ? riskRegister : issueRegister}
         rowKey={(row) => row.id}
         isLoading={issuesQuery.isLoading}
         emptyMessage={
-          currentProject
+          activeRegister === 'RISKS'
+            ? 'No project risks match the selected filters.'
+            : currentProject
             ? 'No tickets logged matching the selected filters.'
             : 'Select a project to inspect quality issues.'
         }
@@ -982,11 +1102,14 @@ export function IssuesRisksListPage() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="rounded-xl border border-surface-border p-3">
                 <p className="mb-2 font-bold text-ink-800">📸 Initial Defect Photo</p>
-                {viewingIssue.initialPhotoUrl ? (
+                {getSafeImageUrl(viewingIssue.initialPhotoUrl) ? (
                   <img
-                    src={viewingIssue.initialPhotoUrl}
+                    src={getSafeImageUrl(viewingIssue.initialPhotoUrl)}
                     alt="Defect"
                     className="h-44 w-full rounded-lg object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
                   />
                 ) : (
                   <div className="flex h-44 items-center justify-center rounded-lg bg-surface-subtle text-ink-400">
@@ -997,11 +1120,14 @@ export function IssuesRisksListPage() {
 
               <div className="rounded-xl border border-surface-border p-3">
                 <p className="mb-2 font-bold text-ink-800">✅ Resolution Proof Photo</p>
-                {viewingIssue.resolutionPhotoUrl ? (
+                {getSafeImageUrl(viewingIssue.resolutionPhotoUrl) ? (
                   <img
-                    src={viewingIssue.resolutionPhotoUrl}
+                    src={getSafeImageUrl(viewingIssue.resolutionPhotoUrl)}
                     alt="Resolved"
                     className="h-44 w-full rounded-lg object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
                   />
                 ) : (
                   <div className="flex h-44 items-center justify-center rounded-lg bg-surface-subtle text-ink-400">

@@ -58,9 +58,10 @@ export function EquipmentListPage() {
   function handleSubmit(values) {
     createMutation.mutate({
       assetCode: values.assetCode,
+      name: values.type,
       type: values.type,
       site: values.site,
-      status: values.status,
+      status: 'AVAILABLE',
     });
   }
 

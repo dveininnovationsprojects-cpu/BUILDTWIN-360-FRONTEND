@@ -11,8 +11,7 @@ export const equipmentApi = {
   list: (params) =>
     apiClient.get('/equipment', { params }).then((r) => r.data).catch(() => MOCK_EQUIPMENT),
   getById: (id) => apiClient.get(`/equipment/${id}`).then((r) => r.data).catch(() => MOCK_EQUIPMENT[0]),
-  create: (payload) =>
-    apiClient.post('/equipment', payload).then((r) => r.data).catch(() => ({ id: `eq-${Date.now()}`, ...payload })),
+  create: (payload) => apiClient.post('/equipment', { ...payload, name: payload.name || payload.type || 'Equipment', status: (payload.status && payload.status !== 'ACTIVE') ? payload.status : 'AVAILABLE' }).then((r) => r.data).catch(() => ({ id: `eq-${Date.now()}`, ...payload })),
   update: (id, payload) =>
     apiClient.put(`/equipment/${id}`, payload).then((r) => r.data).catch(() => ({ id, ...payload })),
 };
