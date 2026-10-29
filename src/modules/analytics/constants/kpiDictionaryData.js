@@ -257,6 +257,24 @@ export const BUILDTWIN_KPI_DICTIONARY = [
     }
   },
   {
+    id: 'kpi-qlt-02',
+    code: 'KPI-QLT-02',
+    name: 'Recurring Defect Category & Severity Analysis',
+    category: 'Quality',
+    businessPurpose: 'Classifies defects by root-cause category and severity weight to detect repetitive workmanship or material failures using 80/20 Pareto principles.',
+    formula: 'Weighted Defect Score = Sum(Defects_i * SeverityWeight_i); Severity Weights: Critical=10, High=5, Medium=2, Low=1',
+    sourceTables: ['quality_issues.category', 'quality_issues.severity', 'quality_issues.contractor_id'],
+    refreshTrigger: 'Real-time on defect ticket creation and weekly audit rollup.',
+    exclusions: 'Trivial snag list items pending contractor handoff excluded from high-severity alerts.',
+    ownerRole: 'Quality Lead / Project Manager',
+    validationExample: {
+      project: 'PRJ-001 Padur Residence (Concrete Works)',
+      scenario: '4 Honeycombing (High: 4*5=20) + 1 Rebar Cover (Critical: 1*10=10) + 3 Cracks (Medium: 3*2=6)',
+      calculation: '20 + 10 + 6',
+      result: '36.0 Weighted Defect Severity Score (Recurring Structural Defect Alert)'
+    }
+  },
+  {
     id: 'kpi-rsk-01',
     code: 'KPI-RSK-01',
     name: 'Activity Delay Risk Score (DRS 0-100)',
@@ -272,6 +290,24 @@ export const BUILDTWIN_KPI_DICTIONARY = [
       scenario: 'Predecessor late (80) + Cement stock low (100) + Crew productivity low (60) + Open NCR (90)',
       calculation: '(0.35*80) + (0.25*100) + (0.20*20) + (0.10*60) + (0.10*90)',
       result: '72.0 / 100 Delay Risk Score (CRITICAL RISK)'
+    }
+  },
+  {
+    id: 'kpi-rsk-02',
+    code: 'KPI-RSK-02',
+    name: 'Issue & Blocker Impact Scoring on WBS Schedule',
+    category: 'Risk',
+    businessPurpose: 'Quantifies the direct schedule drag caused by open site blockers, technical RFIs, and safety stop-work notices on critical path activities.',
+    formula: 'Blocker Impact Days = Blocker Duration * Criticality Multiplier; Schedule Drag = Max(0, Blocker Impact Days - Activity Total Float)',
+    sourceTables: ['project_issues.is_blocker', 'project_issues.wbs_activity_id', 'wbs_activities.total_float'],
+    refreshTrigger: 'Real-time on blocker ticket logging or status transition.',
+    exclusions: 'Non-blocking advisory snags with positive float do not consume schedule contingency.',
+    ownerRole: 'Planning Engineer / Site Supervisor',
+    validationExample: {
+      project: 'PRJ-001 Padur (Tower Crane Breakdown Blocker)',
+      scenario: 'Blocker active for 5 days on Critical Path activity (Total Float = 0 days)',
+      calculation: '5 days * 1.0 (Critical) - 0 Float',
+      result: '5.0 Days Immediate Schedule Drag (+5 Days Milestone Slippage)'
     }
   },
   {

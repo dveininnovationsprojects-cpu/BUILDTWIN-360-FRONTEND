@@ -1,3 +1,4 @@
+import { ScheduleDelayRiskAnalyticsModule } from '../components/ScheduleDelayRiskAnalyticsModule';
 import { useState, useMemo } from 'react';
 import { ModulePageHeading } from '@/design-system/components/ModulePageHeading/ModulePageHeading';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
@@ -544,6 +545,18 @@ export function WbsScheduleListPage() {
           <CalendarClock className={`h-4 w-4 ${activeTab === 'schedule-control' ? 'text-brand-600' : ''}`} />
           Schedule Control
         </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('delay-risk')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 rounded-t-lg transition-all duration-200 ${
+            activeTab === 'delay-risk'
+              ? 'border-brand-600 text-brand-700 bg-brand-50/60 shadow-2xs'
+              : 'border-transparent text-ink-500 hover:text-ink-800 hover:bg-slate-50/60'
+          }`}
+        >
+          <AlertTriangle className={`h-4 w-4 ${activeTab === 'delay-risk' ? 'text-rose-600' : ''}`} />
+          Delay Risk &amp; Forecast Finish (DRS / FCD)
+        </button>
       </div>
 
       {activeTab === 'schedule-control' && (
@@ -555,6 +568,10 @@ export function WbsScheduleListPage() {
           onOpenActivities={() => setActiveTab('activities')}
           onOpenWorkPackages={() => setActiveTab('work-packages')}
         />
+      )}
+
+      {activeTab === 'delay-risk' && (
+        <ScheduleDelayRiskAnalyticsModule projectId={effectiveProjectId} />
       )}
 
       {/* ======================================================== */}

@@ -1,3 +1,4 @@
+import { QualityNcrDefectAnalyticsModule } from '../components/QualityNcrDefectAnalyticsModule';
 import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
@@ -373,10 +374,26 @@ export function QualityListPage() {
         >
           Snag Lists ({rawIssues.filter((i) => i.issueType === 'SNAG').length})
         </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('QUALITY_ANALYTICS')}
+          className={`px-4 py-2.5 text-xs font-semibold flex items-center gap-1.5 ${
+            activeTab === 'QUALITY_ANALYTICS'
+              ? 'border-b-2 border-brand-600 text-brand-700'
+              : 'text-ink-500'
+          }`}
+        >
+          <ShieldAlert className="h-3.5 w-3.5 text-rose-600" />
+          NCR Ageing &amp; Defect Analytics (KPI-QLT-01 &amp; 02)
+        </button>
       </div>
 
-      {/* Toolbar */}
-      <div className="surface-panel flex flex-wrap items-center justify-between gap-3 p-3">
+      {activeTab === 'QUALITY_ANALYTICS' ? (
+        <QualityNcrDefectAnalyticsModule projectId={projectId} />
+      ) : (
+        <>
+          {/* Toolbar */}
+          <div className="surface-panel flex flex-wrap items-center justify-between gap-3 p-3">
         <div className="flex min-w-[240px] flex-1 items-center gap-2 rounded-lg border border-surface-border bg-white px-3 py-2 text-sm">
           <Search className="h-4 w-4 text-ink-400" />
           <input
@@ -417,6 +434,9 @@ export function QualityListPage() {
         isLoading={isLoading}
         emptyMessage="No quality or NCR records found."
       />
+
+        </>
+      )}
 
       {/* Raise NCR Modal */}
       <Modal
