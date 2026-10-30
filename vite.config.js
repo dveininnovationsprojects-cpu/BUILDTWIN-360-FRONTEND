@@ -9,6 +9,18 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  test: {
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+    css: false,
+    reporters: ['default', 'junit'],
+    outputFile: { junit: './test-results/junit.xml' },
+    coverage: {
+      provider: 'v8',
+      reporter: ['text-summary', 'lcov'],
+      reportsDirectory: './coverage',
+    },
+  },
   server: {
     port: 5174,
     strictPort: true,
