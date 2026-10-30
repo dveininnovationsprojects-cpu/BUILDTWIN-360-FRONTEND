@@ -2,7 +2,8 @@ pipeline {
     agent any
 
     tools {
-        // Configure a NodeJS installation named 'node-20' in Manage Jenkins > Tools (NodeJS plugin)
+        // Configure a NodeJS installation named 'node-20' (20.x) in Manage Jenkins > Tools (NodeJS plugin)
+        // Jenkins runs on Windows here, so shell steps use 'bat' instead of 'sh'
         nodejs 'node-20'
     }
 
@@ -27,20 +28,21 @@ pipeline {
 
         stage('Install') {
             steps {
-                sh 'node --version && npm --version'
-                sh 'npm ci'
+                bat 'node --version'
+                bat 'npm --version'
+                bat 'npm ci'
             }
         }
 
         stage('Lint') {
             steps {
-                sh 'npm run lint'
+                bat 'npm run lint'
             }
         }
 
         stage('Test') {
             steps {
-                sh 'npm run test:coverage'
+                bat 'npm run test:coverage'
             }
             post {
                 always {
@@ -52,13 +54,13 @@ pipeline {
         stage('Security Audit') {
             steps {
                 // Report only: do not fail the build on known vulnerabilities
-                sh 'npm audit --audit-level=high || true'
+                bat(script: 'npm audit --audit-level=high', returnStatus: true)
             }
         }
 
         stage('Build') {
             steps {
-                sh 'npm run build'
+                bat 'npm run build'
             }
         }
 
