@@ -4,7 +4,7 @@ pipeline {
     tools {
         // Configure a NodeJS installation named 'node-20' (20.x) in Manage Jenkins > Tools (NodeJS plugin)
         // Jenkins runs on Windows here, so shell steps use 'bat' instead of 'sh'
-        nodejs 'node-20'
+        nodejs 'node-22'
     }
 
     options {
