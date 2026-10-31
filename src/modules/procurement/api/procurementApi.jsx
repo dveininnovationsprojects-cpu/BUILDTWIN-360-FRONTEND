@@ -38,17 +38,30 @@ export const procurementApi = {
   },
   updateMaterialRequest: async (id, payload) =>
     singleData((await apiClient.put(`/procurement/requests/${id}`, payload)).data),
-  approveOrRejectRequest: async (id, approved, rejectionReason) =>
+  approveOrRejectRequest: async (id, approved, rejectionReason, approvedBy = 'PM_Selvamani') =>
     singleData(
       (
         await apiClient.put(`/procurement/requests/${id}/approval`, {
-          approved: Boolean(approved),
+          status: approved ? 'APPROVED' : 'REJECTED',
+          approvedBy: approvedBy || 'Project Manager',
           rejectionReason: rejectionReason || null,
         })
       ).data
     ),
-  updateMaterialRequestApproval: async (id, payload) =>
-    singleData((await apiClient.put(`/procurement/requests/${id}/approval`, payload)).data),
+  updateMaterialRequestApproval: async (id, payload) => {
+    const status = payload.status || (payload.approved ? 'APPROVED' : 'REJECTED');
+    const approvedBy = payload.approvedBy || 'Project Manager';
+    return singleData(
+      (
+        await apiClient.put(`/procurement/requests/${id}/approval`, {
+          status,
+          approvedBy,
+          rejectionReason: payload.rejectionReason || null,
+          remarks: payload.remarks || null,
+        })
+      ).data
+    );
+  },
   deleteMaterialRequest: async (id) => (await apiClient.delete(`/procurement/requests/${id}`)).data,
   getProjectedShortages: async (projectId = 1) =>
     listData((await apiClient.get(`/procurement/requests/project/${projectId}/projected-shortage`)).data),
@@ -85,14 +98,28 @@ export const procurementApi = {
   },
   update: async (id, payload) =>
     singleData((await apiClient.put(`/procurement/purchase-orders/${id}`, payload)).data),
-  approve: async (id, payload) =>
-    singleData((await apiClient.put(`/procurement/purchase-orders/${id}/approval`, payload)).data),
-  approvePurchaseOrder: async (id, approved, remarks) =>
+  approve: async (id, payload) => {
+    const status = payload.status || (payload.approved ? 'APPROVED' : 'REJECTED');
+    const approvedBy = payload.approvedBy || 'Project Manager';
+    return singleData(
+      (
+        await apiClient.put(`/procurement/purchase-orders/${id}/approval`, {
+          status,
+          approvedBy,
+          rejectionReason: payload.rejectionReason || null,
+          remarks: payload.remarks || payload.approvalRemarks || null,
+        })
+      ).data
+    );
+  },
+  approvePurchaseOrder: async (id, approved, remarks, approvedBy = 'Director_Murugan') =>
     singleData(
       (
         await apiClient.put(`/procurement/purchase-orders/${id}/approval`, {
           status: approved ? 'APPROVED' : 'REJECTED',
-          approvalRemarks: remarks || null,
+          approvedBy: approvedBy || 'Director_Murugan',
+          remarks: remarks || null,
+          rejectionReason: !approved ? remarks : null,
         })
       ).data
     ),
@@ -186,3 +213,6 @@ export const procurementApi = {
     listData((await apiClient.get('/materials/low-stock', { params: projectId ? { projectId } : undefined })).data),
   listReorderAlerts: async () => listData((await apiClient.get('/materials/reorder-alerts')).data),
 };
+
+export { procurementService } from '@/services/procurementService';
+

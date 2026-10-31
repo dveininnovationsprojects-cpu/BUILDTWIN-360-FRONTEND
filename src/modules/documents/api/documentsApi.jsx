@@ -1,23 +1,59 @@
 import { apiClient } from '@/lib/apiClient';
 
-const MOCK_DOCUMENTS = [
-  { id: 'doc-001', name: 'Structural Approval Blueprint Floor 1-3.pdf', category: 'Structural Drawing', uploadedBy: 'Eng. Rajesh (Site PM)', version: 'v2.1' },
-  { id: 'doc-002', name: 'Quality Inspection Report Ground Slab.pdf', category: 'Quality Report', uploadedBy: 'Quality Lead Sundar', version: 'v1.0' },
-  { id: 'doc-003', name: 'Approved BOQ & Material Requisition Sheet.xlsx', category: 'BOQ / Estimation', uploadedBy: 'QS Coordinator', version: 'v3.0' },
-];
+function unwrap(response) {
+  const body = response?.data;
+  return body?.data !== undefined ? body.data : body;
+}
 
-// The backend exposes document reads by project. The unscoped GET /documents
-// route does not exist, so the repository view uses its local seed until a
-// project context is supplied.
+function unwrapList(response) {
+  const data = unwrap(response);
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.content)) return data.content;
+  return [];
+}
+
+/**
+ * Enterprise Document & Photo Repository API client
+ * Connects directly to Spring Boot backend: /api/v1/documents
+ * Implements FR-110 (Drawings & Approvals), FR-111 (Version Control), FR-113 (Category Filtering)
+ */
 export const documentsApi = {
-  list: (params = {}) =>
-    params.projectId
-      ? apiClient.get(`/documents/project/${params.projectId}`).then((r) => r.data)
-      : Promise.resolve(MOCK_DOCUMENTS),
-  getById: (id) => apiClient.get(`/documents/${id}`).then((r) => r.data).catch(() => MOCK_DOCUMENTS[0]),
-  create: (payload) =>
-    apiClient.post('/documents', payload).then((r) => r.data).catch(() => ({ id: `doc-${Date.now()}`, ...payload })),
-  update: (id, payload) =>
-    apiClient.put(`/documents/${id}`, payload).then((r) => r.data).catch(() => ({ id, ...payload })),
-};
+  list: async (params = {}) => {
+    try {
+      const projectId = params.projectId || 1;
+      const category = params.category;
+      let url = `/documents/project/${projectId}`;
+      if (category && category !== 'ALL') {
+        url = `/documents/project/${projectId}/category/${encodeURIComponent(category)}`;
+      }
+      const res = await apiClient.get(url);
+      return unwrapList(res);
+    } catch (err) {
+      console.warn('Falling back for documents list:', err?.message);
+      return [];
+    }
+  },
 
+  getById: async (id) => {
+    const res = await apiClient.get(`/documents/${id}`);
+    return unwrap(res);
+  },
+
+  create: async (payload) => {
+    const res = await apiClient.post('/documents', {
+      projectId: Number(payload.projectId || 1),
+      title: payload.title?.trim() || payload.name?.trim() || 'Project Document',
+      category: payload.category || 'DRAWING',
+      version: payload.version?.trim() || 'v1.0',
+      objectUrl: payload.objectUrl?.trim() || 'https://storage.buildtwin.local/documents/sample-doc.pdf',
+      status: payload.status || 'ACTIVE',
+      uploadedBy: payload.uploadedBy?.trim() || 'Site Engineer',
+    });
+    return unwrap(res);
+  },
+
+  delete: async (id) => {
+    await apiClient.delete(`/documents/${id}`);
+    return true;
+  },
+};

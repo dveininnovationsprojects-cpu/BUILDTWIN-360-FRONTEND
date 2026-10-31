@@ -20,5 +20,6 @@ export * from './components/Skeleton/Skeleton';
 export * from './components/Breadcrumbs/Breadcrumbs';
 export * from './components/Toast/Toast';
 export * from './components/FileUpload/FileUpload';
+export * from './components/ErrorBoundary/ErrorBoundary';
 export * from './tokens/status';
 export * from './utils/cn';

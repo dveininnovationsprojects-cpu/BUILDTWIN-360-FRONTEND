@@ -759,7 +759,7 @@ export function IssuesRisksListPage() {
       <Modal
         open={isCreateModalOpen}
         onClose={() => setCreateModalOpen(false)}
-        title="📸 Step 1: Identify & Log Defect / Issue Ticket"
+        title="Identify & Log Defect / Issue Ticket"
         size="md"
         footer={
           <>
@@ -847,7 +847,7 @@ export function IssuesRisksListPage() {
       <Modal
         open={Boolean(assigningIssue)}
         onClose={() => setAssigningIssue(null)}
-        title={`👷 Step 2: Assign Contractor & Set SLA (${assigningIssue?.ticketNumber || ''})`}
+        title={`Assign Contractor & Set SLA (${assigningIssue?.ticketNumber || ''})`}
         size="md"
         footer={
           <>
@@ -913,7 +913,7 @@ export function IssuesRisksListPage() {
       <Modal
         open={Boolean(resolvingIssue)}
         onClose={() => setResolvingIssue(null)}
-        title={`🔨 Step 3B: Submit Rectification Proof (${resolvingIssue?.ticketNumber || ''})`}
+        title={`Submit Rectification Proof (${resolvingIssue?.ticketNumber || ''})`}
         size="md"
         footer={
           <>
@@ -979,7 +979,7 @@ export function IssuesRisksListPage() {
       <Modal
         open={Boolean(auditingIssue)}
         onClose={() => setAuditingIssue(null)}
-        title={`🕵️ Step 4: Quality Engineer Site Audit Sign-off (${auditingIssue?.ticketNumber || ''})`}
+        title={`Quality Engineer Site Audit Sign-off (${auditingIssue?.ticketNumber || ''})`}
         size="md"
         footer={
           <div className="flex w-full items-center justify-between">

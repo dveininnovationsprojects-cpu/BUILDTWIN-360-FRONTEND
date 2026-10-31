@@ -98,3 +98,6 @@ export const costAnalyticsApi = {
   snapshot: async (projectId = 1, params = {}) =>
     unwrap(await apiClient.post(`/costs/evm/calculate/project/${projectId}`, null, { params })),
 };
+
+export { costService } from '@/services/costService';
+

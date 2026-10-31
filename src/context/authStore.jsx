@@ -66,6 +66,9 @@ export const useAuthStore = create()(
             throw new Error(authData?.message || 'Authentication failed. No access token received.');
           }
 
+          localStorage.setItem('buildtwin_token', authData.accessToken);
+          localStorage.setItem('token', authData.accessToken);
+
           const normalizedUser = normalizeBackendUser(authData.user);
 
           set({
@@ -121,6 +124,8 @@ export const useAuthStore = create()(
         const authData = res.data?.data ?? res.data;
 
         if (authData?.accessToken) {
+          localStorage.setItem('buildtwin_token', authData.accessToken);
+          localStorage.setItem('token', authData.accessToken);
           set({
             accessToken: authData.accessToken,
             refreshToken: authData.refreshToken || refreshToken,
@@ -169,6 +174,8 @@ export const useAuthStore = create()(
        * Log out and clear state
        */
       logout: () => {
+        localStorage.removeItem('buildtwin_token');
+        localStorage.removeItem('token');
         set({
           user: null,
           accessToken: null,
@@ -183,6 +190,13 @@ export const useAuthStore = create()(
         set((state) => ({ user: state.user ? { ...state.user, ...partial } : state.user })),
 
       setSession: ({ user, accessToken, refreshToken }) => {
+        if (accessToken) {
+          localStorage.setItem('buildtwin_token', accessToken);
+          localStorage.setItem('token', accessToken);
+        } else {
+          localStorage.removeItem('buildtwin_token');
+          localStorage.removeItem('token');
+        }
         set({
           user: normalizeBackendUser(user),
           accessToken,

@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/apiClient';
+import { qualityIssueService } from '@/services/qualityIssueService';
 
 function unwrap(response) {
   const body = response?.data;
@@ -70,6 +71,59 @@ export const issuesRisksApi = {
     return unwrap(res);
   },
 
+  // Part C: Site Blockers & Impact Areas (/api/v1/issues)
+  createBlocker: async (payload) => {
+    const res = await apiClient.post('/issues', payload);
+    return unwrap(res);
+  },
+
+  getBlockers: async (projectId = 1) => {
+    const res = await apiClient.get(`/issues/blockers/project/${projectId}`);
+    return unwrapList(res);
+  },
+
+  resolveBlocker: async (id, resolutionNotes) => {
+    const payload = resolutionNotes ? { resolutionNotes } : {};
+    const res = await apiClient.post(`/issues/${id}/resolve`, payload);
+    return unwrap(res);
+  },
+
+  getBlockerSummary: async (projectId = 1) => {
+    const res = await apiClient.get(`/issues/summary/project/${projectId}`);
+    return unwrap(res);
+  },
+
+  getOverdueBlockers: async (projectId = 1) => {
+    const res = await apiClient.get(`/issues/overdue/project/${projectId}`);
+    return unwrapList(res);
+  },
+
+  // Project Risks (/api/v1/issues/risks)
+  createRisk: async (payload) => {
+    const res = await apiClient.post('/issues/risks', payload);
+    return unwrap(res);
+  },
+
+  updateRiskStatus: async (id, statusDto) => {
+    const res = await apiClient.patch(`/issues/risks/${id}/status`, statusDto);
+    return unwrap(res);
+  },
+
+  getRisks: async (projectId = 1, filters = {}) => {
+    const res = await apiClient.get(`/issues/risks/project/${projectId}`, { params: filters });
+    return unwrapList(res);
+  },
+
+  getRiskSummary: async (projectId = 1) => {
+    const res = await apiClient.get(`/issues/risks/summary/project/${projectId}`);
+    return unwrap(res);
+  },
+
+  deleteRisk: async (id) => {
+    await apiClient.delete(`/issues/risks/${id}`);
+    return true;
+  },
+
   // Backward-compatible aliases
   list: async (params = {}) => {
     const projectId = params.projectId || 1;
@@ -78,6 +132,8 @@ export const issuesRisksApi = {
   create: async (payload) => issuesRisksApi.createIssue(payload),
   update: async (id, payload) => issuesRisksApi.resolveIssue(id, payload),
 };
+
+export { qualityIssueService };
 
 export const ISSUE_TYPES = [
   { value: 'SNAG', label: 'Snag / Defect', description: 'Minor finishing defect or cosmetic snag' },
