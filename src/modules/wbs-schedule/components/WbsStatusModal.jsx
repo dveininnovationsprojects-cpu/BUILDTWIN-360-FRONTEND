@@ -13,6 +13,11 @@ export function WbsStatusModal({ workPackage, onClose, onUpdate, isUpdating }) {
 
   if (!workPackage) return null;
 
+  const incompleteCount = Math.max(
+    0,
+    (workPackage.totalActivities || 0) - (workPackage.completedActivities || 0)
+  );
+
   return (
     <Modal
       open={!!workPackage}
@@ -46,6 +51,14 @@ export function WbsStatusModal({ workPackage, onClose, onUpdate, isUpdating }) {
           onChange={(e) => setStatus(e.target.value)}
           options={WBS_STATUSES}
         />
+        {status === 'COMPLETED' && incompleteCount > 0 && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 flex items-start gap-2">
+            <span className="font-semibold text-amber-900">Note:</span>
+            <span>
+              Marking this work package as <strong>Completed</strong> will automatically complete the {incompleteCount} remaining activity/activities under this package.
+            </span>
+          </div>
+        )}
       </div>
     </Modal>
   );

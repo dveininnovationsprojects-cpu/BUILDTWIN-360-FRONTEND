@@ -168,6 +168,8 @@ export function WbsScheduleListPage() {
     mutationFn: ({ id, payload }) => wbsScheduleApi.update(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['work-packages'] });
+      queryClient.invalidateQueries({ queryKey: ['wbs-activities'] });
+      queryClient.invalidateQueries({ queryKey: ['wbs-summary'] });
       pushToast('Work package updated successfully.', 'success');
       setEditingPackage(null);
     },
@@ -181,6 +183,8 @@ export function WbsScheduleListPage() {
     mutationFn: ({ id, status }) => wbsScheduleApi.updateStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['work-packages'] });
+      queryClient.invalidateQueries({ queryKey: ['wbs-activities'] });
+      queryClient.invalidateQueries({ queryKey: ['wbs-summary'] });
       pushToast('Work package status updated.', 'success');
       setStatusPackage(null);
     },

@@ -8,12 +8,14 @@ import { Modal } from '@/design-system/components/Modal/Modal';
 import { ROLE_LABELS, useAuthStore } from '@/context/authStore';
 import { NAV_ITEMS } from '@/constants/navigation';
 import { normalizeRole } from '@/constants/roles';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export function Topbar({ onMenuToggle }) {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const navigate = useNavigate();
   const location = useLocation();
+  const { unreadCount, urgentCount } = useNotifications();
 
   const [isLogoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -286,14 +288,18 @@ export function Topbar({ onMenuToggle }) {
         <button
           type="button"
           aria-label="Open notifications"
-          title="Notifications"
+          title={unreadCount > 0 ? `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` : 'Notifications'}
           onClick={() => navigate('/notifications')}
           className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink-500 transition-colors hover:bg-brand-50 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-200"
         >
           <Bell className="h-5 w-5" />
-          <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-surface-base bg-status-danger px-0.5 text-[10px] font-bold leading-none text-white">
-            3
-          </span>
+          {unreadCount > 0 && (
+            <span className={`absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-surface-base px-0.5 text-[10px] font-bold leading-none text-white ${
+              urgentCount > 0 ? 'bg-status-danger animate-pulse' : 'bg-brand-600'
+            }`}>
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
+          )}
         </button>
 
         {/* User Profile Dropdown */}

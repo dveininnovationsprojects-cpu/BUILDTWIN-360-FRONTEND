@@ -1,22 +1,96 @@
 import { apiClient } from '@/lib/apiClient';
+import { qualityIssueService } from '@/services/qualityIssueService';
 
-const MOCK_QUALITY = [
-  { id: 'qlt-042', code: 'NCR-042', project: 'PRJ-001 Padur Residence', title: 'Slab Honeycombing & Voids', severity: 'HIGH', status: 'OPEN', ageingDays: '10 Days' },
-  { id: 'qlt-043', code: 'NCR-043', project: 'PRJ-001 Padur Residence', title: 'Rebar Cover Block Displacement', severity: 'MEDIUM', status: 'IN_REVIEW', ageingDays: '3 Days' },
-  { id: 'qlt-044', code: 'NCR-044', project: 'PRJ-002 OMR Commercial', title: 'Curing Period Non-compliance', severity: 'LOW', status: 'CLOSED', ageingDays: '0 Days' },
-];
+function unwrap(response) {
+  const body = response?.data;
+  return body?.data !== undefined ? body.data : body;
+}
 
-// Maps to /quality-issues (spec section 14 - API Requirements).
+function unwrapList(response) {
+  const data = unwrap(response);
+  return Array.isArray(data) ? data : [];
+}
+
 export const qualityApi = {
-  list: (params = {}) =>
-    // The running backend exposes quality issues by project. Keep the default
-    // project aligned with the rest of the demo workspace until the page
-    // supplies an explicit project selector.
-    apiClient.get(`/quality/issues/project/${params.projectId ?? 1}`).then((r) => r.data).catch(() => MOCK_QUALITY),
-  getById: (id) => apiClient.get(`/quality/issues/${id}`).then((r) => r.data).catch(() => MOCK_QUALITY[0]),
-  create: (payload) =>
-    apiClient.post('/quality/issues', payload).then((r) => r.data).catch(() => ({ id: `qlt-${Date.now()}`, ...payload })),
-  update: (id, payload) =>
-    apiClient.patch(`/quality/issues/${id}/status`, null, { params: { status: payload.status } }).then((r) => r.data).catch(() => ({ id, ...payload })),
+  // Query Quality Issues
+  list: async (params = {}) => {
+    const projectId = params.projectId ?? 1;
+    const cleanParams = {};
+    if (params.status && params.status !== 'ALL') cleanParams.status = params.status;
+    if (params.severity && params.severity !== 'ALL') cleanParams.severity = params.severity;
+    if (params.issueType && params.issueType !== 'ALL') cleanParams.issueType = params.issueType;
+    const res = await apiClient.get(`/quality/issues/project/${projectId}`, { params: cleanParams });
+    return unwrapList(res);
+  },
+
+  getAll: async (filters = {}) => {
+    const res = await apiClient.get('/quality/issues', { params: filters });
+    return unwrapList(res);
+  },
+
+  getById: async (id) => {
+    const res = await apiClient.get(`/quality/issues/${id}`);
+    return unwrap(res);
+  },
+
+  create: async (payload) => {
+    const res = await apiClient.post('/quality/issues', payload);
+    return unwrap(res);
+  },
+
+  update: async (id, payload) => {
+    if (payload.status) {
+      const res = await apiClient.patch(`/quality/issues/${id}/status`, null, { params: { status: payload.status } });
+      return unwrap(res);
+    }
+    const res = await apiClient.put(`/quality/issues/${id}`, payload);
+    return unwrap(res);
+  },
+
+  resolve: async (id, resolutionDto) => {
+    const payload = {
+      resolutionNotes: resolutionDto.resolutionNotes || resolutionDto.rectificationNotes || '',
+      resolvedBy: resolutionDto.resolvedBy || resolutionDto.rectifiedBy || 'Site Engineer',
+      rectificationPhotoUrl: resolutionDto.rectificationPhotoUrl || null,
+    };
+    const res = await apiClient.post(`/quality/issues/${id}/resolve`, payload);
+    return unwrap(res);
+  },
+
+  verify: async (id, verificationDto) => {
+    const payload = {
+      approved: Boolean(verificationDto.approved),
+      verifiedBy: verificationDto.verifiedBy || 'QA Lead',
+      remarks: verificationDto.remarks || verificationDto.verificationNotes || 'Quality verification inspection completed',
+    };
+    const res = await apiClient.post(`/quality/issues/${id}/verify`, payload);
+    return unwrap(res);
+  },
+
+  delete: async (id) => {
+    await apiClient.delete(`/quality/issues/${id}`);
+    return true;
+  },
+
+  addEvidence: async (evidence) => {
+    const res = await apiClient.post('/quality/evidence', evidence);
+    return unwrap(res);
+  },
+
+  getEvidence: async (id) => {
+    const res = await apiClient.get(`/quality/issues/${id}/evidence`);
+    return unwrapList(res);
+  },
+
+  getSummary: async (projectId = 1) => {
+    const res = await apiClient.get(`/quality/summary/project/${projectId}`);
+    return unwrap(res);
+  },
+
+  getOverdue: async (projectId = 1) => {
+    const res = await apiClient.get(`/quality/issues/overdue/project/${projectId}`);
+    return unwrapList(res);
+  },
 };
 
+export { qualityIssueService };
