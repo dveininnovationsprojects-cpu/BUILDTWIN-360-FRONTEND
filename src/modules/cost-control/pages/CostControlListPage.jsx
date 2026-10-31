@@ -5,7 +5,9 @@ import {
   AlertTriangle,
   ArrowDownRight,
   ArrowUpRight,
+  BarChart3,
   Building2,
+  Calculator,
   CheckCircle2,
   Coins,
   DollarSign,
@@ -44,6 +46,7 @@ import {
   costAnalyticsApi,
 } from '../api/costControlApi';
 import { BentoEvmDashboard as EvmDashboard } from '../components/BentoEvmDashboard';
+import { EvmCostIntelligenceModule } from '../components/EvmCostIntelligenceModule';
 
 const COST_HEADS = ['LABOUR', 'MATERIAL', 'EQUIPMENT', 'SUBCONTRACTOR', 'OVERHEAD'];
 const SOURCE_TYPES = [
@@ -628,6 +631,18 @@ export function CostControlListPage() {
         >
           EVM Dashboard &amp; Forecast
         </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('intelligence')}
+          className={`px-4 py-2.5 text-sm font-semibold flex items-center gap-1.5 ${
+            activeTab === 'intelligence'
+              ? 'border-b-2 border-brand-600 text-brand-700'
+              : 'text-ink-500'
+          }`}
+        >
+          <Calculator className="h-4 w-4" />
+          EVM Intelligence Suite (3 Models)
+        </button>
       </div>
 
       {/* TAB 1: Budgets */}
@@ -869,6 +884,11 @@ export function CostControlListPage() {
             return updated;
           }}
         />
+      )}
+
+      {/* TAB 5: EVM Intelligence Suite */}
+      {activeTab === 'intelligence' && (
+        <EvmCostIntelligenceModule />
       )}
 
       {/* Budget Create / Edit Modal */}

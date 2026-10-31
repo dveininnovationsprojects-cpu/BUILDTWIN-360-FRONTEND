@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { StatusPill, Button } from '@/design-system';
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { Lock, FileCheck, AlertTriangle, CheckCircle2, History, GitBranch, Calendar } from 'lucide-react';
 
 export function BaselineProgressDatasetModule() {
@@ -110,10 +110,9 @@ export function BaselineProgressDatasetModule() {
         <div className="h-64 w-full bg-white p-3 rounded-lg border border-slate-200">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={sCurveData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="week" tick={{ fontSize: 10 }} />
-              <YAxis unit="%" tick={{ fontSize: 10 }} domain={[0, 100]} />
-              <Tooltip formatter={(val) => `${val}%`} />
+              <XAxis dataKey="week" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+              <YAxis unit="%" tick={{ fontSize: 10 }} domain={[0, 100]} axisLine={false} tickLine={false} />
+              <Tooltip cursor={false} contentStyle={{ backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(val) => `${val}%`} />
               <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
               <Line type="monotone" dataKey="PV" name="Planned Value (PV Baseline)" stroke="#0f172a" strokeWidth={2.5} dot={{ r: 3 }} />
               <Line type="monotone" dataKey="EV" name="Earned Value (EV Actual)" stroke="#059669" strokeWidth={2.5} dot={{ r: 4 }} />
