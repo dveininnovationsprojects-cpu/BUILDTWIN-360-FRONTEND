@@ -68,7 +68,11 @@ function handleAutoNotificationOnCreate(config, responseData) {
 
     let reqData = config?.data;
     if (typeof reqData === 'string') {
-      try { reqData = JSON.parse(reqData); } catch {}
+      try {
+        reqData = JSON.parse(reqData);
+      } catch (_err) {
+        reqData = {};
+      }
     }
     reqData = reqData || {};
     const resData = responseData?.data !== undefined ? responseData.data : responseData;
