@@ -681,6 +681,8 @@ export function BusinessCalculationLogicModule() {
               </div>
             </div>
           </div>
+        )}
+
         {/* Tab 4: Material Consumption Rate & Depletion Forecast Model */}
         {activeCalcTab === 'MAT_DEP' && (
           <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
@@ -889,6 +891,8 @@ export function BusinessCalculationLogicModule() {
               </div>
             </div>
           </div>
+        )}
+
         {/* Tab 7: Supplier On-Time Delivery % (OTD %) Metric Logic */}
         {activeCalcTab === 'SUP_OTD' && (
           <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
