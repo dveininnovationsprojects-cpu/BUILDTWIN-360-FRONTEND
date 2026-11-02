@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Bell, Search, ChevronDown, Menu, Server, X } from 'lucide-react';
+import { Bell, Search, ChevronDown, Menu, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Avatar } from '@/design-system/components/Avatar/Avatar';
 import { Dropdown } from '@/design-system/components/Dropdown/Dropdown';
@@ -264,23 +264,27 @@ export function Topbar({ onMenuToggle }) {
           )}
         </div>
 
-        {/* Spring Boot Backend Live Connection Badge */}
+        {/* Live Status Indicator Badge */}
         <div
           title={backendStatus.details}
-          className={`hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
+          className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all ${
             backendStatus.online
-              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-              : 'bg-rose-50 text-rose-800 border-rose-200'
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+              : 'bg-rose-50 text-rose-700 border-rose-200'
           }`}
         >
-          <span
-            className={`h-2 w-2 rounded-full ${
-              backendStatus.online ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
-            }`}
-          />
-          <Server className="h-3 w-3 opacity-70" />
-          <span className="font-mono text-[11px]">
-            {backendStatus.online ? 'Backend: Connected (:8080)' : 'Backend: Offline'}
+          <span className="relative flex h-2 w-2">
+            {backendStatus.online && (
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+            )}
+            <span
+              className={`relative inline-flex h-2 w-2 rounded-full ${
+                backendStatus.online ? 'bg-emerald-500' : 'bg-rose-500'
+              }`}
+            />
+          </span>
+          <span className="text-xs font-medium tracking-wide">
+            {backendStatus.online ? 'Live' : 'Offline'}
           </span>
         </div>
 
