@@ -143,7 +143,7 @@ export function ReportsListPage() {
       refetchProcLabour(),
       refetchCostQuality(),
     ]);
-    pushToast('Live report data synchronized with backend.', 'success');
+    pushToast('Refreshed successfully', 'success');
   };
 
   // Schedule / Create Report Mutation
