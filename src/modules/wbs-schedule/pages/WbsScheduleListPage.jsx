@@ -17,6 +17,7 @@ import {
   ListTree,
   GitBranch,
   CalendarClock,
+  AlertTriangle,
 } from 'lucide-react';
 import { Table, StatusPill, Button, Modal } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
