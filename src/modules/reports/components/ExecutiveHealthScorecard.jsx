@@ -108,10 +108,10 @@ export function ExecutiveHealthScorecard({
             onClick={onRefresh}
             isLoading={isRefreshing}
             className="flex items-center gap-1.5"
-            title="Refresh Live Analytics from Spring Boot backend"
+            title="Refresh Live Analytics from backend"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Sync Backend
+            Refresh
           </Button>
           <Button
             variant="outline"
