@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { Download, Plus, Trash2, Camera, Layers } from 'lucide-react';
 import { Button, Input, Modal, Select, Textarea } from '@/design-system';
+import { useToastStore } from '@/design-system/components/Toast/Toast';
 import { DprPhotoUploadSection } from './DprPhotoUploadSection';
 
 const UNITS = [
@@ -44,13 +45,14 @@ function toPayload(values, status, submittedBy, photos = []) {
     siteName: values.siteName.trim(),
     activity: values.activity.trim(),
     quantities,
-    photos: photos.map((p) => ({
+    photos: (photos || []).map((p) => ({
       id: p.id,
       name: p.name,
       size: p.size,
       type: p.type,
-      previewUrl: p.previewUrl || p.dataUrl || p.url,
-      dataUrl: p.dataUrl || p.previewUrl || p.url,
+      previewUrl: p.previewUrl || p.photoUrl || p.dataUrl || p.url,
+      dataUrl: p.dataUrl || p.previewUrl || p.photoUrl || p.url,
+      photoUrl: p.photoUrl || p.dataUrl || p.previewUrl || p.url,
       activityTag: p.activityTag || 'General Progress',
       caption: p.caption || '',
       locationTag: p.locationTag || '',
@@ -74,6 +76,7 @@ export function DprEntryFormModal({
   const form = useForm({ mode: 'onBlur', defaultValues: initialValues() });
   const { fields, append, remove } = useFieldArray({ control: form.control, name: 'quantities' });
   const [photos, setPhotos] = useState([]);
+  const pushToast = useToastStore((s) => s.push);
 
   // Dynamically extract work item names for live activity tagging
   const watchedQuantities = form.watch('quantities') || [];
@@ -110,46 +113,139 @@ export function DprEntryFormModal({
     }
   }, [open, initialData, form]);
 
-  async function save(status, downloadAfter = false) {
-    const baseFieldsAreValid = await form.trigger(['reportDate', 'siteName']);
-    if (!baseFieldsAreValid) return;
+  const [actionLoading, setActionLoading] = useState(null); // 'draft' | 'download' | 'submit' | null
 
-    form.clearErrors(['activity', 'quantities']);
-    const values = form.getValues();
+  // Determine logical submission target status & label based on current report lifecycle
+  const submitTargetStatus = isEdit
+    ? initialData?.status === 'DRAFT'
+      ? 'SUBMITTED'
+      : (initialData?.status || 'SUBMITTED')
+    : 'SUBMITTED';
 
-    if (status === 'SUBMITTED' || downloadAfter) {
-      let hasQuantityErrors = false;
+  const submitButtonLabel = isEdit
+    ? initialData?.status === 'DRAFT'
+      ? 'Submit for Approval'
+      : initialData?.status === 'REJECTED'
+      ? 'Resubmit DPR'
+      : 'Update DPR'
+    : 'Submit DPR';
 
-      if (!values.activity?.trim()) {
-        form.setError('activity', { type: 'required', message: 'Work summary is required to submit or generate report.' });
-      }
+  const targetStatusForPdf = isEdit ? (initialData?.status || 'DRAFT') : 'DRAFT';
 
-      values.quantities?.forEach((quantity, index) => {
-        if (!quantity.workDescription?.trim()) {
-          form.setError(`quantities.${index}.workDescription`, { type: 'required', message: 'Work item is required.' });
-          hasQuantityErrors = true;
-        }
-        if (!isFiniteQuantity(quantity.completedQuantity) || quantity.completedQuantity <= 0) {
-          form.setError(`quantities.${index}.completedQuantity`, { type: 'min', message: 'Enter a quantity greater than zero.' });
-          hasQuantityErrors = true;
-        }
-        if (!quantity.unit) {
-          form.setError(`quantities.${index}.unit`, { type: 'required', message: 'Unit is required.' });
-          hasQuantityErrors = true;
-        }
-      });
-
-      if (!values.activity?.trim() || hasQuantityErrors) return;
-    }
+  async function save(targetStatus, downloadAfter = false) {
+    const actionKey = downloadAfter ? 'download' : targetStatus === 'DRAFT' ? 'draft' : 'submit';
+    setActionLoading(actionKey);
 
     try {
-      const payload = toPayload(values, status, submittedBy, photos);
+      const values = form.getValues();
+
+      // Ensure siteName has a reasonable fallback if blank
+      if (!values.siteName?.trim()) {
+        const fallbackSite = initialData?.siteName || initialData?.projectName || 'Ashok Grandeur - Padur, Chennai';
+        form.setValue('siteName', fallbackSite);
+        values.siteName = fallbackSite;
+      }
+
+      // Ensure reportDate has fallback
+      if (!values.reportDate) {
+        const fallbackDate = initialData?.reportDate || new Date().toISOString().slice(0, 10);
+        form.setValue('reportDate', fallbackDate);
+        values.reportDate = fallbackDate;
+      }
+
+      // Check basic date and site validation
+      const baseValid = await form.trigger(['reportDate', 'siteName']);
+      if (!baseValid) {
+        setActionLoading(null);
+        return;
+      }
+
+      form.clearErrors(['activity', 'quantities']);
+
+      // Clean quantities: filter out rows that are completely empty
+      const rawQuantities = values.quantities || [];
+      const cleanedQuantities = rawQuantities.filter(
+        (q) =>
+          q.workDescription?.trim() ||
+          (q.completedQuantity !== '' && q.completedQuantity != null && !isNaN(Number(q.completedQuantity)))
+      );
+
+      // Auto-derive work summary if blank from photo tags, quantities, remarks, or site
+      let activitySummary = values.activity?.trim() || '';
+      if (!activitySummary) {
+        const taggedPhoto = photos.find((p) => p.activityTag && p.activityTag !== 'General Progress');
+        const qtyItem = cleanedQuantities.find((q) => q.workDescription?.trim());
+        if (qtyItem) {
+          activitySummary = cleanedQuantities
+            .map((q) => q.workDescription?.trim())
+            .filter(Boolean)
+            .join(', ');
+        } else if (taggedPhoto) {
+          activitySummary = taggedPhoto.activityTag;
+        } else if (values.remarks?.trim()) {
+          activitySummary = values.remarks.trim().slice(0, 80);
+        } else {
+          activitySummary = values.siteName ? `${values.siteName} Shift Progress` : 'Site Work Shift Progress';
+        }
+        form.setValue('activity', activitySummary);
+        values.activity = activitySummary;
+      }
+
+      // Strict validation only when submitting for review (targetStatus === 'SUBMITTED')
+      if (targetStatus === 'SUBMITTED') {
+        let hasQuantityErrors = false;
+
+        // Validate any filled quantity row
+        rawQuantities.forEach((quantity, index) => {
+          const hasDesc = Boolean(quantity.workDescription?.trim());
+          const hasQty =
+            quantity.completedQuantity !== '' &&
+            quantity.completedQuantity != null &&
+            !isNaN(Number(quantity.completedQuantity));
+
+          if (hasDesc || hasQty) {
+            if (!hasDesc) {
+              form.setError(`quantities.${index}.workDescription`, {
+                type: 'required',
+                message: 'Work item name is required.',
+              });
+              hasQuantityErrors = true;
+            }
+            if (!hasQty || Number(quantity.completedQuantity) <= 0) {
+              form.setError(`quantities.${index}.completedQuantity`, {
+                type: 'min',
+                message: 'Enter a quantity greater than zero.',
+              });
+              hasQuantityErrors = true;
+            }
+            if (!quantity.unit) {
+              form.setError(`quantities.${index}.unit`, {
+                type: 'required',
+                message: 'Unit is required.',
+              });
+              hasQuantityErrors = true;
+            }
+          }
+        });
+
+        if (hasQuantityErrors) {
+          pushToast('Please check completed quantities and enter valid positive numbers.', 'warning');
+          setActionLoading(null);
+          return;
+        }
+      }
+
+      const payload = toPayload(values, targetStatus, submittedBy, photos);
       if (isEdit) {
         payload.id = initialData.id;
+        payload.reportCode = initialData.reportCode;
       }
+
       await onSave(payload, downloadAfter);
-    } catch {
-      // The list page shows the failure toast and leaves this form open for correction.
+    } catch (_err) {
+      // The parent component handles error toast
+    } finally {
+      setActionLoading(null);
     }
   }
 
@@ -157,29 +253,62 @@ export function DprEntryFormModal({
     <Modal
       open={open}
       onClose={() => {
-        if (!isSaving) onClose();
+        if (!isSaving && !actionLoading) onClose();
       }}
       size="xl"
       title={isEdit ? `Edit Daily Progress Report: ${initialData?.siteName || initialData?.id}` : 'New Daily Progress Report (DPR)'}
       footer={
         <div className="flex w-full flex-wrap items-center justify-between gap-2">
-          <Button variant="outline" onClick={onClose} disabled={isSaving}>Cancel</Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={Boolean(actionLoading) || isSaving}
+          >
+            Cancel
+          </Button>
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" onClick={() => save('DRAFT')} isLoading={isSaving} disabled={isSaving}>
+            {/* Button 1: Save as Draft */}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => save('DRAFT', false)}
+              isLoading={actionLoading === 'draft'}
+              disabled={Boolean(actionLoading) || isSaving}
+              title="Save current progress as draft without submitting for managerial review"
+            >
               {isEdit ? 'Save as Draft' : 'Save Draft'}
             </Button>
+
+            {/* Button 2: Save & Download PDF */}
             <Button
+              type="button"
               variant="outline"
               className="flex items-center gap-1.5 border-brand-500 text-brand-600 hover:bg-brand-50"
-              onClick={() => save('SUBMITTED', true)}
-              isLoading={isSaving}
-              disabled={isSaving}
+              onClick={() => save(targetStatusForPdf, true)}
+              isLoading={actionLoading === 'download'}
+              disabled={Boolean(actionLoading) || isSaving}
+              title="Save current changes and immediately download PDF Daily Progress Report"
             >
               <Download className="h-4 w-4" />
               <span>Save & Download PDF</span>
             </Button>
-            <Button onClick={() => save('SUBMITTED')} isLoading={isSaving} disabled={isSaving}>
-              {isEdit ? 'Update DPR' : 'Submit DPR'}
+
+            {/* Button 3: Update DPR / Submit DPR */}
+            <Button
+              type="button"
+              onClick={() => save(submitTargetStatus, false)}
+              isLoading={actionLoading === 'submit'}
+              disabled={Boolean(actionLoading) || isSaving}
+              title={
+                isEdit
+                  ? initialData?.status === 'DRAFT'
+                    ? 'Submit draft DPR for managerial approval'
+                    : 'Save and update this DPR'
+                  : 'Submit DPR for managerial review'
+              }
+            >
+              {submitButtonLabel}
             </Button>
           </div>
         </div>

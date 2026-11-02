@@ -111,6 +111,7 @@ export function DprPhotoGalleryModal({
   const currentPhoto = photos[currentIndex] || photos[0];
   const photoUrl =
     currentPhoto?.previewUrl ||
+    currentPhoto?.photoUrl ||
     currentPhoto?.url ||
     currentPhoto?.dataUrl ||
     currentPhoto?.src ||

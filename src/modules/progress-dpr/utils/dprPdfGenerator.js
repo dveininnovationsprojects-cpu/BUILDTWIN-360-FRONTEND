@@ -102,7 +102,7 @@ export async function generateDprPdf(dpr) {
   // Pre-load all photo images in parallel before rendering PDF
   const loadedPhotos = await Promise.all(
     rawPhotos.map(async (p, idx) => {
-      const src = p.previewUrl || p.url || p.dataUrl || p.src || '';
+      const src = p.previewUrl || p.photoUrl || p.url || p.dataUrl || p.src || '';
       let imgData = null;
       if (src) {
         imgData = await loadImageAsBase64(src);

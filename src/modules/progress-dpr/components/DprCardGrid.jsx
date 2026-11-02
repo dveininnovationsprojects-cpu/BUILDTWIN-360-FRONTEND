@@ -197,9 +197,13 @@ export function DprCardGrid({
                         className="relative h-24 flex-1 overflow-hidden rounded-lg border border-surface-border bg-ink-950/10 transition-transform duration-300 group-hover/gallery:scale-[1.01]"
                       >
                         <img
-                          src={photo.previewUrl || photo.url || photo.dataUrl}
+                          src={photo.previewUrl || photo.photoUrl || photo.dataUrl || photo.url}
                           alt={photo.caption || 'Site Photo'}
                           className="h-full w-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.style.display = 'none';
+                          }}
                         />
                         {photo.activityTag && (
                           <div className="absolute bottom-1 left-1 max-w-[90%] truncate">

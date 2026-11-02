@@ -269,9 +269,13 @@ export function DprDetailsModal({ open, onClose, dpr, onEdit, onDelete }) {
                     >
                       <div className="relative h-32 w-full overflow-hidden bg-ink-950/10">
                         <img
-                          src={photo.previewUrl || photo.url || photo.dataUrl}
+                          src={photo.previewUrl || photo.photoUrl || photo.dataUrl || photo.url}
                           alt={photo.caption || photo.activityTag || 'Photo'}
                           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.style.display = 'none';
+                          }}
                         />
                         <div className="absolute left-2 top-2 max-w-[85%] truncate">
                           <span className="inline-flex items-center gap-1 rounded bg-brand-900/80 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur">
