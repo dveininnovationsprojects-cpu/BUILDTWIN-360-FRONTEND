@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   ResponsiveContainer,
   PieChart,
@@ -754,22 +754,28 @@ export function DashboardPage() {
   const user = useAuthStore((s) => s.user);
   const [statusFilter, setStatusFilter] = useState('All');
   
-  // Dynamic role strictly derived from logged-in user context
-  const userRole = normalizeRole(user?.roles?.[0]) || ROLES.DIRECTOR;
+  // Performance-tuned dynamic role derivation with useMemo
+  const userRole = useMemo(() => normalizeRole(user?.roles?.[0]) || ROLES.DIRECTOR, [user?.roles]);
 
-  const rawConfig = ROLE_DASHBOARDS_DATA[userRole] ?? ROLE_DASHBOARDS_DATA[ROLES.DIRECTOR];
-  const rawRoleSpec = ROLE_DATA_SPEC[userRole] ?? ROLE_DATA_SPEC[ROLES.DIRECTOR];
-  const theme = ROLE_THEMES[userRole] ?? ROLE_THEMES[ROLES.DIRECTOR];
+  const rawConfig = useMemo(() => ROLE_DASHBOARDS_DATA[userRole] ?? ROLE_DASHBOARDS_DATA[ROLES.DIRECTOR], [userRole]);
+  const rawRoleSpec = useMemo(() => ROLE_DATA_SPEC[userRole] ?? ROLE_DATA_SPEC[ROLES.DIRECTOR], [userRole]);
+  const theme = useMemo(() => ROLE_THEMES[userRole] ?? ROLE_THEMES[ROLES.DIRECTOR], [userRole]);
 
-  const { roleSpec, kpis } = getFilteredData(rawRoleSpec, rawConfig.kpis, statusFilter);
+  const { roleSpec, kpis } = useMemo(
+    () => getFilteredData(rawRoleSpec, rawConfig.kpis, statusFilter),
+    [rawRoleSpec, rawConfig.kpis, statusFilter]
+  );
 
-  // Top 4 KPI Cards across top row matching template structure
-  const top4Kpis = [
-    { label: 'Project Completion Rate', value: roleSpec.completionRate, subtext: 'Overall Progress' },
-    { label: 'Expected Final Cost', value: roleSpec.eac, subtext: 'Estimated Total' },
-    { label: kpis[0]?.label ?? 'Project Health Index', value: (kpis[0]?.value ?? '78.7 / 100').replace(/\$/g, ''), subtext: kpis[0]?.subtext ?? 'Health Score' },
-    { label: 'Utilized Budget', value: roleSpec.utilBudget, subtext: `Spent: ${roleSpec.spent} / Total: ${roleSpec.total}` },
-  ];
+  // Top 4 KPI Cards across top row matching template structure (Memoized to prevent chart redraws)
+  const top4Kpis = useMemo(
+    () => [
+      { label: 'Project Completion Rate', value: roleSpec.completionRate, subtext: 'Overall Progress' },
+      { label: 'Expected Final Cost', value: roleSpec.eac, subtext: 'Estimated Total' },
+      { label: kpis[0]?.label ?? 'Project Health Index', value: (kpis[0]?.value ?? '78.7 / 100').replace(/\$/g, ''), subtext: kpis[0]?.subtext ?? 'Health Score' },
+      { label: 'Utilized Budget', value: roleSpec.utilBudget, subtext: `Spent: ${roleSpec.spent} / Total: ${roleSpec.total}` },
+    ],
+    [roleSpec, kpis]
+  );
 
   // Role-specific chart variation configuration per role
   const isAreaRole = [ROLES.DIRECTOR, ROLES.SYSTEM_ADMIN, ROLES.PROCUREMENT_STORE, ROLES.DATA_ANALYST].includes(userRole);

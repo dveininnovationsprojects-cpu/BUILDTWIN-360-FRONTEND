@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { Button, StatusPill } from '@/design-system';
+import { ReportExportMenu } from './ReportExportMenu';
 
 export function ExecutiveHealthScorecard({
   analytics,
@@ -23,6 +24,8 @@ export function ExecutiveHealthScorecard({
   isRefreshing,
   onPrint,
   onExport,
+  onExportExcel,
+  onExportCsv,
   isGeneratingPdf,
 }) {
   const score = analytics?.compositeHealthScore ?? 75;
@@ -113,6 +116,7 @@ export function ExecutiveHealthScorecard({
             <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
+
           <Button
             variant="outline"
             size="sm"
@@ -123,16 +127,15 @@ export function ExecutiveHealthScorecard({
             <Printer className="h-3.5 w-3.5" />
             Print
           </Button>
-          <Button
-            size="sm"
-            onClick={onExport}
-            isLoading={isGeneratingPdf}
-            className="flex items-center gap-1.5 shadow-sm"
-            title="Download executive details as PDF and save snapshot"
-          >
-            <Download className="h-3.5 w-3.5" />
-            Save Snapshot
-          </Button>
+
+          {/* Multi-Format Export Dropdown (Excel / CSV / PDF) */}
+          <ReportExportMenu
+            onExportPdf={onExport}
+            onExportExcel={onExportExcel}
+            onExportCsv={onExportCsv}
+            onPrint={onPrint}
+            isGeneratingPdf={isGeneratingPdf}
+          />
         </div>
       </div>
 

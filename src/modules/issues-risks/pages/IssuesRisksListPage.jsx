@@ -1035,7 +1035,7 @@ export function IssuesRisksListPage() {
                 <a
                   href={auditingIssue.resolutionPhotoUrl}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="text-brand-600 underline"
                 >
                   View Photo Proof

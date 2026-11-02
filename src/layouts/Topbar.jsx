@@ -182,7 +182,7 @@ export function Topbar({ onMenuToggle }) {
           <div
             className={`relative flex h-10 items-center overflow-hidden rounded-full border transition-all duration-300 ease-out ${
               isSearchExpanded
-                ? 'w-64 sm:w-80 md:w-96 border-brand-300 bg-white shadow-[0_4px_18px_rgba(15,42,74,0.08)] ring-2 ring-brand-100/80'
+                ? 'w-52 sm:w-80 md:w-96 max-w-[calc(100vw-7rem)] border-brand-300 bg-white shadow-[0_4px_18px_rgba(15,42,74,0.08)] ring-2 ring-brand-100/80'
                 : 'w-10 border-transparent bg-transparent hover:bg-brand-50'
             }`}
           >
@@ -233,7 +233,7 @@ export function Topbar({ onMenuToggle }) {
 
           {/* Search Results Dropdown */}
           {isSearchExpanded && isDropdownOpen && searchQuery.trim() && (
-            <div className="absolute right-0 top-12 z-50 w-72 sm:w-80 md:w-96 overflow-hidden rounded-xl border border-surface-border bg-white shadow-xl animate-fadeIn">
+            <div className="absolute right-0 top-12 z-50 w-72 sm:w-80 md:w-96 max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-surface-border bg-white shadow-xl animate-fadeIn">
               <div className="flex items-center justify-between border-b border-surface-border bg-surface-subtle px-3.5 py-2 text-[11px] font-bold uppercase tracking-wider text-ink-400">
                 <span>Quick Results</span>
                 <span className="font-mono text-[10px] text-ink-400">{searchResults.length} found</span>

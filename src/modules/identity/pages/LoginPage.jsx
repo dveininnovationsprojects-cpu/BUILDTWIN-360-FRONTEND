@@ -114,6 +114,9 @@ export function LoginPage() {
             <input
               type="text"
               autoComplete="username"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck="false"
               placeholder="e.g. admin or rajesh_kumar"
               disabled={isSubmitting}
               className={`w-full rounded-lg border bg-surface-card py-2 pl-9 pr-3 text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 ${
@@ -141,6 +144,9 @@ export function LoginPage() {
             <input
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck="false"
               placeholder="Enter your account password"
               disabled={isSubmitting}
               className={`w-full rounded-lg border bg-surface-card py-2 pl-9 pr-10 text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 ${

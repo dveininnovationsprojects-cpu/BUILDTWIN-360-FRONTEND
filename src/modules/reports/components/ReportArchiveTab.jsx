@@ -91,7 +91,7 @@ export function ReportArchiveTab({
     {
       key: 'actions',
       header: 'Actions',
-      align: 'right',
+      className: 'whitespace-nowrap text-right',
       render: (row) => (
         <div className="flex items-center justify-end gap-1.5">
           <button

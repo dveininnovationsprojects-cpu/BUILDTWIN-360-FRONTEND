@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Modal, Button } from '@/design-system';
 import { Printer, Download, FileText, CheckCircle2, AlertTriangle, Building2, Calendar, ShieldCheck } from 'lucide-react';
 import { formatCurrency } from '@/modules/projects/constants';
-import { generateExecutiveReportPdf } from '../utils/reportPdfGenerator';
+import { generateExecutiveReportPdf, exportReportExcel, exportReportCsv } from '../utils/reportExporter';
 
 export function ReportExportModal({
   open,
@@ -12,6 +12,12 @@ export function ReportExportModal({
 }) {
   const [isDownloading, setIsDownloading] = useState(false);
   if (!report && !liveData) return null;
+
+  const weekly = liveData?.weekly;
+  const analytics = liveData?.analytics;
+  const cost = liveData?.costQuality;
+  const proc = liveData?.procLabour;
+  const inv = liveData?.inventory;
 
   const handlePrint = () => {
     window.print();
@@ -34,11 +40,30 @@ export function ReportExportModal({
     }
   };
 
-  const weekly = liveData?.weekly;
-  const analytics = liveData?.analytics;
-  const cost = liveData?.costQuality;
-  const proc = liveData?.procLabour;
-  const inv = liveData?.inventory;
+  const handleDownloadExcel = () => {
+    exportReportExcel({
+      project: { name: weekly?.projectName, code: weekly?.projectCode },
+      weekNumber: weekly?.weekNumber || 10,
+      analytics,
+      weekly,
+      inventory: inv,
+      procLabour: proc,
+      costQuality: cost,
+    });
+  };
+
+  const handleDownloadCsv = () => {
+    exportReportCsv({
+      project: { name: weekly?.projectName, code: weekly?.projectCode },
+      weekNumber: weekly?.weekNumber || 10,
+      analytics,
+      weekly,
+      inventory: inv,
+      procLabour: proc,
+      costQuality: cost,
+      section: 'ALL',
+    });
+  };
 
   return (
     <Modal
@@ -51,9 +76,29 @@ export function ReportExportModal({
           <span className="text-xs text-ink-500">
             BuildTwin 360 Certified Executive Record • Generated {new Date().toLocaleDateString()}
           </span>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" size="sm" onClick={onClose}>
               Close
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadCsv}
+              className="flex items-center gap-1.5"
+              title="Download raw data as CSV"
+            >
+              <Download className="h-4 w-4" />
+              CSV (.csv)
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadExcel}
+              className="flex items-center gap-1.5"
+              title="Download multi-sheet Excel workbook"
+            >
+              <Download className="h-4 w-4" />
+              Excel (.xls)
             </Button>
             <Button
               variant="outline"
@@ -61,13 +106,14 @@ export function ReportExportModal({
               onClick={handleDownloadPdf}
               isLoading={isDownloading}
               className="flex items-center gap-1.5"
+              title="Download formatted executive PDF"
             >
               <Download className="h-4 w-4" />
-              Download PDF
+              PDF (.pdf)
             </Button>
             <Button size="sm" onClick={handlePrint} className="flex items-center gap-1.5">
               <Printer className="h-4 w-4" />
-              Print / Save
+              Print
             </Button>
           </div>
         </div>

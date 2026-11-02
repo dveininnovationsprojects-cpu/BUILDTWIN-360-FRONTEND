@@ -15,7 +15,7 @@ export function AppShell() {
   };
 
   return (
-    <div className="flex h-screen bg-surface-subtle">
+    <div className="flex h-screen min-h-[100dvh] bg-surface-subtle overflow-hidden">
       <Sidebar
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen((open) => !open)}
@@ -23,7 +23,7 @@ export function AppShell() {
       />
       <div className="flex flex-1 flex-col overflow-hidden bg-surface-subtle">
         <Topbar onMenuToggle={() => setSidebarOpen((open) => !open)} />
-        <main className="flex-1 overflow-y-auto bg-surface-subtle p-4 sm:p-6">
+        <main className="flex-1 overflow-y-auto bg-surface-subtle p-4 sm:p-6 pb-[max(1.5rem,var(--sab))]">
           <ErrorBoundary>
             <Outlet />
           </ErrorBoundary>

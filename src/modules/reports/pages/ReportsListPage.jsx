@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import {
@@ -32,7 +32,11 @@ import { ProcurementLabourReportTab } from '../components/ProcurementLabourRepor
 import { CostQualityReportTab } from '../components/CostQualityReportTab';
 import { ReportArchiveTab } from '../components/ReportArchiveTab';
 import { ReportExportModal } from '../components/ReportExportModal';
-import { generateExecutiveReportPdf } from '../utils/reportPdfGenerator';
+import {
+  generateExecutiveReportPdf,
+  exportReportExcel,
+  exportReportCsv,
+} from '../utils/reportExporter';
 
 export function ReportsListPage() {
   const queryClient = useQueryClient();
@@ -70,16 +74,29 @@ export function ReportsListPage() {
     },
   });
 
+  // Performance-tuned Query Configuration (Prevents UI flashes, unnecessary re-fetches & optimizes cache)
+  const queryConfig = useMemo(
+    () => ({
+      staleTime: 5 * 60 * 1000, // 5 minutes cache validity
+      gcTime: 15 * 60 * 1000, // 15 minutes memory retention
+      placeholderData: (prev) => prev,
+      refetchOnWindowFocus: false,
+    }),
+    []
+  );
+
   // 1. Fetch available projects for dropdown
   const { data: projects = [] } = useQuery({
     queryKey: ['projects-list-simple'],
     queryFn: () => projectsApi.list(),
+    ...queryConfig,
   });
 
-  const selectedProject =
-    projects.find((p) => String(p.id) === String(selectedProjectId)) || projects[0];
+  const selectedProject = useMemo(() => {
+    return projects.find((p) => String(p.id) === String(selectedProjectId)) || projects[0];
+  }, [projects, selectedProjectId]);
 
-  // 2. Fetch Live Backend Report Datasets
+  // 2. Fetch Live Backend Report Datasets with Performance Tuning
   const {
     data: analyticsData,
     isLoading: isLoadingAnalytics,
@@ -88,6 +105,7 @@ export function ReportsListPage() {
   } = useQuery({
     queryKey: ['report-analytics', selectedProjectId],
     queryFn: () => reportsApi.getAnalyticsAggregation(selectedProjectId),
+    ...queryConfig,
   });
 
   const {
@@ -97,6 +115,7 @@ export function ReportsListPage() {
   } = useQuery({
     queryKey: ['report-weekly', selectedProjectId, selectedWeek],
     queryFn: () => reportsApi.getWeeklyReport(selectedProjectId, selectedWeek),
+    ...queryConfig,
   });
 
   const {
@@ -106,6 +125,7 @@ export function ReportsListPage() {
   } = useQuery({
     queryKey: ['report-inventory', selectedProjectId],
     queryFn: () => reportsApi.getInventoryReport(selectedProjectId),
+    ...queryConfig,
   });
 
   const {
@@ -115,6 +135,7 @@ export function ReportsListPage() {
   } = useQuery({
     queryKey: ['report-proc-labour', selectedProjectId],
     queryFn: () => reportsApi.getProcurementLabourReport(selectedProjectId),
+    ...queryConfig,
   });
 
   const {
@@ -124,6 +145,7 @@ export function ReportsListPage() {
   } = useQuery({
     queryKey: ['report-cost-quality', selectedProjectId],
     queryFn: () => reportsApi.getCostQualityReport(selectedProjectId),
+    ...queryConfig,
   });
 
   const {
@@ -132,6 +154,7 @@ export function ReportsListPage() {
   } = useQuery({
     queryKey: ['reports-archive'],
     queryFn: () => reportsApi.list(),
+    ...queryConfig,
   });
 
   // Refetch all queries
@@ -218,8 +241,47 @@ export function ReportsListPage() {
     }
   };
 
+  // Export Multi-Sheet Excel Workbook
+  const handleExportExcel = useCallback(() => {
+    try {
+      const filename = exportReportExcel({
+        project: selectedProject,
+        weekNumber: selectedWeek,
+        analytics: analyticsData,
+        weekly: weeklyData,
+        inventory: inventoryData,
+        procLabour: procLabourData,
+        costQuality: costQualityData,
+      });
+      pushToast(`Excel workbook exported: ${filename}`, 'success');
+    } catch (err) {
+      console.error('Failed to export Excel workbook:', err);
+      pushToast('Failed to export Excel workbook.', 'error');
+    }
+  }, [selectedProject, selectedWeek, analyticsData, weeklyData, inventoryData, procLabourData, costQualityData, pushToast]);
+
+  // Export Consolidated CSV Data File
+  const handleExportCsv = useCallback(() => {
+    try {
+      const filename = exportReportCsv({
+        project: selectedProject,
+        weekNumber: selectedWeek,
+        analytics: analyticsData,
+        weekly: weeklyData,
+        inventory: inventoryData,
+        procLabour: procLabourData,
+        costQuality: costQualityData,
+        section: 'ALL',
+      });
+      pushToast(`Consolidated CSV dataset exported: ${filename}`, 'success');
+    } catch (err) {
+      console.error('Failed to export CSV dataset:', err);
+      pushToast('Failed to export CSV dataset.', 'error');
+    }
+  }, [selectedProject, selectedWeek, analyticsData, weeklyData, inventoryData, procLabourData, costQualityData, pushToast]);
+
   // Open Preview Modal
-  const handleOpenPrintPreview = (reportItem = null) => {
+  const handleOpenPrintPreview = useCallback((reportItem = null) => {
     setActivePreviewReport(
       reportItem || {
         name: `Executive Consolidated Report - ${selectedProject?.name || 'Padur Project'} (Week ${selectedWeek})`,
@@ -227,13 +289,13 @@ export function ReportsListPage() {
       }
     );
     setIsExportModalOpen(true);
-  };
+  }, [selectedProject, selectedWeek]);
 
-  // Download Report Action
-  const handleDownloadReport = async (report) => {
+  // Download Report Action from Archives
+  const handleDownloadReport = useCallback(async (report) => {
     try {
-      if (report.format?.includes('PDF') || !report.format?.includes('Excel')) {
-        await generateExecutiveReportPdf({
+      if (report.format?.includes('Excel') || report.format?.includes('Spreadsheet')) {
+        const filename = exportReportExcel({
           project: selectedProject,
           weekNumber: selectedWeek,
           analytics: analyticsData,
@@ -242,39 +304,35 @@ export function ReportsListPage() {
           procLabour: procLabourData,
           costQuality: costQualityData,
         });
-        pushToast(`Report PDF downloaded: ${report.name}`, 'success');
+        pushToast(`Excel workbook downloaded: ${filename}`, 'success');
+      } else if (report.format?.includes('CSV')) {
+        const filename = exportReportCsv({
+          project: selectedProject,
+          weekNumber: selectedWeek,
+          analytics: analyticsData,
+          weekly: weeklyData,
+          inventory: inventoryData,
+          procLabour: procLabourData,
+          costQuality: costQualityData,
+        });
+        pushToast(`CSV dataset downloaded: ${filename}`, 'success');
       } else {
-        const content = JSON.stringify(
-          {
-            report: report.name,
-            project: selectedProject?.name,
-            period: report.period,
-            generatedAt: report.generatedAt,
-            weeklySummary: weeklyData,
-            analytics: analyticsData,
-            costQuality: costQualityData,
-            inventory: inventoryData,
-            procurementLabour: procLabourData,
-          },
-          null,
-          2
-        );
-        const blob = new Blob([content], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${report.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        pushToast(`Export downloaded: ${report.name}`, 'success');
+        const filename = await generateExecutiveReportPdf({
+          project: selectedProject,
+          weekNumber: selectedWeek,
+          analytics: analyticsData,
+          weekly: weeklyData,
+          inventory: inventoryData,
+          procLabour: procLabourData,
+          costQuality: costQualityData,
+        });
+        pushToast(`Report PDF downloaded: ${filename}`, 'success');
       }
     } catch (err) {
       console.error('Download failed:', err);
       pushToast('Failed to download report.', 'error');
     }
-  };
+  }, [selectedProject, selectedWeek, analyticsData, weeklyData, inventoryData, procLabourData, costQualityData, pushToast]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -317,6 +375,8 @@ export function ReportsListPage() {
         isRefreshing={isRefetchingAnalytics}
         onPrint={() => handleOpenPrintPreview()}
         onExport={handleSaveCurrentSnapshot}
+        onExportExcel={handleExportExcel}
+        onExportCsv={handleExportCsv}
         isGeneratingPdf={isGeneratingPdf}
       />
 

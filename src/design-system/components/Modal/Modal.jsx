@@ -41,7 +41,7 @@ export function Modal({ open, onClose, title, children, footer, size = 'md', cla
 
   return createPortal(
     <div
-      className="liquid-glass-overlay fixed inset-0 z-50 flex items-center justify-center p-4 pt-12 sm:pt-14 bg-black/40"
+      className="liquid-glass-overlay fixed inset-0 z-50 flex items-center justify-center p-4 pt-12 sm:pt-14 pb-[max(1rem,var(--sab))] bg-black/40"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           handleClose(e);
@@ -50,7 +50,7 @@ export function Modal({ open, onClose, title, children, footer, size = 'md', cla
     >
       <div
         className={cn(
-          'liquid-glass relative flex max-h-[calc(92vh-3rem)] w-full flex-col overflow-hidden rounded-2xl bg-surface-card border border-surface-border shadow-2xl z-10 transform-gpu',
+          'liquid-glass relative flex max-h-[calc(92vh-3rem)] max-h-[calc(92dvh-3rem)] w-full flex-col overflow-hidden rounded-2xl bg-surface-card border border-surface-border shadow-2xl z-10 transform-gpu',
           widths[size] || widths.md,
           className
         )}

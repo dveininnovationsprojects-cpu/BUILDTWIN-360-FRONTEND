@@ -11,12 +11,12 @@ export function Table({
   onRowClick,
 }) {
   return (
-    <div className="surface-panel overflow-x-auto">
-      <table className="w-full text-left text-sm">
+    <div className="surface-panel overflow-x-auto table-responsive-container">
+      <table className="w-full min-w-full text-left text-sm">
         <thead className="border-b border-surface-border bg-surface-subtle">
           <tr>
             {columns.map((col) => (
-              <th key={col.key} className="px-4 py-2.5 font-medium text-ink-500">
+              <th key={col.key} className="px-4 py-2.5 font-medium text-ink-500 whitespace-nowrap">
                 {col.header}
               </th>
             ))}

@@ -11,14 +11,33 @@
     --theme-brand-300: #8fb0f5;
     --theme-brand-50: #f3f7fe;
     --theme-glow: #67e8f9;
+
+    /* Safe Area insets for notch and virtual home indicator */
+    --sat: env(safe-area-inset-top, 0px);
+    --sar: env(safe-area-inset-right, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
   }
 
   html {
     @apply antialiased;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
   body {
     @apply bg-surface-subtle text-ink-900 font-sans text-base;
     background-image: radial-gradient(circle at 100% 0%, rgba(47, 111, 237, 0.06), transparent 28rem);
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
   }
   h1,
   h2,
@@ -498,4 +517,89 @@ section.bg-brand-950 h3 {
 
 @media (prefers-reduced-motion: reduce) {
   .construction-doodles .doodle { animation: none; }
+}
+
+/* Safe-area insets helper utilities for notched mobile displays */
+.safe-area-pt {
+  padding-top: max(1rem, var(--sat));
+}
+
+.safe-area-pb {
+  padding-bottom: max(1rem, var(--sab));
+}
+
+.safe-area-inset-bottom {
+  padding-bottom: var(--sab);
+}
+
+.safe-area-inset-top {
+  padding-top: var(--sat);
+}
+
+/* Cross-browser responsive table helpers */
+.table-responsive-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+/* Print Stylesheet Hardening — Cleans canvas, suppresses menus/overlays/floating buttons */
+@media print {
+  /* Hide non-printable app shells, sidebar, topbar, modals backdrops, floating actions */
+  aside,
+  header,
+  nav,
+  .liquid-glass-sidebar,
+  .liquid-glass-overlay,
+  .toast-viewport,
+  .construction-doodles,
+  button:not(.print-include),
+  .btn-secondary,
+  .gradient-accent,
+  [role="dialog"] button[aria-label="Close"] {
+    display: none !important;
+  }
+
+  /* Reset layout constraints for full page paper output */
+  body,
+  html,
+  #root,
+  main {
+    background: #ffffff !important;
+    background-image: none !important;
+    color: #0f172a !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .surface-panel {
+    box-shadow: none !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  th,
+  td {
+    border: 1px solid #e2e8f0 !important;
+    color: #1e293b !important;
+  }
 }

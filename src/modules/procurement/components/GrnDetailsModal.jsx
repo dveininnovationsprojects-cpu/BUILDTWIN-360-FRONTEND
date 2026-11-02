@@ -165,7 +165,7 @@ export function GrnDetailsModal({ open, onClose, grn, onEdit, onVoid }) {
               <a
                 href={grn.deliveryEvidenceUrl}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="text-brand-600 hover:text-brand-800 underline font-medium inline-flex items-center gap-1"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
