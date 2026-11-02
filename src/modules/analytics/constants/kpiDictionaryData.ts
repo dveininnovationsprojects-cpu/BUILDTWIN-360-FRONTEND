@@ -80,6 +80,42 @@ export const BUILDTWIN_KPI_DICTIONARY: KPIDefinition[] = [
     }
   },
   {
+    id: 'kpi-cst-02',
+    code: 'KPI-CST-02',
+    name: 'Budget Variance & Cost Variance (CV) Engine',
+    category: 'Cost',
+    businessPurpose: 'Measures net monetary deviation between earned physical value and recorded financial expenditure, identifying budget deficits or savings.',
+    formula: 'Cost Variance (CV) = EV - AC; CV % = ((EV - AC) / EV) * 100; Budget Variance = BAC - AC',
+    sourceTables: ['wbs_budget.bac', 'earned_value.ev', 'cost_transactions.amount'],
+    refreshTrigger: 'Real-time on cost transaction posting or DPR progress verification.',
+    exclusions: 'Advance mobilizations amortized proportionally against measurement milestones.',
+    ownerRole: 'Project Manager / Cost Controller',
+    validationExample: {
+      project: 'PRJ-001 Padur Structural Frame',
+      scenario: 'EV = ₹4,50,000, AC = ₹4,80,000, BAC = ₹12,00,000',
+      calculation: 'CV = 4,50,000 - 4,80,000; CV% = (-30,000 / 4,50,000) * 100',
+      result: '-₹30,000 (-6.67% Cost Variance Deficit)'
+    }
+  },
+  {
+    id: 'kpi-cst-03',
+    code: 'KPI-CST-03',
+    name: 'Forecast at Completion (FAC) & Variance at Completion (VAC)',
+    category: 'Cost',
+    businessPurpose: 'Predicts the final total project expenditure at project closeout based on current cost efficiency trends (CPI), calculating projected cost overruns or savings against original baseline budget.',
+    formula: 'FAC = BAC / CPI; Estimate to Complete (ETC) = FAC - AC; Variance at Completion (VAC) = BAC - FAC',
+    sourceTables: ['wbs_budget.bac', 'earned_value.ev', 'cost_transactions.ac', 'cpi_metrics.cpi'],
+    refreshTrigger: 'Weekly EVM reconciliation batch process.',
+    exclusions: 'Formal scope change orders adjust BAC baseline before computing final VAC.',
+    ownerRole: 'Director / Project Director / Commercial Manager',
+    validationExample: {
+      project: 'PRJ-001 Padur Total Project',
+      scenario: 'BAC = ₹50,00,000, Current CPI = 0.9375',
+      calculation: 'FAC = 50,00,000 / 0.9375; VAC = 50,00,000 - 53,33,333',
+      result: 'FAC = ₹53,33,333 (-₹3,33,333 Projected Budget Overrun at Closeout)'
+    }
+  },
+  {
     id: 'kpi-lbr-01',
     code: 'KPI-LBR-01',
     name: 'Labour Productivity Index (LPI)',
@@ -134,6 +170,24 @@ export const BUILDTWIN_KPI_DICTIONARY: KPIDefinition[] = [
     }
   },
   {
+    id: 'kpi-mat-03',
+    code: 'KPI-MAT-03',
+    name: 'Low-Stock & Projected Shortage Risk Scoring Engine',
+    category: 'Material',
+    businessPurpose: 'Calculates a composite 0-100 risk score indicating vulnerability of planned activities to inventory runout based on buffer deficit, supplier lead time, burn rate, and critical path linkage.',
+    formula: 'Shortage Risk Score = (0.35 * Buffer Deficit Score) + (0.30 * Lead Time Coverage Risk) + (0.20 * Critical Path Weight) + (0.15 * Supplier Late Delivery Risk)',
+    sourceTables: ['materials.current_stock', 'materials.reorder_level', 'purchase_orders.lead_time_days', 'wbs_activities.is_critical_path'],
+    refreshTrigger: 'Real-time on stock issue or WBS schedule revision.',
+    exclusions: 'Inactive or archived materials excluded from shortage scoring.',
+    ownerRole: 'Procurement Officer / Material Controller',
+    validationExample: {
+      project: 'PRJ-001 Padur Residence (OPC Cement)',
+      scenario: 'Balance = 120 Bags, Reorder = 200 Bags, Cover = 4 Days, Lead Time = 6 Days, Critical Path = Yes',
+      calculation: '(0.35 * 40.0) + (0.30 * 100.0) + (0.20 * 100.0) + (0.15 * 30.0)',
+      result: '86.5/100 (CRITICAL SHORTAGE RISK - Expedite Purchase Order Immediately)'
+    }
+  },
+  {
     id: 'kpi-sup-01',
     code: 'KPI-SUP-01',
     name: 'Supplier On-Time Delivery (OTD %)',
@@ -149,6 +203,42 @@ export const BUILDTWIN_KPI_DICTIONARY: KPIDefinition[] = [
       scenario: '10 PO deliveries in last 30 days, 9 delivered on or before PO due date',
       calculation: '(9 / 10) * 100',
       result: '90.0% Supplier OTD Rate'
+    }
+  },
+  {
+    id: 'kpi-sup-02',
+    code: 'KPI-SUP-02',
+    name: 'Supplier Material Rejection Rate (%)',
+    category: 'Supplier',
+    businessPurpose: 'Monitors vendor consignment quality and site delivery rejections to prevent substandard materials from entering construction works.',
+    formula: 'Supplier Rejection Rate % = (Total Rejected Qty / Total Received Qty) * 100',
+    sourceTables: ['grn.received_qty', 'grn.accepted_qty', 'grn.rejected_qty', 'quality_inspections.result'],
+    refreshTrigger: 'Real-time on GRN inspection and acceptance sign-off.',
+    exclusions: 'Goods returned due to site order cancellation excluded from vendor defect score.',
+    ownerRole: 'Procurement Officer / QA Engineer',
+    validationExample: {
+      project: 'Supplier: Tata Tiscon Steels Ltd',
+      scenario: '50.0 MT Rebar received, 1.5 MT rejected due to transit rust and bend test failure',
+      calculation: '(1.5 / 50.0) * 100',
+      result: '3.0% Rejection Rate (Exceeds 2.0% quality benchmark threshold)'
+    }
+  },
+  {
+    id: 'kpi-sup-03',
+    code: 'KPI-SUP-03',
+    name: 'Procurement Lead-Time Analysis & Variance (Days)',
+    category: 'Supplier',
+    businessPurpose: 'Measures procurement cycle velocity from Purchase Order issue to on-site Goods Receipt, identifying lead-time slippage against contracted SLAs.',
+    formula: 'Actual Lead Time = GRN Date - PO Issue Date; Lead Time Variance = Actual Lead Time - Contracted SLA Days',
+    sourceTables: ['purchase_orders.created_at', 'purchase_orders.lead_time_days', 'grn.created_at'],
+    refreshTrigger: 'Real-time on GRN receipt creation.',
+    exclusions: 'Emergency spot orders flagged separately from standard framework agreements.',
+    ownerRole: 'Procurement Lead / Material Controller',
+    validationExample: {
+      project: 'Supplier: Ultratech Cement Bulk Depot',
+      scenario: 'Contracted SLA = 4 Days, PO Issued Aug 20, GRN Received Aug 26 (6 Days actual)',
+      calculation: '6 - 4 Days',
+      result: '+2.0 Days Lead-Time Slippage (Supplier Delivery Lag Alert)'
     }
   },
   {
@@ -170,6 +260,24 @@ export const BUILDTWIN_KPI_DICTIONARY: KPIDefinition[] = [
     }
   },
   {
+    id: 'kpi-qlt-02',
+    code: 'KPI-QLT-02',
+    name: 'Recurring Defect Category & Severity Analysis',
+    category: 'Quality',
+    businessPurpose: 'Classifies defects by root-cause category and severity weight to detect repetitive workmanship or material failures using 80/20 Pareto principles.',
+    formula: 'Weighted Defect Score = Sum(Defects_i * SeverityWeight_i); Severity Weights: Critical=10, High=5, Medium=2, Low=1',
+    sourceTables: ['quality_issues.category', 'quality_issues.severity', 'quality_issues.contractor_id'],
+    refreshTrigger: 'Real-time on defect ticket creation and weekly audit rollup.',
+    exclusions: 'Trivial snag list items pending contractor handoff excluded from high-severity alerts.',
+    ownerRole: 'Quality Lead / Project Manager',
+    validationExample: {
+      project: 'PRJ-001 Padur Residence (Concrete Works)',
+      scenario: '4 Honeycombing (High: 4*5=20) + 1 Rebar Cover (Critical: 1*10=10) + 3 Cracks (Medium: 3*2=6)',
+      calculation: '20 + 10 + 6',
+      result: '36.0 Weighted Defect Severity Score (Recurring Structural Defect Alert)'
+    }
+  },
+  {
     id: 'kpi-rsk-01',
     code: 'KPI-RSK-01',
     name: 'Activity Delay Risk Score (DRS 0-100)',
@@ -185,6 +293,24 @@ export const BUILDTWIN_KPI_DICTIONARY: KPIDefinition[] = [
       scenario: 'Predecessor late (80) + Cement stock low (100) + Crew productivity low (60) + Open NCR (90)',
       calculation: '(0.35*80) + (0.25*100) + (0.20*20) + (0.10*60) + (0.10*90)',
       result: '72.0 / 100 Delay Risk Score (CRITICAL RISK)'
+    }
+  },
+  {
+    id: 'kpi-rsk-02',
+    code: 'KPI-RSK-02',
+    name: 'Issue & Blocker Impact Scoring on WBS Schedule',
+    category: 'Risk',
+    businessPurpose: 'Quantifies the direct schedule drag caused by open site blockers, technical RFIs, and safety stop-work notices on critical path activities.',
+    formula: 'Blocker Impact Days = Blocker Duration * Criticality Multiplier; Schedule Drag = Max(0, Blocker Impact Days - Activity Total Float)',
+    sourceTables: ['project_issues.is_blocker', 'project_issues.wbs_activity_id', 'wbs_activities.total_float'],
+    refreshTrigger: 'Real-time on blocker ticket logging or status transition.',
+    exclusions: 'Non-blocking advisory snags with positive float do not consume schedule contingency.',
+    ownerRole: 'Planning Engineer / Site Supervisor',
+    validationExample: {
+      project: 'PRJ-001 Padur (Tower Crane Breakdown Blocker)',
+      scenario: 'Blocker active for 5 days on Critical Path activity (Total Float = 0 days)',
+      calculation: '5 days * 1.0 (Critical) - 0 Float',
+      result: '5.0 Days Immediate Schedule Drag (+5 Days Milestone Slippage)'
     }
   },
   {

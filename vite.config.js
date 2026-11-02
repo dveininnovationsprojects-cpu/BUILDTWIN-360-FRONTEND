@@ -38,6 +38,16 @@ export default defineConfig({
           });
         },
       },
+      '/v3/api-docs': {
+        target: process.env.VITE_BACKEND_URL || 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/swagger-ui': {
+        target: process.env.VITE_BACKEND_URL || 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 });

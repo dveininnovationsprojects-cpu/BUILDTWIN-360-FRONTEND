@@ -547,7 +547,6 @@ export function BentoEvmDashboard({
                   <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
               <XAxis dataKey="milestone" stroke="#94a3b8" fontSize={11} tickLine={false} />
               <YAxis
                 stroke="#94a3b8"

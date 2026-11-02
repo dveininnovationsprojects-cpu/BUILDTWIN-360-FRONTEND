@@ -6,6 +6,12 @@ import { AnalyticsDataQualityModule } from './AnalyticsDataQualityModule';
 import { ProgressAnalyticsDatasetModule } from './ProgressAnalyticsDatasetModule';
 import { ProgressKpiAggregationModule } from './ProgressKpiAggregationModule';
 import { BaselineProgressDatasetModule } from './BaselineProgressDatasetModule';
+import { MaterialIntelligenceAnalyticsModule } from '@/modules/materials-inventory/components/MaterialIntelligenceAnalyticsModule';
+import { ProcurementLeadTimeAnalyticsModule } from '@/modules/procurement/components/ProcurementLeadTimeAnalyticsModule';
+import { EvmCostIntelligenceModule } from '@/modules/cost-control/components/EvmCostIntelligenceModule';
+import { QualityNcrDefectAnalyticsModule } from '@/modules/quality/components/QualityNcrDefectAnalyticsModule';
+import { ScheduleDelayRiskAnalyticsModule } from '@/modules/wbs-schedule/components/ScheduleDelayRiskAnalyticsModule';
+import { ProjectHealthIndexModule } from './ProjectHealthIndexModule';
 import { Layers, CheckCircle2, ListFilter, Grid, Eye } from 'lucide-react';
 
 export function AnalyticsFrameworkContainer() {
@@ -19,6 +25,12 @@ export function AnalyticsFrameworkContainer() {
     { id: 'MOD-05', num: '05', title: 'Progress Analytics Dataset Preparation & Validation', key: 'DATASET_PREP' },
     { id: 'MOD-06', num: '06', title: 'Progress KPI Dataset & Aggregation Validation', key: 'KPI_AGGREGATION' },
     { id: 'MOD-07', num: '07', title: 'Baseline Progress Dataset Structure & Validation', key: 'BASELINE_PROGRESS' },
+    { id: 'MOD-08', num: '08', title: 'Material Depletion, Wastage & Shortage Risk Scoring Engine', key: 'MATERIAL_INTELLIGENCE' },
+    { id: 'MOD-09', num: '09', title: 'Supplier OTD %, Rejection Rate & Procurement Lead-Time Models', key: 'SUPPLIER_LEADTIME' },
+    { id: 'MOD-10', num: '10', title: 'Earned Value Management (EVM), Cost Variance & Forecast at Completion (FAC) Engine', key: 'EVM_COST_INTELLIGENCE' },
+    { id: 'MOD-11', num: '11', title: 'Quality NCR Ageing, Defect Category & Severity Intelligence Suite', key: 'QUALITY_NCR_DEFECT' },
+    { id: 'MOD-12', num: '12', title: 'WBS Blocker Impact, Delay Risk Score (DRS) & Forecast Completion Date Engine', key: 'SCHEDULE_DELAY_RISK' },
+    { id: 'MOD-13', num: '13', title: 'Project Health Index (PHI) Executive Composite Score Engine', key: 'PROJECT_HEALTH_INDEX' },
   ];
 
   return (
@@ -29,12 +41,12 @@ export function AnalyticsFrameworkContainer() {
           <div>
             <div className="flex items-center gap-2">
               <span className="bg-emerald-500/20 text-emerald-300 font-mono text-xs px-2.5 py-0.5 rounded-full font-bold border border-emerald-500/30 flex items-center gap-1">
-                <CheckCircle2 className="h-3.5 w-3.5" /> 7 / 7 MODULES READY
+                <CheckCircle2 className="h-3.5 w-3.5" /> 13 / 13 MODULES READY
               </span>
-              <h2 className="text-xl font-bold text-white">BUILDTWIN 360 - Analytics & Metric Framework Specification</h2>
+              <h2 className="text-xl font-bold text-white">BUILDTWIN 360 - Analytics &amp; Metric Framework Specification</h2>
             </div>
             <p className="text-xs text-slate-300 mt-1">
-              Complete implementation of all 7 domain calculation, schema, governance, quality, and progress validation modules.
+              Complete implementation of all 13 domain calculation, schema, governance, quality, depletion, wastage, supplier SLA, EVM cost intelligence, defect Pareto, delay risk, and Project Health Index engines.
             </p>
           </div>
 
@@ -47,12 +59,12 @@ export function AnalyticsFrameworkContainer() {
                   : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
               }`}
             >
-              <Grid className="h-3.5 w-3.5" /> View All 7 Modules
+              <Grid className="h-3.5 w-3.5" /> View All 13 Modules
             </button>
           </div>
         </div>
 
-        {/* Horizontal Navigation Pills matching exact titles from image */}
+        {/* Horizontal Navigation Pills matching exact titles */}
         <div className="flex items-center gap-2 overflow-x-auto pt-4 pb-1">
           {modules.map((m) => (
             <button
@@ -86,6 +98,12 @@ export function AnalyticsFrameworkContainer() {
         {(activeTab === 'ALL' || activeTab === 'DATASET_PREP') && <ProgressAnalyticsDatasetModule />}
         {(activeTab === 'ALL' || activeTab === 'KPI_AGGREGATION') && <ProgressKpiAggregationModule />}
         {(activeTab === 'ALL' || activeTab === 'BASELINE_PROGRESS') && <BaselineProgressDatasetModule />}
+        {(activeTab === 'ALL' || activeTab === 'MATERIAL_INTELLIGENCE') && <MaterialIntelligenceAnalyticsModule />}
+        {(activeTab === 'ALL' || activeTab === 'SUPPLIER_LEADTIME') && <ProcurementLeadTimeAnalyticsModule />}
+        {(activeTab === 'ALL' || activeTab === 'EVM_COST_INTELLIGENCE') && <EvmCostIntelligenceModule />}
+        {(activeTab === 'ALL' || activeTab === 'QUALITY_NCR_DEFECT') && <QualityNcrDefectAnalyticsModule />}
+        {(activeTab === 'ALL' || activeTab === 'SCHEDULE_DELAY_RISK') && <ScheduleDelayRiskAnalyticsModule />}
+        {(activeTab === 'ALL' || activeTab === 'PROJECT_HEALTH_INDEX') && <ProjectHealthIndexModule />}
       </div>
     </div>
   );

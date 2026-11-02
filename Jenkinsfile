@@ -47,6 +47,21 @@ pipeline {
             post {
                 always {
                     junit allowEmptyResults: true, testResults: 'test-results/junit.xml'
+                    script {
+                        // Needs the "HTML Publisher" plugin; the build is not failed if it is missing
+                        try {
+                            publishHTML target: [
+                                reportName: 'Frontend Coverage',
+                                reportDir: 'coverage/lcov-report',
+                                reportFiles: 'index.html',
+                                keepAll: true,
+                                alwaysLinkToLastBuild: true,
+                                allowMissing: true
+                            ]
+                        } catch (err) {
+                            echo "Coverage report not published: ${err.message}"
+                        }
+                    }
                 }
             }
         }

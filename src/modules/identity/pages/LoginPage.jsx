@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Lock, User, Eye, EyeOff, ShieldCheck, AlertCircle, ArrowRight } from 'lucide-react';
 import { Button, Input } from '@/design-system';
-import { useAuthStore } from '@/context/authStore';
+import { useAuthStore, DEMO_ACCOUNTS, ROLE_LABELS } from '@/context/authStore';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
 
 export function LoginPage() {
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const login = useAuthStore((s) => s.login);
+  const loginAsRole = useAuthStore((s) => s.loginAsRole);
   const pushToast = useToastStore((s) => s.push);
 
   const [isSubmitting, setSubmitting] = useState(false);
@@ -81,6 +82,12 @@ export function LoginPage() {
   function fillAdminCredentials() {
     setValue('usernameOrEmail', 'admin', { shouldValidate: true });
     setValue('password', 'Admin@123', { shouldValidate: true });
+  }
+
+  function handleQuickRoleLogin(targetRole) {
+    const user = loginAsRole(targetRole);
+    pushToast(`Logged in as ${ROLE_LABELS[targetRole] || user.name}!`, 'success');
+    navigate('/dashboard', { replace: true });
   }
 
   return (
@@ -195,6 +202,29 @@ export function LoginPage() {
             <ShieldCheck className="h-3.5 w-3.5" />
             Fill Admin (Default)
           </button>
+        </div>
+
+        {/* Quick Demo Login for Role Dashboards */}
+        <div className="mt-3 border-t border-surface-border pt-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-ink-600">
+              Quick Role Login (Select Role Dashboard)
+            </span>
+            <span className="text-[10px] text-ink-400 font-semibold">10 Domain Roles</span>
+          </div>
+          <div className="grid grid-cols-2 gap-1.5 max-h-52 overflow-y-auto pr-0.5">
+            {DEMO_ACCOUNTS.map((acc) => (
+              <button
+                key={acc.role}
+                type="button"
+                onClick={() => handleQuickRoleLogin(acc.role)}
+                className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50/90 px-2 py-1.5 text-left text-xs font-medium text-slate-800 transition-all hover:border-brand-500 hover:bg-brand-50 hover:text-brand-800"
+              >
+                <span className="truncate">{ROLE_LABELS[acc.role] || acc.role}</span>
+                <span className="ml-1 text-[10px] text-brand-600 font-bold shrink-0">→</span>
+              </button>
+            ))}
+          </div>
         </div>
       </form>
     </div>

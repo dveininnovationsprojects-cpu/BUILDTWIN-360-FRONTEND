@@ -15,6 +15,7 @@ import {
   ClipboardList,
   Scale,
   ClipboardPen,
+  BrainCircuit,
 } from 'lucide-react';
 import { Table, Button } from '@/design-system';
 import { useToastStore } from '@/design-system/components/Toast/Toast';
@@ -33,6 +34,7 @@ import { StockLedgerAuditView } from '../components/StockLedgerAuditView';
 import { MaterialDetailsModal } from '../components/MaterialDetailsModal';
 import { MaterialRequestModal } from '../components/MaterialRequestModal';
 import { MaterialRequestsTab } from '../components/MaterialRequestsTab';
+import { MaterialIntelligenceAnalyticsModule } from '../components/MaterialIntelligenceAnalyticsModule';
 
 function StockBadge({ status }) {
   const isOut = status === 'OUT_OF_STOCK';
@@ -530,6 +532,13 @@ export function MaterialsInventoryListPage() {
             badgeVariant: 'warning',
           },
           { id: 'reconciliation', label: 'Stock Audit', icon: Scale },
+          {
+            id: 'intelligence',
+            label: 'Depletion, Wastage & Shortage Intelligence',
+            icon: BrainCircuit,
+            badge: '3 Models',
+            badgeVariant: 'neutral',
+          },
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -755,6 +764,9 @@ export function MaterialsInventoryListPage() {
           </div>
         </div>
       )}
+
+      {/* Tab 5: Material Depletion, Wastage & Shortage Intelligence Engine */}
+      {activeTab === 'intelligence' && <MaterialIntelligenceAnalyticsModule />}
 
       {/* Modals */}
       <MaterialFormModal

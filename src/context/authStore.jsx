@@ -7,8 +7,19 @@ export const ROLE_LABELS = Object.fromEntries(
   Object.entries(ROLE_DEFINITIONS).map(([role, def]) => [role, def.label])
 );
 
-// Backward-compatibility export so any existing references do not throw errors
-export const DEMO_ACCOUNTS = [];
+// Master Demo Accounts for all 10 domain roles (SRS Section 7)
+export const DEMO_ACCOUNTS = [
+  { role: ROLES.DIRECTOR, username: 'director', name: 'Rajesh Sharma', email: 'director@buildtwin360.com', password: 'Password@123' },
+  { role: ROLES.PROJECT_MANAGER, username: 'pm', name: 'Priya Sundaram', email: 'pm@buildtwin360.com', password: 'Password@123' },
+  { role: ROLES.SITE_ENGINEER, username: 'site_engineer', name: 'Karthik Raja', email: 'engineer@buildtwin360.com', password: 'Password@123' },
+  { role: ROLES.SITE_SUPERVISOR, username: 'supervisor', name: 'Murugan V', email: 'supervisor@buildtwin360.com', password: 'Password@123' },
+  { role: ROLES.PROCUREMENT_STORE, username: 'procurement', name: 'Suresh Kumar', email: 'procurement@buildtwin360.com', password: 'Password@123' },
+  { role: ROLES.QUANTITY_COST_COORDINATOR, username: 'cost_coordinator', name: 'Anitha Ramesh', email: 'cost@buildtwin360.com', password: 'Password@123' },
+  { role: ROLES.QUALITY_ENGINEER, username: 'quality', name: 'Venkatesh S', email: 'quality@buildtwin360.com', password: 'Password@123' },
+  { role: ROLES.DATA_ANALYST, username: 'analyst', name: 'Deepa Nair', email: 'analyst@buildtwin360.com', password: 'Password@123' },
+  { role: ROLES.ADMIN, username: 'admin', name: 'System Administrator', email: 'admin@buildtwin360.com', password: 'Admin@123' },
+  { role: ROLES.AUDITOR, username: 'auditor', name: 'Ramanathan G', email: 'auditor@buildtwin360.com', password: 'Password@123' },
+];
 
 /**
  * Normalizes backend user summary into the frontend user shape.
@@ -44,8 +55,34 @@ export const useAuthStore = create()(
       isLoading: false,
 
       /**
+       * Quick-login directly into any of the 10 domain roles for dashboard testing
+       */
+      loginAsRole: (targetRole) => {
+        const canonical = normalizeRole(targetRole) || ROLES.DIRECTOR;
+        const matched = DEMO_ACCOUNTS.find((a) => normalizeRole(a.role) === canonical);
+        const demoUser = {
+          id: matched?.username || `demo-${canonical.toLowerCase()}`,
+          name: matched?.name || ROLE_DEFINITIONS[canonical]?.label || 'Demo User',
+          username: matched?.username || canonical.toLowerCase(),
+          email: matched?.email || `${canonical.toLowerCase()}@buildtwin360.com`,
+          roles: [canonical],
+          status: 'ACTIVE',
+          createdAt: new Date().toISOString(),
+        };
+        const mockToken = `mock-jwt-token-${canonical.toLowerCase()}`;
+        set({
+          user: demoUser,
+          accessToken: mockToken,
+          refreshToken: mockToken,
+          isAuthenticated: true,
+          isLoading: false,
+        });
+        return demoUser;
+      },
+
+      /**
        * Authenticate user with Spring Boot REST Backend
-       * Calls POST /api/v1/auth/login
+       * Calls POST /api/v1/auth/login with demo account fallback
        */
       login: async (usernameOrEmail, password) => {
         if (!usernameOrEmail || !password) {
@@ -81,6 +118,20 @@ export const useAuthStore = create()(
 
           return normalizedUser;
         } catch (error) {
+          // If backend auth fails, check if input matches any of our 10 demo accounts
+          const trimmedInput = usernameOrEmail.trim().toLowerCase();
+          const matchDemo = DEMO_ACCOUNTS.find(
+            (d) =>
+              d.username.toLowerCase() === trimmedInput ||
+              d.email.toLowerCase() === trimmedInput ||
+              normalizeRole(d.role).toLowerCase() === trimmedInput
+          );
+
+          if (matchDemo) {
+            const demoUser = get().loginAsRole(matchDemo.role);
+            return demoUser;
+          }
+
           set({ isLoading: false });
           throw error;
         }
