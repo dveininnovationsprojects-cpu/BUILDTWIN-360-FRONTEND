@@ -8,7 +8,7 @@ const MOCK_REPORTS = [
 
 let currentReports = [...MOCK_REPORTS];
 
-// Simulated client-side store for reports (FR-130..135)
+// Executive Reports & Analytics API (Backend Integration & Local Store)
 export const reportsApi = {
   list: async () => [...currentReports],
   getById: async (id) => currentReports.find((r) => r.id === id) || currentReports[0],
@@ -21,6 +21,50 @@ export const reportsApi = {
     currentReports = currentReports.map((r) => (r.id === id ? { ...r, ...payload } : r));
     return { id, ...payload };
   },
+
+  // Backend Epic 7 Executive Reports endpoints
+  getWeeklyReport: async (projectId = 1, weekNumber = 10) => {
+    try {
+      const res = await apiClient.get(`/reports/weekly/${projectId}`, { params: { weekNumber } });
+      return res.data?.data ?? res.data;
+    } catch (_err) {
+      return null;
+    }
+  },
+
+  getInventoryReport: async (projectId = 1) => {
+    try {
+      const res = await apiClient.get(`/reports/inventory/${projectId}`);
+      return res.data?.data ?? res.data;
+    } catch (_err) {
+      return null;
+    }
+  },
+
+  getProcurementLabourReport: async (projectId = 1) => {
+    try {
+      const res = await apiClient.get(`/reports/procurement-labour/${projectId}`);
+      return res.data?.data ?? res.data;
+    } catch (_err) {
+      return null;
+    }
+  },
+
+  getCostQualityReport: async (projectId = 1) => {
+    try {
+      const res = await apiClient.get(`/reports/cost-quality/${projectId}`);
+      return res.data?.data ?? res.data;
+    } catch (_err) {
+      return null;
+    }
+  },
+
+  getAnalyticsAggregation: async (projectId = 1) => {
+    try {
+      const res = await apiClient.get(`/reports/analytics/${projectId}`);
+      return res.data?.data ?? res.data;
+    } catch (_err) {
+      return null;
+    }
+  },
 };
-
-

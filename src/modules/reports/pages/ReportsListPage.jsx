@@ -6,6 +6,8 @@ import { useToastStore } from '@/design-system/components/Toast/Toast';
 import { useHasRole } from '@/context/authStore';
 import { ROLES } from '@/constants/roles';
 import { reportsApi } from '../api/reportsApi';
+import { ModulePageHeading } from '@/design-system/components/ModulePageHeading/ModulePageHeading';
+
 
 // Executive/project/site dashboards and scheduled/exportable reports (FR-130..135).
 export function ReportsListPage() {
@@ -107,4 +109,3 @@ export function ReportsListPage() {
     </div>
   );
 }
-import { ModulePageHeading } from '@/design-system/components/ModulePageHeading/ModulePageHeading';
