@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Modal, Button } from '@/design-system';
 import { Printer, Download, FileText, CheckCircle2, AlertTriangle, Building2, Calendar, ShieldCheck } from 'lucide-react';
 import { formatCurrency } from '@/modules/projects/constants';
+import { generateExecutiveReportPdf } from '../utils/reportPdfGenerator';
 
 export function ReportExportModal({
   open,
@@ -9,10 +10,28 @@ export function ReportExportModal({
   report,
   liveData,
 }) {
+  const [isDownloading, setIsDownloading] = useState(false);
   if (!report && !liveData) return null;
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadPdf = async () => {
+    setIsDownloading(true);
+    try {
+      await generateExecutiveReportPdf({
+        project: { name: weekly?.projectName, code: weekly?.projectCode },
+        weekNumber: weekly?.weekNumber || 10,
+        analytics,
+        weekly,
+        inventory: inv,
+        procLabour: proc,
+        costQuality: cost,
+      });
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const weekly = liveData?.weekly;
@@ -36,9 +55,19 @@ export function ReportExportModal({
             <Button variant="outline" size="sm" onClick={onClose}>
               Close
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadPdf}
+              isLoading={isDownloading}
+              className="flex items-center gap-1.5"
+            >
+              <Download className="h-4 w-4" />
+              Download PDF
+            </Button>
             <Button size="sm" onClick={handlePrint} className="flex items-center gap-1.5">
               <Printer className="h-4 w-4" />
-              Print / Save as PDF
+              Print / Save
             </Button>
           </div>
         </div>

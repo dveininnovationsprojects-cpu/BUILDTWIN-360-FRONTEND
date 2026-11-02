@@ -32,6 +32,7 @@ import { ProcurementLabourReportTab } from '../components/ProcurementLabourRepor
 import { CostQualityReportTab } from '../components/CostQualityReportTab';
 import { ReportArchiveTab } from '../components/ReportArchiveTab';
 import { ReportExportModal } from '../components/ReportExportModal';
+import { generateExecutiveReportPdf } from '../utils/reportPdfGenerator';
 
 export function ReportsListPage() {
   const queryClient = useQueryClient();
@@ -179,16 +180,42 @@ export function ReportsListPage() {
     });
   };
 
-  // Quick Snapshot Save
-  const handleSaveCurrentSnapshot = () => {
-    const defaultName = `Executive Snapshot - ${selectedProject?.name || 'Project'} (Week ${selectedWeek})`;
-    createReportMutation.mutate({
-      name: defaultName,
-      period: `Week ${selectedWeek} Snapshot`,
-      format: 'PDF Document',
-      type: 'WEEKLY',
-      author: 'Director / Management',
-    });
+  // State for PDF generation progress
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
+  // Quick Snapshot Save & PDF Download
+  const handleSaveCurrentSnapshot = async () => {
+    setIsGeneratingPdf(true);
+    try {
+      const defaultName = `Executive Snapshot - ${selectedProject?.name || 'Padur Project'} (Week ${selectedWeek})`;
+
+      // 1. Generate & download the official executive PDF
+      const filename = await generateExecutiveReportPdf({
+        project: selectedProject,
+        weekNumber: selectedWeek,
+        analytics: analyticsData,
+        weekly: weeklyData,
+        inventory: inventoryData,
+        procLabour: procLabourData,
+        costQuality: costQualityData,
+      });
+
+      // 2. Persist record to archive history
+      await createReportMutation.mutateAsync({
+        name: defaultName,
+        period: `Week ${selectedWeek} Snapshot`,
+        format: 'PDF Document',
+        type: 'WEEKLY',
+        author: 'Director / Management',
+      });
+
+      pushToast(`Executive PDF downloaded successfully (${filename}) & saved to archive!`, 'success');
+    } catch (err) {
+      console.error('Failed to generate PDF snapshot:', err);
+      pushToast('Failed to generate PDF snapshot.', 'error');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   // Open Preview Modal
@@ -203,33 +230,50 @@ export function ReportsListPage() {
   };
 
   // Download Report Action
-  const handleDownloadReport = (report) => {
-    // Generate a simple CSV/JSON or browser print
-    const content = JSON.stringify(
-      {
-        report: report.name,
-        project: selectedProject?.name,
-        period: report.period,
-        generatedAt: report.generatedAt,
-        weeklySummary: weeklyData,
-        analytics: analyticsData,
-        costQuality: costQualityData,
-        inventory: inventoryData,
-        procurementLabour: procLabourData,
-      },
-      null,
-      2
-    );
-    const blob = new Blob([content], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${report.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    pushToast(`Export downloaded: ${report.name}`, 'success');
+  const handleDownloadReport = async (report) => {
+    try {
+      if (report.format?.includes('PDF') || !report.format?.includes('Excel')) {
+        await generateExecutiveReportPdf({
+          project: selectedProject,
+          weekNumber: selectedWeek,
+          analytics: analyticsData,
+          weekly: weeklyData,
+          inventory: inventoryData,
+          procLabour: procLabourData,
+          costQuality: costQualityData,
+        });
+        pushToast(`Report PDF downloaded: ${report.name}`, 'success');
+      } else {
+        const content = JSON.stringify(
+          {
+            report: report.name,
+            project: selectedProject?.name,
+            period: report.period,
+            generatedAt: report.generatedAt,
+            weeklySummary: weeklyData,
+            analytics: analyticsData,
+            costQuality: costQualityData,
+            inventory: inventoryData,
+            procurementLabour: procLabourData,
+          },
+          null,
+          2
+        );
+        const blob = new Blob([content], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${report.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        pushToast(`Export downloaded: ${report.name}`, 'success');
+      }
+    } catch (err) {
+      console.error('Download failed:', err);
+      pushToast('Failed to download report.', 'error');
+    }
   };
 
   return (
@@ -273,6 +317,7 @@ export function ReportsListPage() {
         isRefreshing={isRefetchingAnalytics}
         onPrint={() => handleOpenPrintPreview()}
         onExport={handleSaveCurrentSnapshot}
+        isGeneratingPdf={isGeneratingPdf}
       />
 
       {/* 5 Tab Navigation Bar */}

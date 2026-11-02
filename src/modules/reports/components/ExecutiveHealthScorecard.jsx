@@ -23,6 +23,7 @@ export function ExecutiveHealthScorecard({
   isRefreshing,
   onPrint,
   onExport,
+  isGeneratingPdf,
 }) {
   const score = analytics?.compositeHealthScore ?? 75;
   const overallStatus = analytics?.overallHealthStatus ?? 'GOOD';
@@ -125,7 +126,9 @@ export function ExecutiveHealthScorecard({
           <Button
             size="sm"
             onClick={onExport}
+            isLoading={isGeneratingPdf}
             className="flex items-center gap-1.5 shadow-sm"
+            title="Download executive details as PDF and save snapshot"
           >
             <Download className="h-3.5 w-3.5" />
             Save Snapshot
