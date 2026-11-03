@@ -30,12 +30,22 @@ export function Topbar({ onMenuToggle }) {
     let isMounted = true;
     async function checkHealth() {
       try {
-        const res = await fetch('/v3/api-docs', { method: 'GET' });
+        let res = null;
+        try {
+          res = await fetch('/api/v1/health', { method: 'GET' });
+        } catch {
+          try {
+            res = await fetch('/swagger-ui.html', { method: 'GET' });
+          } catch {
+            res = await fetch('/v3/api-docs', { method: 'GET' });
+          }
+        }
+
         if (isMounted) {
-          if (res.ok) {
+          if (res && res.ok) {
             setBackendStatus({ online: true, checked: true, details: 'Spring Boot 3.0 Connected (PostgreSQL :8080)' });
           } else {
-            setBackendStatus({ online: false, checked: true, details: `Backend status: ${res.status}` });
+            setBackendStatus({ online: false, checked: true, details: `Backend status: ${res?.status ?? 'unavailable'}` });
           }
         }
       } catch {

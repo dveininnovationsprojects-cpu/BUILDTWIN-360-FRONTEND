@@ -575,6 +575,8 @@ export function ProgressDprListPage() {
                   deleteMutation.mutate(deletingDpr.id, {
                     onSuccess: () => {
                       queryClient.invalidateQueries({ queryKey: ['progress-dpr'] });
+                      queryClient.invalidateQueries({ queryKey: ['dpr-summary'] });
+                      queryClient.invalidateQueries({ queryKey: ['project-progress-history'] });
                       pushToast('DPR deleted successfully.', 'success');
                       setDeletingDpr(null);
                     },

@@ -37,6 +37,7 @@ export default {
         },
         surface: {
           base: '#FFFFFF',
+          card: '#FFFFFF',
           subtle: '#F7F9FC',
           muted: '#EDF1F7',
           border: '#E2E8F0',

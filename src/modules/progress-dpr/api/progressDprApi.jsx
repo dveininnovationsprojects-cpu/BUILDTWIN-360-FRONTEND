@@ -2,6 +2,27 @@ import { apiClient } from '@/lib/apiClient';
 import { SAMPLE_DPR_PHOTOS } from '../utils/dprSamplePhotos';
 
 const LOCAL_DPR_KEY = 'buildtwin.dpr.local';
+const DELETED_DPR_KEY = 'buildtwin.dpr.deleted_ids';
+
+export function getDeletedDprIds() {
+  try {
+    const raw = localStorage.getItem(DELETED_DPR_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return new Set(Array.isArray(arr) ? arr.map(String) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+export function markDprDeleted(id) {
+  try {
+    const set = getDeletedDprIds();
+    set.add(String(id));
+    localStorage.setItem(DELETED_DPR_KEY, JSON.stringify([...set]));
+  } catch {
+    // ignore
+  }
+}
 
 const FALLBACK_DPRS = [
   {
@@ -79,17 +100,26 @@ const FALLBACK_DPRS = [
 ];
 
 function getStoredDprs() {
+  const deletedIds = getDeletedDprIds();
   try {
-    const stored = JSON.parse(localStorage.getItem(LOCAL_DPR_KEY) || '[]');
-    return Array.isArray(stored) && stored.length > 0 ? stored : FALLBACK_DPRS;
+    const raw = localStorage.getItem(LOCAL_DPR_KEY);
+    if (raw !== null) {
+      const stored = JSON.parse(raw);
+      if (Array.isArray(stored)) {
+        return stored.filter((d) => !deletedIds.has(String(d.id)));
+      }
+    }
   } catch {
-    return FALLBACK_DPRS;
+    // ignore
   }
+  return FALLBACK_DPRS.filter((d) => !deletedIds.has(String(d.id)));
 }
 
 function saveStoredDprs(records) {
   try {
-    localStorage.setItem(LOCAL_DPR_KEY, JSON.stringify(records));
+    const deletedIds = getDeletedDprIds();
+    const filtered = (records || []).filter((d) => !deletedIds.has(String(d.id)));
+    localStorage.setItem(LOCAL_DPR_KEY, JSON.stringify(filtered));
   } catch {
     // ignore
   }
@@ -184,10 +214,13 @@ export const progressDprApi = {
   // =========================================================================
 
   async list(projectId = 1, params = {}) {
+    const deletedIds = getDeletedDprIds();
     try {
       const res = await apiClient.get(`/projects/${projectId}/dpr`, { params });
       const rawList = res.data?.data ?? res.data ?? [];
-      const backendDprs = (Array.isArray(rawList) ? rawList : []).map(normaliseBackendDpr);
+      const backendDprs = (Array.isArray(rawList) ? rawList : [])
+        .filter((d) => !deletedIds.has(String(d.id)))
+        .map(normaliseBackendDpr);
 
       // Merge with stored local items so uploaded photos and draft quantities are preserved
       const local = getStoredDprs().map(normaliseBackendDpr);
@@ -220,6 +253,9 @@ export const progressDprApi = {
   },
 
   async getById(id) {
+    if (getDeletedDprIds().has(String(id))) {
+      return null;
+    }
     try {
       const res = await apiClient.get(`/dpr/${id}`);
       const dpr = normaliseBackendDpr(res.data?.data ?? res.data);
@@ -232,7 +268,7 @@ export const progressDprApi = {
       return dpr;
     } catch (_err) {
       const stored = getStoredDprs().map(normaliseBackendDpr);
-      return stored.find((d) => String(d.id) === String(id)) || stored[0];
+      return stored.find((d) => String(d.id) === String(id)) || null;
     }
   },
 
@@ -456,13 +492,21 @@ export const progressDprApi = {
   },
 
   async delete(id) {
-    try {
-      await apiClient.delete(`/dpr/${id}`);
-    } catch (_err) {
-      // ignore
-    }
+    markDprDeleted(id);
     const local = getStoredDprs().filter((d) => String(d.id) !== String(id));
     saveStoredDprs(local);
+
+    const isLocalOnly = typeof id === 'string' && id.startsWith('dpr-');
+    if (!isLocalOnly) {
+      try {
+        await apiClient.delete(`/dpr/${id}`);
+      } catch (err) {
+        console.warn('Backend DPR delete returned an error:', err);
+        if (err?.response?.status && err.response.status !== 404) {
+          throw err;
+        }
+      }
+    }
     return true;
   },
 

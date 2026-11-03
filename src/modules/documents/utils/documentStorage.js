@@ -31,9 +31,9 @@ function openDatabase() {
         }
       };
 
-      request.onsuccess = () => {
+      request.onsuccess = (event) => {
         clearTimeout(timeout);
-        resolve(request.target.result);
+        resolve(event?.target?.result || request?.result || null);
       };
 
       request.onerror = () => {

@@ -53,7 +53,6 @@ export function LoginPage() {
       const user = await login(loginId, pass);
       pushToast(`Welcome back, ${user.name || user.username}!`, 'success');
       navigate('/dashboard', { replace: true });
-      reset();
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Invalid credentials. Please try again.';
 
@@ -67,6 +66,12 @@ export function LoginPage() {
         setStatusNotice({
           type: 'error',
           title: 'Account Inactive',
+          message: errorMsg,
+        });
+      } else {
+        setStatusNotice({
+          type: 'error',
+          title: 'Authentication Failed',
           message: errorMsg,
         });
       }
@@ -119,7 +124,7 @@ export function LoginPage() {
               spellCheck="false"
               placeholder="e.g. admin or rajesh_kumar"
               disabled={isSubmitting}
-              className={`w-full rounded-lg border bg-surface-card py-2 pl-9 pr-3 text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 ${
+              className={`w-full rounded-lg border bg-white py-2.5 pl-9 pr-3 text-sm font-medium text-ink-900 placeholder:text-ink-400 shadow-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 disabled:opacity-60 ${
                 errors.usernameOrEmail ? 'border-rose-500' : 'border-surface-border'
               }`}
               {...register('usernameOrEmail', {
@@ -149,7 +154,7 @@ export function LoginPage() {
               spellCheck="false"
               placeholder="Enter your account password"
               disabled={isSubmitting}
-              className={`w-full rounded-lg border bg-surface-card py-2 pl-9 pr-10 text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 ${
+              className={`w-full rounded-lg border bg-white py-2.5 pl-9 pr-10 text-sm font-medium text-ink-900 placeholder:text-ink-400 shadow-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 disabled:opacity-60 ${
                 errors.password ? 'border-rose-500' : 'border-surface-border'
               }`}
               {...register('password', {

@@ -127,7 +127,7 @@ export function RegisterPage() {
             spellCheck="false"
             placeholder="e.g. rajesh_kumar"
             disabled={isSubmitting}
-            className={`w-full rounded-lg border bg-surface-card py-2 pl-9 pr-3 text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 ${
+            className={`w-full rounded-lg border bg-white py-2.5 pl-9 pr-3 text-sm font-medium text-ink-900 placeholder:text-ink-400 shadow-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 disabled:opacity-60 ${
               errors.username ? 'border-rose-500' : 'border-surface-border'
             }`}
             {...register('username', {
@@ -162,7 +162,7 @@ export function RegisterPage() {
             spellCheck="false"
             placeholder="e.g. rajesh@ashokbuilders.com"
             disabled={isSubmitting}
-            className={`w-full rounded-lg border bg-surface-card py-2 pl-9 pr-3 text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 ${
+            className={`w-full rounded-lg border bg-white py-2.5 pl-9 pr-3 text-sm font-medium text-ink-900 placeholder:text-ink-400 shadow-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 disabled:opacity-60 ${
               errors.email ? 'border-rose-500' : 'border-surface-border'
             }`}
             {...register('email', {
@@ -208,7 +208,7 @@ export function RegisterPage() {
             spellCheck="false"
             placeholder="At least 6 characters"
             disabled={isSubmitting}
-            className={`w-full rounded-lg border bg-surface-card py-2 pl-9 pr-10 text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 ${
+            className={`w-full rounded-lg border bg-white py-2.5 pl-9 pr-10 text-sm font-medium text-ink-900 placeholder:text-ink-400 shadow-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 disabled:opacity-60 ${
               errors.password ? 'border-rose-500' : 'border-surface-border'
             }`}
             {...register('password', {
@@ -244,7 +244,7 @@ export function RegisterPage() {
             autoComplete="new-password"
             placeholder="Confirm your password"
             disabled={isSubmitting}
-            className={`w-full rounded-lg border bg-surface-card py-2 pl-9 pr-10 text-sm text-ink-900 placeholder:text-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-60 ${
+            className={`w-full rounded-lg border bg-white py-2.5 pl-9 pr-10 text-sm font-medium text-ink-900 placeholder:text-ink-400 shadow-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 disabled:opacity-60 ${
               errors.confirmPassword ? 'border-rose-500' : 'border-surface-border'
             }`}
             {...register('confirmPassword', {

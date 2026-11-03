@@ -269,6 +269,16 @@ apiClient.interceptors.response.use(
     const original = error.config;
     const status = error.response?.status;
 
+    const url = original?.url || '';
+    // CRITICAL: NEVER intercept authentication endpoints (/auth/login, /auth/register)
+    // When credentials are wrong, report the error directly so the UI displays clear feedback.
+    if (url.includes('/auth/login') || url.includes('/auth/register')) {
+      if (error.response?.data?.message) {
+        error.message = error.response.data.message;
+      }
+      return Promise.reject(error);
+    }
+
     // Handle authentication / authorization recovery on 401 or 403
     if ((status === 401 || status === 403) && original && !original._retry) {
       original._retry = true;
