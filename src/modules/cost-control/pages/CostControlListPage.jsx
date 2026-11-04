@@ -147,14 +147,14 @@ export function CostControlListPage() {
     queryKey: ['cost-control', projectId],
     queryFn: () => costControlApi.list(projectId),
     enabled: !!projectId,
-    select: (items) => items.map(normaliseBudget),
+    select: (items) => (Array.isArray(items) ? items : []).map(normaliseBudget),
   });
 
   const transactionsQuery = useQuery({
     queryKey: ['cost-transactions', projectId],
     queryFn: () => costTransactionApi.list(projectId),
     enabled: !!projectId,
-    select: (items) => items.map(normaliseTransaction),
+    select: (items) => (Array.isArray(items) ? items : []).map(normaliseTransaction),
   });
 
   const varianceQuery = useQuery({

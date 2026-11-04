@@ -39,7 +39,7 @@ export const NAV_ITEMS = [
   { key: 'issues-risks', label: 'Issues & Risks', to: '/issues', icon: AlertTriangle },
   { key: 'equipment', label: 'Equipment', to: '/equipment', icon: Wrench },
   { key: 'documents', label: 'Documents', to: '/documents', icon: FolderOpen },
-  { key: 'notifications', label: 'Notifications', to: '/notifications', icon: Bell },
+
   {
     key: 'analytics',
     label: 'Construction Intelligence',

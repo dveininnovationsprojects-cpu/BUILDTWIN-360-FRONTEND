@@ -853,7 +853,7 @@ export function ProcurementLeadTimeAnalyticsModule() {
                         ₹{c.amount.toLocaleString('en-IN')}
                       </td>
                       <td className="p-3 text-center">
-                        <StatusPill tone={c.statusTone}>{c.status}</StatusPill>
+                        <StatusPill tone={c.statusTone} status={c.status}>{c.status}</StatusPill>
                       </td>
                       <td className="p-3 text-right font-mono font-bold text-rose-600">
                         {c.ldPenalty > 0 ? `₹${c.ldPenalty.toLocaleString('en-IN')}` : '₹0'}

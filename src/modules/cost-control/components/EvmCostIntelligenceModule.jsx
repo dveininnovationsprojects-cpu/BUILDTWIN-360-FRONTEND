@@ -132,7 +132,7 @@ export function EvmCostIntelligenceModule() {
     const ev = parseFloat(simEv) || 0;
     const ac = parseFloat(simAc) || 0;
     if (ac === 0) {
-      return { cpi: 1.0, status: 'On Budget', efficiencyPct: 100, costPerUnit: 1.0 };
+      return { cpi: 1.0, status: 'On Budget', tone: 'info', efficiencyPct: 100, costPerUnit: 1.0 };
     }
     const cpi = ev / ac;
     const efficiencyPct = (cpi * 100).toFixed(1);
@@ -508,7 +508,7 @@ export function EvmCostIntelligenceModule() {
                     </p>
                   </div>
                 </div>
-                <StatusPill tone={cpiResult.tone}>{cpiResult.status}</StatusPill>
+                <StatusPill tone={cpiResult.tone} status={cpiResult.status}>{cpiResult.status}</StatusPill>
               </div>
 
               {/* Formula Blueprint Box */}
@@ -679,7 +679,7 @@ export function EvmCostIntelligenceModule() {
                     </p>
                   </div>
                 </div>
-                <StatusPill tone={cvEngineResult.cvTone}>{cvEngineResult.cvRating}</StatusPill>
+                <StatusPill tone={cvEngineResult.cvTone} status={cvEngineResult.cvRating}>{cvEngineResult.cvRating}</StatusPill>
               </div>
 
               {/* Mathematical Blueprint */}
@@ -1216,7 +1216,7 @@ export function EvmCostIntelligenceModule() {
                       </td>
                       <td className="p-3 text-center font-mono text-slate-700">{pkg.tcpi}</td>
                       <td className="p-3 text-center">
-                        <StatusPill tone={pkg.tone}>{pkg.status}</StatusPill>
+                        <StatusPill tone={pkg.tone} status={pkg.status}>{pkg.status}</StatusPill>
                       </td>
                     </tr>
                   ))}
